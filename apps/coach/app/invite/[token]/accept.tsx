@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
 
 /**
@@ -40,6 +40,35 @@ export function AcceptInvite({
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
+  /*
+    Ist hier schon jemand angemeldet — und wenn ja, unter welcher
+    Adresse?
+
+    Wer bereits unter der eingeladenen Adresse angemeldet ist, braucht
+    sein Passwort nicht noch einmal. Dieser Fall entsteht nicht nur beim
+    Testen: Ein Athlet, der seine Einladung schon halb angenommen hat
+    oder den Link ein zweites Mal oeffnet, sitzt genau davor. Ihn nach
+    einem Passwort zu fragen, das die App gerade nicht braucht, ist eine
+    Huerde ohne Zweck — und er hat es womoeglich gerade erst gesetzt.
+  */
+  const [angemeldetAls, setAngemeldetAls] = useState<string | null>(null);
+
+  useEffect(() => {
+    let aktiv = true;
+    createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (aktiv) setAngemeldetAls(data.user?.email?.toLowerCase() ?? null);
+      });
+    return () => {
+      aktiv = false;
+    };
+  }, []);
+
+  const passt =
+    angemeldetAls !== null &&
+    angemeldetAls === (email.trim().toLowerCase() || null);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -63,12 +92,11 @@ export function AcceptInvite({
       Link und kein Grund, jemanden hinauszuwerfen.
     */
     const { data: bisher } = await db.auth.getUser();
-    if (
-      bisher.user &&
-      (bisher.user.email ?? "").toLowerCase() !== adresse
-    ) {
-      await db.auth.signOut();
-    }
+    const schonDrin =
+      bisher.user !== null &&
+      (bisher.user.email ?? "").toLowerCase() === adresse;
+
+    if (bisher.user && !schonDrin) await db.auth.signOut();
 
     /*
       Erst anlegen, bei Misserfolg anmelden.
@@ -77,11 +105,16 @@ export function AcceptInvite({
       mit falschem Passwort zählt bei Supabase gegen die Sperre, ein
       Registrierungsversuch auf eine vorhandene Adresse nicht.
     */
-    const signUp = await db.auth.signUp({
-      email: adresse,
-      password,
-      options: { data: { role: "athlete", full_name: clientName } },
-    });
+    // Schon unter dieser Adresse angemeldet: nichts zu tun, direkt
+    // verknüpfen. Ein Passwort abzufragen, das die App nicht braucht,
+    // wäre eine Hürde ohne Zweck.
+    const signUp = schonDrin
+      ? { error: null }
+      : await db.auth.signUp({
+          email: adresse,
+          password,
+          options: { data: { role: "athlete", full_name: clientName } },
+        });
 
     if (signUp.error) {
       const signIn = await db.auth.signInWithPassword({
@@ -187,22 +220,36 @@ export function AcceptInvite({
         </p>
       )}
 
-      <label style={{ display: "grid", gap: 6 }}>
-        <span className="pt-label">
-          {bereitsVerknuepft ? "Dein Passwort" : "Passwort wählen"}
-        </span>
-        <input
-          type="password"
-          required
-          minLength={8}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={
-            bereitsVerknuepft ? undefined : "mindestens 8 Zeichen"
-          }
-          autoComplete={bereitsVerknuepft ? "current-password" : "new-password"}
-        />
-      </label>
+      {passt ? (
+        <p
+          style={{
+            margin: 0,
+            fontSize: "var(--pt-fs-base)",
+            color: "var(--pt-text-dim)",
+            lineHeight: 1.55,
+          }}
+        >
+          Du bist bereits unter dieser Adresse angemeldet — kein Passwort
+          nötig.
+        </p>
+      ) : (
+        <label style={{ display: "grid", gap: 6 }}>
+          <span className="pt-label">
+            {bereitsVerknuepft ? "Dein Passwort" : "Passwort wählen"}
+          </span>
+          <input
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={bereitsVerknuepft ? undefined : "mindestens 8 Zeichen"}
+            autoComplete={
+              bereitsVerknuepft ? "current-password" : "new-password"
+            }
+          />
+        </label>
+      )}
 
       {error && (
         <div>
@@ -235,7 +282,13 @@ export function AcceptInvite({
       )}
 
       <button type="submit" className="pt-btn" disabled={busy}>
-        {busy ? "Moment …" : bereitsVerknuepft ? "Anmelden" : "Konto anlegen"}
+        {busy
+          ? "Moment …"
+          : passt
+            ? "Einladung annehmen"
+            : bereitsVerknuepft
+              ? "Anmelden"
+              : "Konto anlegen"}
       </button>
     </form>
   );
