@@ -23,7 +23,7 @@
  *     node apps/coach/check-scale.mjs
  */
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,11 +56,41 @@ if (TOKENS.length < 5) {
   process.exit(2);
 }
 
+/*
+  Die eine erlaubte Ausnahme.
+
+  `app/global-error.tsx` greift, wenn das Grundgeruest selbst
+  weggebrochen ist — Layout, Splash, Toaster. In dem Moment ist die
+  Annahme, das Stylesheet sei geladen, genau eine Annahme zu viel: Eine
+  Notfallseite, die ihrerseits von etwas abhaengt, ist keine. Deshalb
+  steht dort jede Groesse als Zahl im Markup.
+
+  Bewusst eine feste Liste und kein Kommentarschalter im Code: Ein
+  Schalter, den man an jede Datei schreiben kann, wandert mit dem ersten
+  Termindruck durch die halbe App. Diese Liste muss man hier aendern,
+  und dabei faellt einem auf, was man tut.
+*/
+const AUSNAHMEN = ["app/global-error.tsx"];
+
+// Selbstpruefung fuer die Ausnahmen: Verschwindet eine Datei oder wird
+// sie umbenannt, steht hier sonst stillschweigend eine Regel, die nichts
+// mehr abdeckt — und beim naechsten Anlegen greift sie versehentlich.
+for (const pfad of AUSNAHMEN) {
+  if (!existsSync(join(HIER, pfad))) {
+    console.error(
+      `  FEHLER im Pruefer: Ausnahme "${pfad}" gibt es nicht mehr.\n` +
+        "  Entweder die Datei wurde umbenannt oder die Liste ist veraltet.",
+    );
+    process.exit(2);
+  }
+}
+
 const funde = [];
 const benutzt = new Set();
 
 // ---------- TSX: fontSize: 13.5 ----------
 for (const datei of dateien(APP, [".ts", ".tsx"])) {
+  if (AUSNAHMEN.includes(relative(HIER, datei))) continue;
   readFileSync(datei, "utf8")
     .split("\n")
     .forEach((zeile, i) => {

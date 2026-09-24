@@ -1,17 +1,57 @@
 # Testlauf
 
-Durchgang durch alles, was seit dem Plan-Builder dazugekommen ist.
-Abschnitte 0 bis 6 sind der Grundlauf (etwa 15 Minuten), 7 bis 11 decken
-Pausen-Timer, Körpergewicht als Last, Fortschritt pro Übung und das
-Tracking durch den Trainer ab. Abschnitt 13 ist neu und bringt zusammen,
-was aus dem Meeting 16.09 gebaut wurde. Zusammen etwa 40 Minuten.
+Zwei Wege durch dieses Dokument:
+
+**Der Kurzlauf** gleich unten, 25 Minuten — das, was vor der Freigabe an
+die fünf Trainer geprüft sein muss. Alles darin läuft entweder zum
+ersten Mal unter der echten Adresse oder ist heute gebaut worden.
+
+**Der tiefe Lauf**, Abschnitte 0 bis 17, etwa 45 Minuten — der komplette
+Durchgang. Das meiste davon ist am Mac schon gelaufen; er lohnt, wenn
+etwas auffällt, wenn eine Migration dazukommt oder bevor der erste echte
+Klient in die App kommt.
 
 Dieselbe Liste taugt später für Joels Beta-Tester.
 
-**Was du brauchst:** Mac mit laufendem Server (`npm run dev` im Ordner
-`ptfive`) und das Handy im selben Netz. Die Adresse fürs Handy steht in
-`apps/coach/.env.local` — aktuell `http://172.20.10.2:3000`. Bei
-Netzwerkwechsel neu setzen: `ipconfig getifaddr en0` am Mac.
+**Was du brauchst, seit die App draußen läuft:** nur einen Browser und
+ein Handy. Die Adresse ist `https://pthree-wine.vercel.app` — kein
+Server am Mac, kein gemeinsames WLAN, keine IP mehr. Am Mac bist du der
+Trainer, auf dem Handy der Athlet.
+
+Zwei Rollen gleichzeitig gehen nur in **zwei getrennten Browsern** (oder
+einem privaten Fenster): Ein Browser trägt genau eine Sitzung, und die
+zuletzt angemeldete Rolle überschreibt die andere.
+
+---
+
+## Kurzlauf vor der Beta-Freigabe (25 Minuten)
+
+Stand 24.09.: Das meiste unten ist am Mac schon durchgelaufen. Was sich
+geändert hat, ist nicht die App, sondern **wo sie läuft** — und genau
+die Teile, die auf die Umgebung reagieren, sind noch nicht unter der
+echten Adresse geprüft. Das sind Anmeldung, Mailversand, Einladungen,
+Links aus Mails und der Dateispeicher.
+
+Wenn du nur einen Durchgang machst, dann diesen. Die Abschnitte 1 bis 16
+sind der tiefe Lauf für später oder wenn etwas auffällt.
+
+| # | Was | Abschnitt | Warum jetzt |
+|---|---|---|---|
+| K1 | `bash pruefen.sh` + `check_schema.sql` | 0 | Nach den Migrationen 0022–0025. **Drei Zeilen sind neu** und wären bei den Fehlern von heute rot geworden |
+| K2 | Anmelden, falsches Passwort, „Passwort vergessen" komplett | 17.1, 17.2 | Ganz neu gebaut, nie unter der echten Adresse gelaufen. Braucht die Redirect URLs in Supabase |
+| K3 | Testmail an eine Adresse **außerhalb** deines Supabase-Teams | `RESEND-EINRICHTEN.md` Schritt 7 | Der einzige Test, der etwas beweist. Mit einer Team-Adresse funktioniert auch der alte eingebaute Versand |
+| K4 | Klient anlegen → E-Mail eintragen → einladen → auf dem Handy annehmen | 17.3 | Hier saßen heute **drei** Fehler hintereinander. Der Weg ist erst seit 0025 vollständig |
+| K5 | Zugang trennen, neu einladen, mit anderer Adresse annehmen | 17.3f, 17.3g | Der Ausweg, den du beim Onboarding von fünf Leuten brauchen wirst |
+| K6 | Ein Foto hochladen und wieder löschen | 14.3, 14.7 | Der Dateispeicher ist der einzige Teil, der signierte Adressen und eine eigene Rechteschicht hat |
+| K7 | Ein Training auf dem Handy von Anfang bis Ende | 3 | Der Kern des Produkts. Einmal auf echtem Mobilfunk statt WLAN |
+| K8 | App auf den Homescreen legen, von dort öffnen | 12 | Die Startbilder und das Manifest hingen bisher an einer IP, jetzt an einer Domain |
+
+**Was du dabei nicht mehr brauchst:** kein `npm run dev`, kein
+gemeinsames WLAN, keine IP in `.env.local`.
+
+**Und was du nicht testen kannst, solange es nicht existiert:** Es gibt
+weder `error.tsx` noch `not-found.tsx`. Bricht eine Abfrage weg oder
+ruft jemand eine falsche Adresse auf, kommt eine leere weiße Seite.
 
 ---
 
@@ -20,15 +60,14 @@ Netzwerkwechsel neu setzen: `ipconfig getifaddr en0` am Mac.
 Zwei Schritte, der erste am Mac:
 
 ```bash
-npx tsc -p apps/coach/tsconfig.json --noEmit   # der breiteste Prüfer
-python3 supabase/check_sql.py
-node apps/coach/check-format.mjs
-node apps/coach/check-layout.mjs
-node apps/coach/check-actions.mjs
-node apps/coach/check-scale.mjs
-bash packages/coach-engine/run-tests.sh
-bash apps/coach/run-tests.sh
+cd ~/Desktop/Q/ptfive
+bash pruefen.sh
 ```
+
+Das ist der Sammelaufruf für alle neun Prüfungen. Er bricht bewusst
+nicht beim ersten Fehler ab, sondern listet am Ende auf, was gerissen
+ist. Einzeln aufrufen kann man sie weiterhin — was jede tut, steht
+unten.
 
 `tsc` geht über alle App-Dateien und meldet jeden Tippfehler, jede
 falsche Signatur, jedes vergessene Feld. Er braucht weder Server noch
@@ -56,13 +95,23 @@ Beides ist typseitig völlig korrekt und trotzdem falsch.
 `check-scale.mjs` hält das Schriftraster: Alle Größen stehen als Token
 in `globals.css`, und jede freie Zahl im Markup wird gemeldet.
 
-**Alle vier finden Dinge, die `tsc` nicht sieht.** Genau dafür sind sie
+`check_enums.py` ist der jüngste und stammt aus Migration 0022: Dort
+stand als Standardrolle `'client'` — ein Wert, den die Aufzählung
+`user_role` nicht kennt. `create function` prüft den Rumpf von plpgsql
+nicht, also meldete die Migration Erfolg, und **jede** Registrierung
+scheiterte erst zur Laufzeit. Der Prüfer hält jeden Rollen-Namen in SQL
+und im Code gegen die echten Werte der Aufzählung.
+
+**Alle fünf finden Dinge, die `tsc` nicht sieht.** Genau dafür sind sie
 da.
 
-Erwartung: kein `tsc`-Ausdruck, *21 Dateien geprueft, keine
-Beanstandung*, zweimal *83 Dateien geprueft*, fünf saubere
-`"use server"`-Dateien, **83 Engine-Tests** und **27 App-Tests**, alle
-bestanden.
+Erwartung: `✓ Alle neun Pruefungen sauber.` — im Einzelnen kein
+`tsc`-Ausdruck, *25 Dateien geprueft, keine Beanstandung*, zweimal
+*96 Dateien geprueft*, sechs saubere `"use server"`-Dateien,
+**93 Engine-Tests** und **27 App-Tests**, alle bestanden.
+
+Wenn bei „SQL" steht, dass `pglast` fehlt: einmalig
+`python3 -m venv .venv` und `.venv/bin/pip install pglast`.
 
 Dann `supabase/check_schema.sql` im Supabase-SQL-Editor ausführen.
 Erwartung: **keine Zeile mit „>>> FEHLT <<<“**. Unten stehen die
