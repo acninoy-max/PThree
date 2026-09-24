@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0024 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0025 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -477,6 +477,24 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0024', 'unlink_client nicht fuer anon',
          coalesce((select not has_function_privilege('anon', p.oid, 'execute')
           from pg_proc p where p.proname = 'unlink_client'), false)
+
+  -- 0025: der Trigger, der jede Einladung zurueckgenommen hat
+  union all
+  select 1, '0025', 'Trigger laesst eine Zeile ohne Besitzer beanspruchen',
+         coalesce((select prosrc like '%old.profile_id is null and new.profile_id = auth.uid()%'
+          from pg_proc where proname = 'guard_client_self_edit'), false)
+  union all
+  select 1, '0025', 'Einladung prueft ihr eigenes Ergebnis nach',
+         coalesce((select prosrc like '%v_danach is distinct from auth.uid()%'
+          from pg_proc where proname = 'accept_client_invite'), false)
+  union all
+  -- Wenn diese Zeile rot ist, steht irgendwo ein Klient mit einer
+  -- angenommenen Einladung und trotzdem ohne Zugang — genau der
+  -- Zustand, den 0021 erzeugt hat.
+  select 1, '0025', 'keine angenommene Einladung ohne Verknuepfung',
+         (select count(*) = 0 from client_invites i
+          join clients c on c.id = i.client_id
+          where i.accepted_at is not null and c.profile_id is null)
 
   -- 0007: Check-in-Schutz
   union all
