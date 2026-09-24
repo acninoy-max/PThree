@@ -7,7 +7,10 @@ export const dynamic = "force-dynamic";
 interface InvitePeek {
   client_name: string;
   coach_name: string;
+  /** Die vom Trainer hinterlegte Adresse. Kann fehlen — Altbestand. */
+  client_email: string | null;
   is_valid: boolean;
+  bereits_verknuepft: boolean;
 }
 
 export default async function InvitePage({
@@ -69,12 +72,16 @@ export default async function InvitePage({
               <strong style={{ color: "var(--pt-text)" }}>
                 {invite.coach_name}
               </strong>{" "}
-              hat dich eingeladen. Leg dein Konto an, dann siehst du deine
-              Pläne, Termine und Fortschritte.
+              hat dich eingeladen.{" "}
+              {invite.bereits_verknuepft
+                ? "Zu deinem Namen gibt es schon einen Zugang — melde dich damit an."
+                : "Wähl ein Passwort, dann siehst du deine Pläne, Termine und Fortschritte."}
             </p>
             <AcceptInvite
               token={params.token}
               clientName={invite.client_name}
+              vorgabeEmail={invite.client_email}
+              bereitsVerknuepft={invite.bereits_verknuepft}
             />
           </>
         )}

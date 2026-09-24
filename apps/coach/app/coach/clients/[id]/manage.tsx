@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import {
   createInviteAction,
   deleteClientAction,
+  unlinkClientAction,
   updateClientAction,
 } from "@/app/actions";
 import type { Client } from "@ptfive/types";
@@ -30,6 +31,8 @@ export function ManageClient({
   const [saved, setSaved] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmText, setConfirmText] = useState("");
+  const [confirmUnlink, setConfirmUnlink] = useState(false);
+  const [unlinkHinweis, setUnlinkHinweis] = useState<string | null>(null);
 
   function invite() {
     setError(null);
@@ -68,9 +71,91 @@ export function ManageClient({
         </p>
 
         {hasAccount ? (
-          <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "#1d6e56" }}>
-            Konto verknüpft — {client.fullName} kann die App nutzen.
-          </p>
+          <div style={{ display: "grid", gap: 10 }}>
+            <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "#1d6e56" }}>
+              Konto verknüpft — {client.fullName} kann die App nutzen.
+            </p>
+
+            {/* Der Ausweg, wenn sich jemand mit der falschen Adresse
+                angemeldet hat. Ohne ihn läuft jede weitere Einladung
+                ins Leere: Ein vergebener Klient wird nicht
+                überschrieben. */}
+            {!confirmUnlink ? (
+              <button
+                type="button"
+                className="pt-btn pt-btn--ghost"
+                onClick={() => setConfirmUnlink(true)}
+                style={{ justifySelf: "start" }}
+              >
+                Zugang trennen …
+              </button>
+            ) : (
+              <div style={{ display: "grid", gap: 10 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "var(--pt-fs-base)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  Trennt die Verbindung zum Anmeldekonto. Pläne, Einheiten,
+                  Check-ins und Fotos von {client.fullName} bleiben
+                  vollständig erhalten — danach kannst du neu einladen.
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="pt-btn"
+                    disabled={pending}
+                    onClick={() => {
+                      setError(null);
+                      startTransition(async () => {
+                        const res = await unlinkClientAction(client.id);
+                        if (res.ok) {
+                          setUnlinkHinweis(res.hinweis);
+                          setConfirmUnlink(false);
+                          router.refresh();
+                        } else setError(res.error);
+                      });
+                    }}
+                  >
+                    {pending ? "Trennt …" : "Trennen"}
+                  </button>
+                  <button
+                    type="button"
+                    className="pt-btn pt-btn--ghost"
+                    onClick={() => setConfirmUnlink(false)}
+                  >
+                    Abbrechen
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {unlinkHinweis && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "var(--pt-fs-base)",
+                  color: "var(--pt-text-dim)",
+                }}
+              >
+                {unlinkHinweis}
+              </p>
+            )}
+
+            {error && (
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--pt-action)",
+                  fontSize: "var(--pt-fs-base)",
+                }}
+              >
+                {error}
+              </p>
+            )}
+          </div>
         ) : (
           <>
             <p
@@ -84,6 +169,25 @@ export function ManageClient({
               Noch kein Konto. Erzeuge einen Einladungslink und schick ihn per
               WhatsApp oder Mail. Der Link gilt 14 Tage.
             </p>
+
+            {/* Seit 0024 steht die Adresse auf der Einladeseite fest —
+                sie kommt von hier. Fehlt sie, muss der Klient sie selbst
+                eintippen, und genau dann können die beiden Adressen
+                auseinanderlaufen. */}
+            {!client.email && (
+              <p
+                style={{
+                  margin: "-4px 0 12px",
+                  fontSize: "var(--pt-fs-sm)",
+                  color: "var(--pt-action)",
+                  lineHeight: 1.5,
+                }}
+              >
+                Für {client.fullName} ist keine E-Mail hinterlegt. Trag sie
+                unten bei den Stammdaten ein — dann steht sie in der
+                Einladung fest und kann nicht abweichen.
+              </p>
+            )}
 
             {inviteUrl ? (
               <div style={{ display: "grid", gap: 8 }}>

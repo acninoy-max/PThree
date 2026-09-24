@@ -598,13 +598,28 @@ lokal liegen bleibt.
 | 17.2h | Ein neues setzen | Landet direkt im richtigen Bereich — Athlet bei `/athlete`, Trainer bei `/coach` |
 | 17.2i | Denselben Link **nochmal** anklicken | „Der Link ist abgelaufen oder wurde schon benutzt." Ein Link, der zweimal funktioniert, ist ein Link, der in einem fremden Postfach noch funktioniert |
 
-### 17.3 Die Fälle, die man vergisst
+### 17.3 Einladung (Stand 0024)
+
+Die Adresse tippt der Klient **nicht** mehr selbst — sie kommt aus der
+Klientenakte und steht auf der Einladeseite fest.
 
 | # | Was du tust | Was passieren muss |
 |---|---|---|
-| 17.3a | `/auth/passwort/neu` direkt aufrufen, ohne Mail | Wirft zurück auf `/auth/passwort` mit dem Hinweis, dass der Link abgelaufen ist |
-| 17.3b | Mail am Rechner anfordern, auf dem Handy öffnen | Sagt in Worten, dass es ein anderer Browser war — nicht „invalid request" |
-| 17.3c | Eine Stunde warten, dann klicken | Abgelaufen. Neu anfordern geht beliebig oft |
+| 17.3a | Klient ohne hinterlegte E-Mail öffnen | Im Block *App-Zugang* steht ein roter Hinweis, dass die Adresse fehlt |
+| 17.3b | E-Mail eintragen, speichern, Link erzeugen, Link öffnen | Die Adresse steht im Feld, grau hinterlegt, nicht änderbar. Nur das Passwort ist einzugeben |
+| 17.3c | Passwort setzen, *Konto anlegen* | Landet im Athletenbereich, *Profil* zeigt die Daten — **nicht** „Zu diesem Zugang gehört kein Klientenkonto" |
+| 17.3d | Denselben Link nochmal öffnen | „Einladung ungültig" — ein angenommener Link ist verbraucht |
+| 17.3e | Neuen Link erzeugen, in einem **anderen** Browser mit einer **anderen** Adresse annehmen | Klare Absage: „Dieser Klient ist bereits mit einem anderen Zugang verknüpft." Früher lief das still durch und der Zweite stand in einer leeren App |
+| 17.3f | Im Klientenfile *Zugang trennen* → *Trennen* | Meldung „Verknüpfung gelöst". Pläne, Einheiten, Check-ins und Fotos sind danach **alle noch da** |
+| 17.3g | Neuen Link erzeugen und mit der zweiten Adresse annehmen | Klappt jetzt |
+
+### 17.4 Die Fälle, die man vergisst
+
+| # | Was du tust | Was passieren muss |
+|---|---|---|
+| 17.4a | `/auth/passwort/neu` direkt aufrufen, ohne Mail | Wirft zurück auf `/auth/passwort` mit dem Hinweis, dass der Link abgelaufen ist |
+| 17.4b | Mail am Rechner anfordern, auf dem Handy öffnen | Sagt in Worten, dass es ein anderer Browser war — nicht „invalid request" |
+| 17.4c | Eine Stunde warten, dann klicken | Abgelaufen. Neu anfordern geht beliebig oft |
 
 ---
 

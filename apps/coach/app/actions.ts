@@ -346,3 +346,35 @@ export async function createInviteAction(
   revalidatePath(`/coach/clients/${clientId}`);
   return { ok: true, url: `${base}/invite/${data as string}` };
 }
+
+export type UnlinkResult =
+  { ok: true; hinweis: string } | { ok: false; error: string };
+
+/**
+ * Löst den App-Zugang vom Klienten.
+ *
+ * Der Fall aus dem Testlauf: Jemand meldet sich mit der falschen Adresse
+ * an. Bis 0024 war der Klient damit für immer an dieses Konto gebunden —
+ * ein zweiter Einladungslink lief still ins Leere, weil die Funktion
+ * einen bereits vergebenen Klienten nicht überschreibt.
+ *
+ * Die Historie bleibt. Getrennt wird nur die Verbindung zu `auth.users`;
+ * der Klientendatensatz mit Plänen, Einheiten und Check-ins steht
+ * unberührt da und wartet auf die nächste Einladung.
+ *
+ * Das alte Login-Konto bleibt ebenfalls bestehen — es gehört dem
+ * Menschen, nicht dem Trainer. Es hat danach nur keinen Klienten mehr.
+ */
+export async function unlinkClientAction(
+  clientId: string,
+): Promise<UnlinkResult> {
+  const db = createServerSupabase();
+  const { data, error } = await db.rpc("unlink_client", {
+    target_client: clientId,
+  });
+
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath(`/coach/clients/${clientId}`);
+  return { ok: true, hinweis: data as string };
+}

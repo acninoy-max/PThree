@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0023 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0024 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -457,6 +457,26 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0023', 'Registrierungs-Trigger haengt an auth.users',
          (select count(*) = 1 from pg_trigger
           where tgname = 'on_auth_user_created' and not tgisinternal)
+
+  -- 0024: Einladung
+  union all
+  select 1, '0024', 'peek_client_invite liefert die Adresse mit',
+         coalesce((select pg_get_function_result(p.oid) like '%client_email%'
+          from pg_proc p where p.proname = 'peek_client_invite'), false)
+  union all
+  -- Die Zeile dieses Blocks. Vorher stand dort nur eine
+  -- where-Bedingung, und ein bereits vergebener Klient fuehrte zu einem
+  -- stillen Nichts statt zu einer Meldung.
+  select 1, '0024', 'Einladung bricht bei fremdem Zugang ab',
+         coalesce((select prosrc like '%anderen Zugang%'
+          from pg_proc where proname = 'accept_client_invite'), false)
+  union all
+  select 1, '0024', 'unlink_client vorhanden',
+         (select count(*) = 1 from pg_proc where proname = 'unlink_client')
+  union all
+  select 1, '0024', 'unlink_client nicht fuer anon',
+         coalesce((select not has_function_privilege('anon', p.oid, 'execute')
+          from pg_proc p where p.proname = 'unlink_client'), false)
 
   -- 0007: Check-in-Schutz
   union all
