@@ -1,0 +1,2133 @@
+/* PTHREE Coach — Light Theme (Editorial Sand).
+   Farbwerte kommen aus dem Brand Book v16. Nie inline überschreiben. */
+
+:root {
+  --pt-sand: #f4f2ed;
+  --pt-obsidian: #0f172a;
+  --pt-graphic: #e63b2b;
+  --pt-action: #c42d1a;
+  --pt-gym: #ff6b5b;
+  --pt-border: #d6d3cb;
+  --pt-border-interactive: #8c877a;
+  --pt-surface: #ffffff;
+  --pt-text: #0f172a;
+  --pt-text-dim: #6e6a60;
+
+  --pt-radius-sm: 6px;
+  --pt-radius-md: 10px;
+  --pt-radius-lg: 16px;
+
+  /* ---------- Schriftgrößen ----------
+
+     Vorher standen im Markup zwanzig verschiedene Größen: 10,5 · 11 ·
+     11,5 · 12 · 12,5 · 13 · 13,5 · 14 · 14,5 · 15 · 15,5 · 16 · 17 ·
+     18 · 19 · 20 · 21 · 22 · 24 · 26. Jede davon hat mal jemand frei
+     gewählt.
+
+     Das ist der häufigste Grund, warum eine Oberfläche selbstgebaut
+     wirkt, und man sieht es nie bewusst — man spürt nur, dass nichts
+     zusammengehört. Der Unterschied zwischen 13 und 13,5 ist für sich
+     genommen unsichtbar; nebeneinander ergeben zwanzig solcher
+     Entscheidungen ein Bild ohne Raster.
+
+     Jetzt acht Stufen, jede mit einer Aufgabe. Wer eine neunte
+     braucht, braucht meistens eine andere Struktur.
+
+     `--pt-fs-input` bleibt bei 17px und ist bewusst keine Stufe des
+     Rasters: Unter 16px zoomt iOS beim Antippen in das Feld hinein,
+     und danach scrollt der Nutzer sich zurück. Das ist eine
+     Gerätegrenze, keine Gestaltung. */
+  --pt-fs-xs: 11px; /* Etiketten, Chips, Fußnoten */
+  --pt-fs-2xs: 9.5px; /* Nur die Tab-Leiste unter 360px Breite */
+  --pt-fs-sm: 12px; /* Kleingedrucktes unter einer Zeile */
+  --pt-fs-base: 13px; /* Zweitrangiges, Meta-Angaben */
+  --pt-fs-md: 14px; /* Fließtext */
+  --pt-fs-lg: 16px; /* Betontes, Kartenüberschriften */
+  --pt-fs-input: 17px; /* Eingabefelder — gegen den iOS-Zoom */
+  --pt-fs-xl: 20px; /* Abschnittsüberschriften, Uhren */
+  --pt-fs-2xl: 24px; /* Seitentitel */
+  --pt-fs-3xl: 26px; /* Seitentitel im Athletenbereich */
+  --pt-fs-hero: 34px; /* Die eine Zahl, die aus Armlänge lesbar sein muss */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--pt-sand);
+  color: var(--pt-text);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  /* Grundgröße. War vorher 15px und damit selbst keine Stufe des
+     Rasters. 16px ist der Standardwert im Web und auf dem Handy eine
+     Spur besser lesbar; betroffen ist ohnehin nur, was keine eigene
+     Größe setzt — vor allem die Knöpfe. Die em-Angaben in dieser Datei
+     sind alle `letter-spacing` und beziehen sich auf die Größe des
+     jeweiligen Elements, nicht auf diese hier. */
+  font-size: var(--pt-fs-lg);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--pt-action);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Alle interaktiven Ränder nutzen den geprüften Token (3,20:1). */
+input,
+select,
+textarea {
+  font: inherit;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--pt-border-interactive);
+  border-radius: var(--pt-radius-sm);
+  background: var(--pt-surface);
+  color: var(--pt-text);
+}
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--pt-action);
+  outline-offset: 1px;
+}
+
+/**
+ * Datum und Uhrzeit links ausrichten.
+ *
+ * iOS zentriert den Wert eines `input[type="date"]`, sobald das Feld
+ * breiter ist als sein Inhalt — und unsere Felder sind `width: 100%`.
+ * Das Ergebnis liest sich wie eine Überschrift, nicht wie ein
+ * Eingabefeld: Ein zentriertes „23.09.2026" in einem leeren Kasten
+ * sieht aus, als stünde dort ein Wert, den man nicht ändern kann.
+ *
+ * Überall sonst in der App steht Text links. Hier auch.
+ *
+ * `-webkit-date-and-time-value` ist der Teil, den Safari selbst zeichnet
+ * — `text-align` auf dem Feld allein erreicht ihn nicht.
+ */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  text-align: left;
+}
+
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value,
+input[type="datetime-local"]::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+/**
+ * Ein Datumsfeld braucht keine volle Breite.
+ *
+ * Zweiter Gurt neben der Ausrichtung oben: Die Regel für
+ * `::-webkit-date-and-time-value` greift nur in Safari, und wenn eine
+ * Fassung sie ignoriert, steht der Wert wieder in der Mitte. Ein Feld,
+ * das sich auf seinen Inhalt zusammenzieht, sieht auch dann noch wie
+ * ein Feld aus und nicht wie ein Textbanner.
+ */
+.pt-datefield {
+  width: auto;
+  min-width: 150px;
+  max-width: 100%;
+}
+
+textarea {
+  /* Nur vertikal ziehbar — horizontales Ziehen sprengt sonst das Raster. */
+  resize: vertical;
+  min-height: 90px;
+  line-height: 1.6;
+}
+textarea::placeholder {
+  color: var(--pt-text-dim);
+  opacity: 0.75;
+}
+
+.pt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: none;
+  border-radius: var(--pt-radius-sm);
+  background: var(--pt-action);
+  color: #fff;
+  font-weight: 500;
+}
+.pt-btn:hover {
+  background: #ad2415;
+}
+.pt-btn--ghost {
+  background: transparent;
+  color: var(--pt-text);
+  border: 1px solid var(--pt-border-interactive);
+}
+.pt-btn--ghost:hover {
+  background: #eae7e0;
+}
+
+.pt-card {
+  background: var(--pt-surface);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+/* Abweichende Innenabstände als Variante, nicht als Inline-Style: Unter
+   640px verengt `.pt-card` sich auf 14px, und ein `style`-Attribut
+   würde genau diese Regel aushebeln. */
+.pt-card--stat {
+  padding: 14px 16px;
+}
+
+.pt-card--empty {
+  padding: 40px 24px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .pt-card--empty {
+    padding: 28px 16px;
+  }
+}
+
+.pt-label {
+  font-size: var(--pt-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--pt-text-dim);
+}
+
+.pt-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 24px 64px;
+}
+
+/* ---------- Kopfbereich ---------- */
+
+.pt-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(244, 242, 237, 0.88);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--pt-border);
+  margin-bottom: 28px;
+}
+
+/* Die Kopfzeile trägt `.pt-shell` nur für Breite und Zentrierung. Deren
+   senkrechte Innenabstände gehören dort nicht hin — und zwar nicht aus
+   Geschmack, sondern weil sie die Kopfzeile zerlegen:
+
+   `.pt-shell` hat unten 64px (am Handy 78px plus Home-Leiste), damit die
+   letzte Karte nicht unter der Tab-Leiste endet. `box-sizing: border-box`
+   gilt global, also frisst dieser Abstand die 60px Höhe vollständig auf.
+   Marke und Name werden nach oben herausgedrückt und oben abgeschnitten,
+   darunter steht ein leeres Feld von der Höhe der Tab-Leiste.
+
+   Zwei Klassen im Selektor, damit diese Regel auch die Fassungen in den
+   Media-Queries weiter unten schlägt — die stehen später in der Datei und
+   würden sonst gewinnen. */
+.pt-header .pt-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  min-height: 60px;
+  height: auto;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.pt-headernav {
+  display: flex;
+  gap: 2px;
+}
+
+.pt-header__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pt-navlink {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: var(--pt-fs-md);
+  font-weight: 500;
+  color: var(--pt-text-dim);
+  text-decoration: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.pt-navlink:hover {
+  background: #eae7e0;
+  color: var(--pt-text);
+  text-decoration: none;
+}
+/* Aktiv war bisher dasselbe Grau wie Hover — die Kopfzeile zeigte also
+   nicht, wo man ist, sondern nur, wo der Zeiger steht. Jetzt trägt der
+   aktive Punkt den Markenton (#ad2415 auf #f6dcd6 = 5,30:1) und einen
+   Strich darunter, damit es nicht allein an der Farbe hängt. */
+.pt-navlink[data-active="true"] {
+  background: #f6dcd6;
+  color: #ad2415;
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--pt-action);
+}
+.pt-navlink[data-active="true"]:hover {
+  background: #f2d2ca;
+  color: #ad2415;
+}
+
+.pt-iconbtn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pt-text-dim);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.pt-iconbtn:hover {
+  background: #eae7e0;
+  color: var(--pt-text);
+}
+
+/* Karten reagieren auf den Zeiger, wenn sie anklickbar sind. */
+a.pt-card {
+  transition: border-color 0.15s ease, transform 0.12s ease;
+  border: 1px solid transparent;
+}
+a.pt-card:hover {
+  border-color: var(--pt-border);
+  text-decoration: none;
+}
+a.pt-card:active {
+  transform: scale(0.995);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-navlink,
+  .pt-iconbtn,
+  a.pt-card {
+    transition: none;
+  }
+  a.pt-card:active {
+    transform: none;
+  }
+}
+
+/* ---------- Wochenkalender ---------- */
+
+.pt-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Unter 900px wird das Raster zur Liste — sieben Spalten sind auf dem
+   Handy nicht lesbar. */
+@media (max-width: 900px) {
+  .pt-week {
+    grid-template-columns: 1fr;
+  }
+  .pt-daycol__head {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+}
+
+.pt-daycol {
+  background: var(--pt-surface);
+  border: 1px solid var(--pt-border);
+  border-radius: 12px;
+  padding: 10px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+}
+.pt-daycol[data-today="true"] {
+  border-color: var(--pt-action);
+  box-shadow: inset 0 2px 0 var(--pt-action);
+}
+
+.pt-daycol__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 9px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid var(--pt-border);
+}
+
+.pt-daycol__add {
+  margin-top: auto;
+  padding-top: 8px;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border: 1px dashed var(--pt-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pt-text-dim);
+  opacity: 0;
+  transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.pt-daycol:hover .pt-daycol__add,
+.pt-daycol__add:focus-visible {
+  opacity: 1;
+}
+.pt-daycol__add:hover {
+  border-color: var(--pt-action);
+  color: var(--pt-action);
+}
+/* Auf Touch-Geräten gibt es kein Hover — dort immer sichtbar. */
+@media (hover: none) {
+  .pt-daycol__add {
+    opacity: 1;
+  }
+}
+
+.pt-appt {
+  position: relative;
+  background: #faf8f5;
+  border: 1px solid var(--pt-border);
+  border-radius: 9px;
+  padding: 8px 9px;
+}
+.pt-appt__actions {
+  display: flex;
+  gap: 3px;
+  margin-top: 7px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.pt-appt:hover .pt-appt__actions,
+.pt-appt:focus-within .pt-appt__actions {
+  opacity: 1;
+}
+@media (hover: none) {
+  .pt-appt__actions {
+    opacity: 1;
+  }
+}
+.pt-appt__actions button {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 24px;
+  border: 1px solid var(--pt-border);
+  border-radius: 6px;
+  background: var(--pt-surface);
+  color: var(--pt-text-dim);
+}
+.pt-appt__actions button:hover:not(:disabled) {
+  border-color: var(--pt-border-interactive);
+  color: var(--pt-text);
+}
+
+/* ---------- Zweispaltige Akte ---------- */
+
+/* Links der Arbeitsbereich, rechts die Stammdaten. Unter 900px stapeln
+   sich beide — zwei Spalten in 400px Breite sind keine zwei Spalten.
+
+   Diese Klasse MUSS benutzt werden statt `style={{ gridTemplateColumns }}`.
+   Ein Inline-Style schlägt jede Regel aus dem Stylesheet, auch die aus
+   der Media-Query: Auf dem Handy blieben dann zwei Spalten stehen, die
+   linke 120px breit, und der Text bricht Wort für Wort um. Genau daran
+   ist schon die Kopfnavigation gescheitert. `apps/coach/check-layout.mjs`
+   findet Rückfälle. */
+.pt-split {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .pt-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Felder nebeneinander in Formularen und Karten. Zahl plus Zahl, Datum
+   plus Uhrzeit — auf dem Laptop nebeneinander, auf dem Handy
+   untereinander, weil drei Felder auf 375px Breite je 110px hätten. */
+.pt-cols {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.pt-cols--3 {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+/* Zwei nebeneinander gehen auf dem Handy noch; drei nicht — das wären
+   je 110px für ein Feld mit Beschriftung. */
+@media (max-width: 560px) {
+  .pt-cols--3 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 380px) {
+  .pt-cols,
+  .pt-cols--3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- Monatskalender ---------- */
+
+/* Sieben Spalten brauchen Breite. Statt das Raster auf dem Handy zu
+   zerlegen, darf es waagerecht scrollen — der Monatsüberblick lebt
+   davon, dass die Wochen untereinander stehen. */
+.pt-month-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 0 4px 4px;
+}
+
+.pt-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  min-width: 660px;
+}
+
+.pt-month__head {
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pt-text-dim);
+  padding: 0 4px 6px;
+}
+
+.pt-monthcell {
+  position: relative;
+  background: var(--pt-surface);
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  padding: 7px;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.14s ease, background-color 0.14s ease;
+}
+.pt-monthcell:hover {
+  border-color: var(--pt-border-interactive);
+}
+/* Tage außerhalb des Monats bleiben sichtbar, treten aber zurück. */
+.pt-monthcell[data-outside="true"] {
+  background: transparent;
+  border-color: transparent;
+}
+.pt-monthcell[data-today="true"] {
+  border-color: var(--pt-action);
+  box-shadow: inset 0 2px 0 var(--pt-action);
+}
+
+/* Klickfläche für den ganzen Tag — liegt hinter dem Inhalt. */
+.pt-monthcell__hit {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+}
+.pt-monthcell__hit:focus-visible {
+  outline: 2px solid var(--pt-action);
+  outline-offset: -2px;
+}
+.pt-monthcell:hover .pt-monthcell__hit {
+  background: #faf8f5;
+}
+
+.pt-monthcell__num {
+  position: relative;
+  z-index: 1;
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: var(--pt-text-dim);
+}
+.pt-monthcell[data-today="true"] .pt-monthcell__num {
+  color: var(--pt-action);
+}
+
+/* Ein Termin im Monatsraster: Uhrzeit, Name, Statuspunkt. Mehr passt
+   nicht hinein, ohne unlesbar zu werden. */
+.pt-mchip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: #faf8f5;
+  border: 1px solid var(--pt-border);
+  font-size: var(--pt-fs-xs);
+  line-height: 1.35;
+  color: var(--pt-text);
+  text-decoration: none;
+  overflow: hidden;
+}
+.pt-mchip:hover {
+  border-color: var(--pt-border-interactive);
+  text-decoration: none;
+}
+.pt-mchip__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+}
+.pt-mchip__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-monthcell__more {
+  position: relative;
+  z-index: 1;
+  font-size: var(--pt-fs-xs);
+  color: var(--pt-text-dim);
+  padding-left: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-monthcell {
+    transition: none;
+  }
+}
+
+/* ---------- Ladekreis ---------- */
+
+.pt-spin {
+  animation: pt-spin 0.7s linear infinite;
+}
+
+@keyframes pt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Ohne Drehung bleibt der Kreis sichtbar — er pulst statt zu rotieren. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-spin {
+    animation: pt-pulse 1.1s ease-in-out infinite;
+  }
+  @keyframes pt-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.4;
+    }
+  }
+}
+
+/* Fehlerband über dem Inhalt. Steht bewusst nicht als Randnotiz irgendwo,
+   sondern dort, wo man nach einem folgenlosen Klick zuerst hinschaut. */
+.pt-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--pt-action);
+  border-left-width: 3px;
+  border-radius: 0 10px 10px 0;
+  background: #fbefea;
+  color: #7a1c0c;
+  font-size: var(--pt-fs-base);
+  line-height: 1.5;
+}
+
+/* Abschlussleiste im Editor.
+
+   Klebt am unteren Rand, damit sie auch bei langen Plänen sichtbar ist.
+   Links steht der Stand, rechts der Weg hinaus — zusammen beantworten
+   sie „ist das gespeichert?" und „bin ich fertig?" an einer Stelle. */
+.pt-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 28px -24px 0;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
+  background: rgba(244, 242, 237, 0.94);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-top: 1px solid var(--pt-border);
+}
+
+.pt-savebar__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--pt-fs-base);
+  font-weight: 500;
+  color: var(--pt-text-dim);
+}
+
+/* ---------- Verlaufsdiagramm ---------- */
+/* Wird von Coach und Athlet benutzt. Beide laufen auf Editorial Sand,
+   deshalb reicht ein Satz Regeln. */
+
+.mc-range {
+  padding: 6px 12px;
+  border: 1px solid var(--pt-border, #d6d3cb);
+  border-radius: 999px;
+  background: transparent;
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: #6e6a60;
+  -webkit-tap-highlight-color: transparent;
+}
+.mc-range[data-active="true"] {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+/* Kurve an- oder abschalten. Der Rand trägt die Reihenfarbe, damit
+   Farbe nicht das einzige Unterscheidungsmerkmal ist — abgeschaltete
+   Chips sind zusätzlich blass und der Punkt wird grau. */
+.mc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1.5px solid #d6d3cb;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: #0f172a;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.14s ease;
+}
+.mc-chip[data-off="true"] {
+  opacity: 0.5;
+  color: #6e6a60;
+  border-color: #d6d3cb;
+}
+
+.mc-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Veränderung am Chip. Abgesetzt durch einen senkrechten Strich statt
+   durch eine Farbe: Ob „−15 kg" gut oder schlecht ist, hängt daran, was
+   gemessen wird — auf der Waage ist es ein Erfolg, beim Bankdrücken
+   nicht. Grün und Rot würden auf derselben Seite zwei Dinge bedeuten. */
+.mc-chip__delta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-left: 7px;
+  padding-left: 8px;
+  border-left: 1px solid currentColor;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.92;
+}
+
+.mc-chip__since {
+  font-weight: 500;
+  font-size: var(--pt-fs-xs);
+  opacity: 0.7;
+}
+
+/* Auf schmalen Geräten bleibt nur die Zahl — das Bezugsdatum steht
+   ohnehin an der Achse. */
+@media (max-width: 400px) {
+  .mc-chip__since {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-chip {
+    transition: none;
+  }
+}
+
+/* ---------- Plan-Editor ---------- */
+
+.pt-slot {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #faf8f5;
+  border: 1px solid var(--pt-border);
+  border-radius: 9px;
+  padding: 9px 10px;
+}
+
+.pt-slot__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 3px;
+  flex: none;
+  max-width: 92px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.pt-slot:hover .pt-slot__actions,
+.pt-slot:focus-within .pt-slot__actions {
+  opacity: 1;
+}
+/* Ohne Zeiger gibt es kein Hover — dort immer sichtbar. */
+@media (hover: none) {
+  .pt-slot__actions {
+    opacity: 1;
+  }
+}
+
+.pt-slot__actions button {
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 5px;
+  border: 1px solid var(--pt-border);
+  border-radius: 6px;
+  background: var(--pt-surface);
+  color: var(--pt-text-dim);
+  font-size: var(--pt-fs-xs);
+  font-weight: 600;
+}
+.pt-slot__actions button:hover:not(:disabled) {
+  border-color: var(--pt-border-interactive);
+  color: var(--pt-text);
+}
+.pt-slot__actions button:disabled {
+  opacity: 0.35;
+}
+
+/* Supersatz-Code A1, A2 — links neben dem Slot, wie im Programmzettel. */
+.pt-code {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 5px;
+  margin-top: 1px;
+  border-radius: 6px;
+  background: #eae7e0;
+  color: #57534a;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Kleines Etikett für Block und Muster. */
+.pt-chip {
+  display: inline-block;
+  background: #f1efe9;
+  color: #6e6a60;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-slot__actions {
+    transition: none;
+  }
+}
+
+/* ---------- Umschalter und Chips ---------- */
+
+.pt-toggle {
+  padding: 8px 13px;
+  border: 1px solid var(--pt-border);
+  border-radius: 8px;
+  background: var(--pt-surface);
+  font-size: var(--pt-fs-base);
+  font-weight: 500;
+  color: var(--pt-text-dim);
+  transition: all 0.14s ease;
+}
+.pt-toggle:hover {
+  border-color: var(--pt-border-interactive);
+  color: var(--pt-text);
+  /* Der Umschalter kann auch ein Link sein — dann greift sonst a:hover. */
+  text-decoration: none;
+}
+.pt-toggle[data-active="true"] {
+  background: var(--pt-action);
+  border-color: var(--pt-action);
+  color: #fff;
+}
+.pt-toggle--day {
+  min-width: 42px;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.pt-chipbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid var(--pt-border);
+  border-radius: 999px;
+  background: var(--pt-surface);
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: var(--pt-text-dim);
+}
+.pt-chipbtn--good:hover:not(:disabled) {
+  border-color: #3b6d11;
+  color: #3b6d11;
+}
+.pt-chipbtn--bad:hover:not(:disabled) {
+  border-color: var(--pt-action);
+  color: var(--pt-action);
+}
+
+/* ---------- Overlay ---------- */
+
+.pt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 5vh 16px 16px;
+  overflow-y: auto;
+}
+
+.pt-sheet {
+  width: 100%;
+  max-width: 460px;
+  background: var(--pt-surface);
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 14px 44px rgba(15, 23, 42, 0.2);
+}
+
+/* ---------- Ladezustände ----------
+   Platzhalterflächen in der Form des späteren Inhalts. Ruhiger als ein
+   Spinner, weil das Layout nicht springt, sobald die Daten da sind. */
+
+.pt-skel {
+  background: linear-gradient(
+    90deg,
+    #e7e3db 25%,
+    #efece5 37%,
+    #e7e3db 63%
+  );
+  background-size: 400% 100%;
+  animation: pt-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes pt-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* Wer Bewegung reduziert haben möchte, bekommt eine ruhige Fläche. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-skel {
+    animation: none;
+    background: #e7e3db;
+  }
+}
+
+/* Kleiner Spinner für Buttons und Inline-Zustände. */
+.pt-spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: pt-spin 0.7s linear infinite;
+  vertical-align: -2px;
+}
+
+@keyframes pt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- Mobile Grundlage ----------
+
+   Der Trainer steht mit dem Handy neben dem Klienten. Hier liegt das
+   Fundament dafür, damit die übrigen Coach-Seiten später nachziehen
+   können, ohne dass etwas umgebaut werden muss.
+
+   640px als Grenze: Darunter ist es ein Handy in einer Hand, darüber ein
+   Tablet oder ein schmales Fenster — und dort funktioniert das
+   Desktop-Layout noch. */
+
+@media (max-width: 640px) {
+  .pt-shell {
+    /* Enger am Rand: 24px kosten auf 375px Breite ein Achtel des Platzes. */
+    padding: 0 14px 84px;
+  }
+
+  .pt-card {
+    padding: 14px;
+  }
+
+  /* Eingaben mindestens 17px, sonst zoomt iOS beim Fokus in das Feld
+     hinein und der Trainer scrollt sich zurück. */
+  .pt-shell input,
+  .pt-shell select,
+  .pt-shell textarea {
+    font-size: var(--pt-fs-input);
+  }
+
+  /* Zeilen mit Aktionen brechen um, statt die Knöpfe zu quetschen. */
+  .pt-slot {
+    flex-wrap: wrap;
+  }
+  .pt-slot__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Daumenziele. Apples Richtwert sind 44px; im Studio mit kalten
+     Händen ist mehr besser. */
+  .pt-slot__actions button,
+  .pt-iconbtn,
+  .pt-toggle {
+    min-height: 40px;
+  }
+}
+
+/* ---------- Trainer-Tracking ---------- */
+
+/* Liste zur Auswahl — Klient, dann Trainingstag. Eine Zeile ist ein
+   Ziel, kein Text mit Knopf daneben. */
+.pt-pickrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 12px 14px;
+  border: 1px solid var(--pt-border);
+  border-radius: 12px;
+  background: var(--pt-surface);
+  color: var(--pt-text);
+  text-align: left;
+  text-decoration: none;
+}
+
+.pt-pickrow:hover {
+  border-color: var(--pt-action);
+  text-decoration: none;
+}
+
+.pt-pickrow:active {
+  background: #f1efe9;
+}
+
+/* Hinweisband „du trackst für X". Muss auffallen: Wer versehentlich
+   beim falschen Klienten einträgt, merkt es sonst erst hinterher. */
+.pt-trackbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--pt-obsidian);
+  color: #ffffff;
+  border-radius: 0 0 12px 12px;
+  font-size: var(--pt-fs-base);
+}
+
+.pt-trackbar a {
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Satztabelle des Trainers. Eigene Klassen statt der Athleten-Version:
+   Dort öffnet ein Tastenfeld, hier tippt der Trainer direkt — er hat
+   beide Hände frei und will nicht zwei Ebenen tief. */
+
+.pt-trackhead,
+.pt-trackrow {
+  display: grid;
+  grid-template-columns: 22px 1fr 1fr 1fr 40px;
+  gap: 6px;
+  align-items: center;
+}
+
+.pt-trackhead {
+  padding-bottom: 2px;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--pt-text-dim);
+  text-align: center;
+}
+
+.pt-trackrow__n {
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: var(--pt-text-dim);
+  text-align: center;
+}
+
+.pt-trackrow input {
+  /* 17px gegen den iOS-Zoom beim Fokus, mittig weil es Zahlen sind. */
+  min-height: 46px;
+  font-size: var(--pt-fs-input);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding: 0 4px;
+}
+
+.pt-trackrow .pt-iconbtn {
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  background: none;
+  color: var(--pt-text-dim);
+}
+
+.pt-trackrow .pt-iconbtn:disabled {
+  opacity: 0.25;
+}
+
+/* Kopfzeile der Satzmaske: Titel links, Uhr rechts. Dieselbe Anordnung
+   wie beim Athleten, damit beide Seiten gleich zu lesen sind — der
+   Trainer schaut im Studio abwechselnd auf beide Geräte. */
+.pt-trackclock {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.pt-trackclock__time {
+  font-size: var(--pt-fs-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-trackclock__time[data-paused="true"] {
+  color: var(--pt-text-dim);
+}
+
+.pt-timerbtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--pt-border-interactive);
+  border-radius: 10px;
+  background: var(--pt-surface);
+  color: var(--pt-text);
+  font-size: var(--pt-fs-base);
+  -webkit-tap-highlight-color: transparent;
+}
+.pt-timerbtn:active {
+  background: #f1efe9;
+}
+
+/* Abschluss der Satzmaske.
+   ------------------------------------------------------------------
+   Vorher standen „Übung hinzufügen" und „Einheit speichern" mit 12px
+   Abstand direkt untereinander — zwei Knöpfe über die volle Breite
+   lesen sich so als ein Block, und man trifft den falschen. Jetzt
+   trennt eine Linie den Abschluss von den Übungskarten, und zwischen
+   den beiden Knöpfen liegt echter Abstand. */
+.pt-trackactions {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--pt-border);
+}
+
+.pt-trackactions .pt-btn {
+  min-height: 48px;
+}
+
+/* ---------- Pausenleiste (Trainerseite) ----------
+
+   Gleiche Uhr, gleiche Bedienung wie beim Athleten, nur in den Farben
+   des Coach-Bereichs. Die Logik teilen sich beide Seiten in
+   app/athlete/log/rest.ts — zwei Pausenuhren, die unterschiedlich
+   rechnen, wären eine Fehlerquelle ohne Gegenwert. */
+
+.pt-restdock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  padding: 0 14px 12px;
+}
+
+/* Über der Tab-Leiste absetzen: 56px ist deren Mindesthöhe, der Rest
+   ist die Home-Leiste des Geräts. */
+@media (max-width: 640px) {
+  .pt-restdock {
+    bottom: calc(56px + env(safe-area-inset-bottom));
+  }
+}
+
+.pt-rest {
+  position: relative;
+  overflow: hidden;
+  max-width: 620px;
+  margin: 0 auto;
+  background: var(--pt-surface);
+  border: 1px solid var(--pt-border);
+  border-radius: 14px;
+  box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.14);
+}
+
+.pt-rest__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #faf0ee;
+  transition: width 0.25s linear;
+}
+
+.pt-rest[data-over="true"] {
+  border-color: #4d8a26;
+  background: #eef6e8;
+}
+.pt-rest[data-over="true"] .pt-rest__fill {
+  background: #eef6e8;
+}
+
+.pt-rest__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.pt-rest__label {
+  margin: 0;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pt-text-dim);
+}
+.pt-rest[data-over="true"] .pt-rest__label {
+  color: #2f6b12;
+}
+
+.pt-rest__time {
+  margin: 1px 0 0;
+  font-size: var(--pt-fs-3xl);
+  line-height: 1.05;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pt-rest[data-over="true"] .pt-rest__time {
+  color: #2f6b12;
+}
+
+.pt-rest__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.pt-rest__actions button {
+  min-height: 44px;
+  min-width: 52px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--pt-border-interactive);
+  background: var(--pt-surface);
+  color: var(--pt-text);
+  font-size: var(--pt-fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.pt-rest__actions button[data-primary] {
+  border-color: var(--pt-action);
+  color: var(--pt-action);
+}
+.pt-rest[data-over="true"] .pt-rest__actions button[data-primary] {
+  border-color: #4d8a26;
+  color: #2f6b12;
+}
+.pt-rest__actions button:active {
+  background: #f1efe9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-rest__fill {
+    transition: none;
+  }
+}
+
+/* Auswahlzeile in Listen — Pendant zu .gym-pick auf der Athletenseite.
+   Die ganze Zeile ist das Ziel, nicht nur das Kästchen. */
+
+.pt-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  background: var(--pt-surface);
+  color: var(--pt-text);
+  text-align: left;
+  font-size: var(--pt-fs-base);
+  line-height: 1.4;
+}
+
+.pt-pick:hover {
+  border-color: var(--pt-border-interactive);
+}
+
+.pt-pick[data-active="true"] {
+  border-color: var(--pt-action);
+  background: #fdf6f4;
+}
+
+.pt-pick__box {
+  display: grid;
+  place-items: center;
+  width: 19px;
+  height: 19px;
+  margin-top: 1px;
+  border: 1.5px solid var(--pt-border-interactive);
+  border-radius: 5px;
+  color: #ffffff;
+  flex: none;
+}
+
+.pt-pick[data-active="true"] .pt-pick__box {
+  background: var(--pt-action);
+  border-color: var(--pt-action);
+}
+
+/* Knopf oben rechts in der Klientenakte: Zahnrad plus „Ansicht".
+   Kleiner als ein Hauptknopf, aber mit Beschriftung — ein reines Symbol
+   wurde im Studio nicht als anklickbar erkannt. */
+.pt-viewbtn {
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: var(--pt-fs-base);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ---------- Zeile im Einrichtungsdialog ----------
+
+   An- und abwählen links, verschieben rechts. Zwei Knöpfe statt
+   Drag-and-drop: Der Trainer bedient das mit einer Hand am Handy,
+   während er neben dem Klienten steht. Ein Ziehziel, das beim Scrollen
+   losgeht, ist dort keine Bedienung. */
+
+.pt-sortrow {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  border: 1px solid var(--pt-border);
+  border-radius: 10px;
+  background: var(--pt-surface);
+  overflow: hidden;
+}
+
+.pt-sortrow[data-off="true"] {
+  background: #faf8f5;
+}
+
+.pt-sortrow__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  padding: 9px 10px;
+  border: none;
+  background: none;
+  color: var(--pt-text);
+  text-align: left;
+  font-size: var(--pt-fs-base);
+  line-height: 1.4;
+}
+
+.pt-sortrow__main:hover {
+  background: #f7f5f1;
+}
+
+.pt-sortrow__main .pt-pick__box {
+  margin-top: 2px;
+}
+
+.pt-sortrow[data-off="true"] .pt-sortrow__main > span:last-child {
+  opacity: 0.6;
+}
+
+.pt-sortrow:not([data-off="true"]) .pt-pick__box {
+  background: var(--pt-action);
+  border-color: var(--pt-action);
+}
+
+.pt-sortrow__moves {
+  display: flex;
+  flex: none;
+  border-left: 1px solid var(--pt-border);
+}
+
+.pt-sortrow__moves button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  border: none;
+  background: none;
+  color: var(--pt-text-dim);
+}
+
+.pt-sortrow__moves button + button {
+  border-left: 1px solid var(--pt-border);
+}
+
+.pt-sortrow__moves button:hover:not(:disabled) {
+  background: #f1efe9;
+  color: var(--pt-text);
+}
+
+.pt-sortrow__moves button:disabled {
+  opacity: 0.25;
+}
+
+/* ---------- Mobile Hülle ----------
+
+   Der Coach-Bereich ist auf Laptop gebaut. Auf dem Handy war er bisher
+   dasselbe Layout, nur schmaler — mit einer Kopfnavigation, die
+   waagerecht wegscrollt. Das liest sich als Website, nicht als App.
+
+   Statt jede Seite einzeln umzubauen, tauscht die Hülle: Navigation
+   nach unten, Kopf auf Marke und Abmelden reduziert, eine Spalte. Damit
+   ändern sich alle Seiten auf einmal.
+
+   Die Tab-Leiste steht immer im Markup und wird hier nur ein- oder
+   ausgeblendet. Eine Umschaltung in JavaScript würde beim Laden
+   flackern und müsste eine Bildschirmbreite raten, die der Server nicht
+   kennt. */
+
+.pt-tabbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Kopfzeile: nur noch Marke und Abmelden. Die Links stehen unten.
+     `display: none` nimmt sie auch aus dem Baum für Screenreader —
+     sonst gäbe es zwei Navigationen mit demselben Namen. */
+  .pt-headernav {
+    display: none;
+  }
+  .pt-header__inner {
+    justify-content: space-between;
+  }
+
+  .pt-tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    display: flex;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border-top: 1px solid var(--pt-border);
+    box-shadow: 0 -1px 12px rgba(15, 23, 42, 0.05);
+    /* Home-Leiste des iPhones — ohne das liegt die letzte Reihe darunter. */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-tabbar a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    /* Fünf Felder auf 375px sind 75px breit. Die Beschriftung muss
+       deshalb kurz sein, aber sie bleibt — Symbole allein raten sich
+       schlecht. */
+    padding: 8px 2px 10px;
+    min-height: 56px;
+    font-size: var(--pt-fs-xs);
+    font-weight: 600;
+    color: var(--pt-text-dim);
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .pt-tabbar a:hover {
+    text-decoration: none;
+  }
+
+  /* Die Beschriftung darf die Leiste nicht sprengen. Sechs Punkte sind
+     einer mehr, als in eine Tab-Leiste gehört — auf 375px geht es auf,
+     darunter wird es eng. Statt einen Punkt zu verstecken lieber die
+     Schrift eine Spur kleiner: Ein Menüpunkt, den man suchen muss, ist
+     schlimmer als 9,5px. */
+  .pt-tabbar a > span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Wo bin ich?
+     ----------------------------------------------------------------
+     Drei Merkmale, keines allein tragend: ein Balken über dem aktiven
+     Feld, eine getönte Pille hinter dem Symbol, dunklere Schrift.
+     Der Balken ist der wichtigste — er wirkt über Lage und Fläche und
+     bleibt lesbar, wenn Farben nicht unterschieden werden. */
+  .pt-tabbar a {
+    position: relative;
+  }
+
+  .pt-tabbar a[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12px;
+    right: 12px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--pt-action);
+  }
+
+  .pt-tabbar__icon {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+  }
+
+  /* #ad2415 auf #f6dcd6 sind 5,30:1 — AA auch bei 10,5px. Die
+     Schriftfarbe ist der vorhandene dunklere Markenton, kein neuer. */
+  .pt-tabbar a[data-active="true"] {
+    color: #ad2415;
+    font-weight: 700;
+  }
+  .pt-tabbar a[data-active="true"] .pt-tabbar__icon {
+    background: #f6dcd6;
+  }
+  .pt-tabbar a:active .pt-tabbar__icon {
+    background: #f1efe9;
+  }
+
+  /* Platz für die Leiste. Sonst endet die letzte Karte darunter. */
+  .pt-shell {
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+    /* Seitliche Ränder bis in die Ecken, aber nicht unter die Notch. */
+    padding-left: max(14px, env(safe-area-inset-left));
+    padding-right: max(14px, env(safe-area-inset-right));
+  }
+
+  /* Zwei Spalten werden eine — gilt bereits ab 900px, hier nur zur
+     Sicherheit für alles, was später dazukommt. */
+  .pt-split,
+  .pt-week {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Überschriften eine Stufe kleiner: 24px auf 375px Breite brechen
+     Klientennamen um. */
+  .pt-shell h1 {
+    font-size: var(--pt-fs-xl);
+  }
+}
+
+/* Sehr schmale Geräte. Hier steht nur noch, was sich gegenüber 640px
+   ändert — der Rest gilt von oben weiter.
+
+   Vorher stand der halbe Block oben irrtümlich hier drin: Pille,
+   aktiver Zustand, Platz für die Tab-Leiste, kleinere Überschriften.
+   Auf einem iPhone (375–430px) griff davon nichts. Deshalb war die
+   Leiste ohne Markierung und der letzte Inhalt lag darunter. */
+@media (max-width: 360px) {
+  .pt-tabbar a {
+    font-size: var(--pt-fs-2xs);
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+  .pt-tabbar__icon {
+    width: 38px;
+  }
+  .pt-tabbar a[data-active="true"]::before {
+    left: 8px;
+    right: 8px;
+  }
+}
+
+/* Abstand zur Statusleiste — immer, nicht nur im Homescreen-Modus.
+
+   `viewportFit: cover` im Layout zieht die Seite bis in die Ecken, und
+   zwar AUCH in Safari. Die Kopfzeile klebt oben; ohne diesen Abstand
+   liegt die Marke hinter der Uhrzeit und wird angeschnitten.
+
+   `env()` ist auf Geräten ohne Notch und am Laptop schlicht 0 — die
+   Regel kostet dort nichts. Die Bedingung auf `display-mode` war der
+   Fehler: Im Browser gilt sie nicht, das Problem gibt es dort aber
+   genauso. */
+.pt-header {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* ---------- Vorher-Nachher ----------
+   Wird von Coach und Athlet benutzt, deshalb hier und nicht in
+   gym.css: Der Coach-Bereich laedt jene Datei nicht.
+
+   Aus dem Meeting 16.09: „Dopamin kick — boa seh besser aus als vor nem
+   Monat." Der Effekt haengt am Nebeneinander. Eine Galerie allein
+   leistet ihn nicht: Man scrollt, sieht zwoelf aehnliche Bilder und
+   erkennt nichts. */
+.cmp {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+}
+
+.cmp__label {
+  margin: 0 0 5px;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--g-dim, var(--pt-text-dim));
+}
+
+/* Festes Seitenverhaeltnis, damit die beiden Haelften gleich hoch sind.
+   Ohne das springt die rechte Seite beim Umschalten, sobald ein Bild
+   anders geschnitten ist — und genau dann vergleicht man Hoehen statt
+   Koerper.
+
+   `object-fit: contain` und nicht `cover`: Ein Zuschnitt wuerde je nach
+   Bild andere Teile abschneiden. Dann sieht man einen Unterschied, der
+   keiner ist. */
+.cmp__bild {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #efece6;
+}
+
+.cmp__bild img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.cmp__datum {
+  margin: 6px 0 0;
+  font-size: var(--pt-fs-sm);
+  color: var(--g-dim, var(--pt-text-dim));
+  font-variant-numeric: tabular-nums;
+}
+
+/* In der Uebersicht darf zugeschnitten werden — dort geht es ums
+   Wiederfinden, nicht um den Vergleich. */
+
+.cmp__fehlt {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  background: #efece6;
+  color: var(--g-dim, var(--pt-text-dim));
+  font-size: var(--pt-fs-sm);
+}
+
+/* ---------- Startanimation ----------
+
+   Deckt den Moment ab, in dem die App aufgeht und sonst ein leerer
+   Schirm staende. Reines CSS: Eine Animation mit `forwards` endet von
+   selbst, auch wenn kein JavaScript laeuft. Eine Startanimation, die
+   per Skript ausgeblendet wird, bleibt bei einem Fehler fuer immer
+   stehen — und dann ist die App nicht kaputt, sondern unerreichbar.
+
+   Der Hintergrund ist derselbe Sandton wie die App. Beim Ausblenden
+   gibt es deshalb keinen Farbsprung, sondern die Marke loest sich
+   einfach auf.
+
+   ZUR ZEITEINTEILUNG
+
+   Die erste Fassung liess den Vorhang 140 ms stehen, bevor er losfuhr.
+   Sichtbar war in dieser Zeit nur die rote Kante — ein Strich, der aus
+   dem Nichts kommt und nichts tut. Und die Kante blieb am Ende noch
+   120 ms rechts stehen, nachdem die Marke schon vollstaendig da war.
+   Beides faellt auf, beides sah aus wie ein Fehler.
+
+   Jetzt: Die Kante blendet in den ersten 70 ms ein, faehrt sofort los
+   und verschwindet genau dann, wenn sie rechts ankommt. */
+
+.pt-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: grid;
+  place-items: center;
+  background: var(--pt-sand);
+  animation: pt-splash-out 900ms ease-in forwards;
+}
+
+@keyframes pt-splash-out {
+  0%,
+  74% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    /* `visibility` schaltet hart um und nimmt das Feld danach aus der
+       Trefferflaeche. Ohne das laege eine unsichtbare Scheibe ueber der
+       App und schluckte jeden Tipp. */
+    visibility: hidden;
+  }
+}
+
+.pt-splash__mark {
+  position: relative;
+  width: 168px;
+  overflow: hidden;
+  /* Ein Hauch Bewegung im Ganzen, damit das Aufdecken nicht wie ein
+     stehendes Bild mit Vorhang wirkt. */
+  animation: pt-splash-rise 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.pt-splash__mark img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+@keyframes pt-splash-rise {
+  0% {
+    transform: translateY(6px) scale(0.985);
+  }
+  45%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Der Vorhang in Sandfarbe. Liegt ueber der Marke und faehrt nach
+   rechts weg — dadurch erscheint sie von links nach rechts. */
+.pt-splash__mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--pt-sand);
+  animation: pt-splash-wipe 900ms cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+
+/* Die rote Kante laeuft der Aufdeckung voraus. Dieselbe Farbe wie im
+   Logo, deshalb liest es sich als Teil der Marke und nicht als Effekt. */
+.pt-splash__mark::before {
+  content: "";
+  position: absolute;
+  top: -6%;
+  bottom: -6%;
+  left: -3px;
+  width: 3px;
+  z-index: 1;
+  background: var(--pt-graphic);
+  animation: pt-splash-edge 900ms cubic-bezier(0.5, 0, 0.2, 1) both;
+}
+
+@keyframes pt-splash-wipe {
+  0%,
+  6% {
+    transform: translateX(0);
+  }
+  60%,
+  100% {
+    transform: translateX(101%);
+  }
+}
+
+@keyframes pt-splash-edge {
+  /* Einblenden, waehrend sie noch links steht: Ein Strich, der aus dem
+     Nichts auftaucht und erst danach losfaehrt, sieht aus wie ein
+     Fehler. */
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  8% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  54% {
+    opacity: 1;
+  }
+  /* Verschwindet genau dort, wo sie ankommt — nicht erst danach. */
+  60%,
+  100% {
+    transform: translateX(calc(168px + 3px));
+    opacity: 0;
+  }
+}
+
+/* Wer Bewegung reduziert haben moechte, bekommt dieselbe Dauer ohne
+   Fahrt: Die Marke steht sofort und das Feld blendet aus. Ein Aufdecken
+   ist Bewegung ueber eine Strecke und genau das, was hier stoert. */
+@media (prefers-reduced-motion: reduce) {
+  .pt-splash {
+    animation-duration: 620ms;
+  }
+  .pt-splash__mark,
+  .pt-splash__mark::after,
+  .pt-splash__mark::before {
+    animation: none;
+  }
+  .pt-splash__mark::after,
+  .pt-splash__mark::before {
+    display: none;
+  }
+}
+
+/* ---------- Rueckmeldung beim Antippen ----------
+
+   Eine native App antwortet auf JEDE Beruehrung sofort. Eine Web-App
+   tut das von sich aus nicht: Zwischen dem Tippen und dem, was danach
+   passiert, liegen im Gym gern mal 300 ms Netz — und in dieser Zeit
+   sieht der Knopf aus, als haette man ihn nicht getroffen. Genau dann
+   tippt man ein zweites Mal.
+
+   Vorher gab es 19 `:active`-Zustaende fuer mehrere hundert antippbare
+   Dinge. Statt sie weiter einzeln nachzupflegen, greift hier eine
+   breite Regel ueber alles, was anklickbar ist.
+
+   `:active` und nicht `:hover`: Auf dem Handy gibt es kein Hover, und
+   wo Browser es nachbilden, bleibt der Zustand nach dem Tippen kleben.
+
+   Die Bewegung ist bewusst winzig — 2 % kleiner. Man sieht sie nicht
+   bewusst, man spuert nur, dass die Flaeche reagiert. Alles darueber
+   wirkt nach zwei Tagen wie ein Spielzeug. */
+
+button,
+[role="button"],
+a.pt-card,
+a.gym-card,
+label.pt-pick,
+summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.pt-btn:active,
+.pt-btn--ghost:active,
+.pt-pickrow:active,
+.pt-toggle:active,
+.pt-chipbtn:active,
+.pt-iconbtn:active,
+.pt-viewbtn:active,
+.pt-timerbtn:active,
+.mc-range:active,
+.mc-chip:active,
+.pt-pick:active,
+.pt-sortrow__main:active,
+.pt-sortrow__moves button:active,
+.gym-btn:active,
+.gym-chip:active,
+.gym-pick:active,
+.gym-iconbtn:active,
+.gym-setdel:active,
+a.pt-card:active,
+a.gym-card:active {
+  transform: scale(0.98);
+}
+
+/* Ein deaktivierter Knopf darf sich NICHT bewegen. Sonst meldet er
+   „angekommen" und tut dann nichts — schlimmer als gar keine
+   Rueckmeldung, weil man auf eine Reaktion wartet, die nicht kommt. */
+button:disabled:active,
+.pt-btn:disabled:active,
+.gym-btn:disabled:active {
+  transform: none;
+}
+
+/* Flaechen, die zu gross sind, um zu schrumpfen: Eine ganze Karte um
+   2 % kleiner zu ziehen sieht aus, als sei sie kaputt. Die bekommen
+   stattdessen eine Tonspur. */
+.pt-tabbar a:active,
+.gym-nav a:active,
+.pt-navlink:active,
+.pt-mchip:active,
+.pt-monthcell__hit:active {
+  background: #eae7e0;
+}
+
+/* Alle Zustandswechsel gleich schnell. 90 ms ist unter der Schwelle,
+   ab der man eine Animation als solche wahrnimmt — es fuehlt sich
+   nicht animiert an, sondern fest. */
+.pt-btn,
+.pt-pickrow,
+.pt-toggle,
+.pt-chipbtn,
+.pt-iconbtn,
+.pt-viewbtn,
+.pt-timerbtn,
+.mc-range,
+.mc-chip,
+.pt-pick,
+.gym-btn,
+.gym-chip,
+.gym-pick,
+.gym-iconbtn {
+  transition: transform 90ms ease, background-color 140ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-btn,
+  .pt-pickrow,
+  .pt-toggle,
+  .pt-chipbtn,
+  .pt-iconbtn,
+  .pt-viewbtn,
+  .pt-timerbtn,
+  .mc-range,
+  .mc-chip,
+  .pt-pick,
+  .gym-btn,
+  .gym-chip,
+  .gym-pick,
+  .gym-iconbtn {
+    transition: background-color 140ms ease;
+  }
+  /* Verkleinern ist Bewegung. Der Farbwechsel bleibt — ganz ohne
+     Rueckmeldung waere die App schlechter bedienbar, nicht ruhiger. */
+  .pt-btn:active,
+  .pt-btn--ghost:active,
+  .pt-pickrow:active,
+  .pt-toggle:active,
+  .pt-chipbtn:active,
+  .pt-iconbtn:active,
+  .pt-viewbtn:active,
+  .pt-timerbtn:active,
+  .mc-range:active,
+  .mc-chip:active,
+  .pt-pick:active,
+  .pt-sortrow__main:active,
+  .pt-sortrow__moves button:active,
+  .gym-btn:active,
+  .gym-chip:active,
+  .gym-pick:active,
+  .gym-iconbtn:active,
+  .gym-setdel:active,
+  a.pt-card:active,
+  a.gym-card:active {
+    transform: none;
+    filter: brightness(0.96);
+  }
+}
+
+/* Tastaturbedienung: Ein sichtbarer Fokusring auf allem, was Fokus
+   bekommen kann. `:focus-visible` und nicht `:focus` — sonst leuchtet
+   nach jedem Mausklick ein Rahmen auf, den niemand angefordert hat. */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--pt-action);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---------- Bestleistung im Moment ----------
+
+   Erscheint in der Satzzeile, sobald die eingetippte Zahl die
+   bisherige Marke schlaegt. Bewusst KEIN Fenster davor: Ein
+   Glueckwunsch, den man wegtippen muss, unterbricht das Training — und
+   beim dritten Satz ist er eine Belaestigung.
+
+   Die Schwelle von einem Prozent steckt in `beatsBest` in der Engine.
+   Ohne sie waere jeder zweite Satz eine "neue Bestleistung", weil
+   Epley auf jedes Gramm reagiert — und nach dem dritten Mal glaubt es
+   niemand mehr. */
+
+.pt-best,
+.gym-best {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f6dcd6;
+  color: #ad2415; /* 5,30:1 auf der Pille — AA auch bei 11px */
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  animation: pt-best-in 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* Kommt von unten heran statt aufzupoppen: Die Zeile daruber bleibt
+   ruhig, und das Auge folgt der Bewegung statt zu erschrecken. */
+@keyframes pt-best-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Die Zeile selbst bekommt einen hauchduennen Rahmen — damit man auch
+   beim Zurueckscrollen sieht, welcher Satz es war. */
+.pt-trackrow[data-best="true"],
+.gym-setrow[data-best="true"] {
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-best,
+  .gym-best {
+    animation: none;
+  }
+}
+
+/* ---------- Bestaetigungen ----------
+
+   Unten, nicht oben: Oben liegt auf dem Handy die Statusleiste und im
+   Coach-Bereich die Kopfzeile. Unten ist der Daumen — und dorthin
+   schaut man ohnehin, wenn man gerade etwas angetippt hat.
+
+   Ueber der Tab-Leiste, damit sie nicht den Menuepunkt verdeckt, den
+   man als naechstes braucht. */
+
+.pt-toasts {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 8000;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  /* Durchlaessig: Eine Bestaetigung darf nichts blockieren, was
+     darunter liegt. Sie ist eine Mitteilung, kein Dialog. */
+  pointer-events: none;
+  padding: 0 16px;
+}
+
+@media (max-width: 640px) {
+  .pt-toasts {
+    bottom: calc(74px + env(safe-area-inset-bottom));
+  }
+}
+
+.pt-toast {
+  max-width: 100%;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--pt-obsidian);
+  color: #ffffff; /* 15,3:1 — weit ueber AA */
+  font-size: var(--pt-fs-base);
+  font-weight: 600;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.22);
+  animation: pt-toast-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@keyframes pt-toast-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-toast {
+    animation: none;
+  }
+}

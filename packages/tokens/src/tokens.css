@@ -1,0 +1,46 @@
+/* PTHREE — CSS-Variablen für die Coach-Web-App.
+   Quelle: Brand Book v16.0. Werte nur hier ändern, nie inline überschreiben. */
+
+:root {
+  --pt-sand: #f4f2ed;
+  --pt-obsidian: #0f172a;
+  --pt-vermilion-graphic: #e63b2b;
+  --pt-vermilion-action: #c42d1a;
+  --pt-vermilion-gym: #ff6b5b;
+  --pt-sand-border: #d6d3cb;
+  --pt-obsidian-border: #2a3a4f;
+  --pt-input-border-light: #8c877a;
+  --pt-input-border-dark: #64748b;
+  --pt-white: #ffffff;
+
+  --pt-radius-sm: 6px;
+  --pt-radius-md: 10px;
+  --pt-radius-lg: 16px;
+}
+
+/* Light Theme — Coach Web */
+[data-theme="light"],
+:root {
+  --pt-canvas: var(--pt-sand);
+  --pt-surface: var(--pt-white);
+  --pt-text-primary: var(--pt-obsidian);
+  --pt-text-secondary: #6e6a60;
+  --pt-accent: var(--pt-vermilion-action);
+  --pt-accent-on: var(--pt-white);
+  --pt-display: var(--pt-vermilion-graphic);
+  --pt-border: var(--pt-sand-border);
+  --pt-border-interactive: var(--pt-input-border-light);
+}
+
+/* Dark Theme — Gym Floor */
+[data-theme="dark"] {
+  --pt-canvas: var(--pt-obsidian);
+  --pt-surface: #16202f;
+  --pt-text-primary: var(--pt-sand);
+  --pt-text-secondary: #8c99ac;
+  --pt-accent: var(--pt-vermilion-gym);
+  --pt-accent-on: var(--pt-obsidian);
+  --pt-display: var(--pt-vermilion-gym);
+  --pt-border: var(--pt-obsidian-border);
+  --pt-border-interactive: var(--pt-input-border-dark);
+}

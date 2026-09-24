@@ -1,0 +1,1105 @@
+/* Athlete-Bereich — Editorial Sand, wie die Coach-Web-App.
+   Bewusst dieselbe Farbwelt: Coach und Klient sprechen über dieselbe App,
+   also soll sie auch gleich aussehen.
+
+   Die Mobil-Ergonomie bleibt: große Flächen, 17px-Eingaben gegen den
+   iOS-Zoom, Navigation in Daumenreichweite. */
+
+.gym {
+  --g-canvas: #f4f2ed; /* editorial-sand */
+  --g-surface: #ffffff;
+  --g-text: #0f172a; /* obsidian-ink */
+  --g-dim: #6e6a60;
+  --g-accent: #c42d1a; /* vermilion-action — 5,02:1 auf Sand */
+  --g-display: #e63b2b; /* vermilion-graphic — nur große Zahlen */
+  --g-border: #d6d3cb; /* sand-border */
+  --g-input-border: #8c877a; /* input-border-light — 3,20:1 */
+
+  min-height: 100vh;
+  background: var(--g-canvas);
+  color: var(--g-text);
+  /* Platz für die feste Navigation unten. */
+  padding-bottom: 84px;
+}
+
+.gym-shell {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.gym-card {
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 14px;
+  padding: 16px;
+  /* Muss explizit gesetzt sein: <button> erbt die Textfarbe nicht vom
+     Container, sondern nimmt die Browser-Standardfarbe. */
+  color: var(--g-text);
+  width: 100%;
+}
+
+/* Anklickbare Karte — die ganze Fläche ist das Ziel, nicht der Text.
+   Die Unterstreichung muss für jeden Zustand einzeln abgeschaltet werden:
+   die globale Regel a:hover ist spezifischer als eine reine Klasse. */
+.gym-card--link,
+.gym-card--link:hover,
+.gym-card--link:focus,
+.gym-card--link:active,
+.gym-card--link:visited {
+  text-decoration: none;
+  color: var(--g-text);
+}
+.gym-card--link {
+  /* Kein graues Blitzen beim Antippen auf iOS — die Karte selbst antwortet. */
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.gym-card--link:active {
+  border-color: var(--g-input-border);
+  background: #fbfaf8;
+  transform: scale(0.985);
+}
+.gym-card--link:focus-visible {
+  outline: 2px solid var(--g-accent);
+  outline-offset: 2px;
+}
+/* Hover nur dort, wo es einen Zeiger gibt — sonst bleibt der Zustand
+   auf dem Handy nach dem Tippen kleben. */
+@media (hover: hover) {
+  .gym-card--link:hover {
+    border-color: var(--g-input-border);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gym-card--link {
+    transition: none;
+  }
+  .gym-card--link:active {
+    transform: none;
+  }
+}
+
+.gym-label {
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-dim);
+  margin: 0;
+}
+
+/* Die Zahl, auf die es ankommt — aus Armlänge lesbar.
+   Große Anzeige darf vermilion-graphic tragen (3:1-Regel für große Elemente). */
+.gym-metric {
+  font-size: var(--pt-fs-hero);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--g-display);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.gym-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--g-accent);
+  color: #ffffff;
+  font-size: var(--pt-fs-lg);
+  font-weight: 700;
+}
+.gym-btn:disabled {
+  opacity: 0.5;
+}
+.gym-btn--ghost {
+  background: transparent;
+  color: var(--g-text);
+  border: 1px solid var(--g-input-border);
+}
+
+.gym input,
+.gym select,
+.gym textarea {
+  background: var(--g-surface);
+  border: 1px solid var(--g-input-border);
+  color: var(--g-text);
+  border-radius: 10px;
+  /* 17px verhindert, dass iOS beim Fokus hineinzoomt. */
+  font-size: var(--pt-fs-input);
+  min-height: 48px;
+  padding: 10px 12px;
+}
+.gym input:focus,
+.gym select:focus,
+.gym textarea:focus {
+  outline: 2px solid var(--g-accent);
+  outline-offset: 1px;
+}
+
+.gym-textarea {
+  width: 100%;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Fünfstufige Skala. Die Zahlen sind Daumenziele, keine Radiobuttons —
+   ein Tippen, kein Zielen auf einen 20px-Kreis. */
+.gym-scale {
+  flex: 1;
+  min-height: 52px;
+  border: 1px solid var(--g-input-border);
+  border-radius: 10px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-input);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+.gym-scale[data-active="true"] {
+  background: var(--g-accent);
+  border-color: var(--g-accent);
+  color: #ffffff;
+}
+.gym-scale:focus-visible {
+  outline: 2px solid var(--g-accent);
+  outline-offset: 2px;
+}
+@media (hover: hover) {
+  .gym-scale:hover:not([data-active="true"]) {
+    background: #f1efe9;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gym-scale {
+    transition: none;
+  }
+}
+
+/* Übernahme aus der letzten Einheit — ein Tippziel, kein Etikett.
+   Deshalb volle Breite und 44px hoch. */
+.gym-carry {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px dashed var(--g-input-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--g-text);
+  font-size: var(--pt-fs-base);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.14s ease, border-color 0.14s ease;
+}
+.gym-carry:active {
+  background: #f1efe9;
+  border-color: var(--g-accent);
+}
+@media (hover: hover) {
+  .gym-carry:hover {
+    background: #f7f5f1;
+    border-color: var(--g-accent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gym-carry {
+    transition: none;
+  }
+}
+
+/* ---------- Wochenleiste ---------- */
+
+.gym-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.gym-weekday {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 9px 2px 10px;
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  background: var(--g-surface);
+}
+/* Geplant, aber noch nicht gemacht: gestrichelter Rand statt Farbe —
+   Farbe allein wäre kein Unterschied für farbfehlsichtige Augen. */
+.gym-weekday[data-planned="true"][data-done="false"] {
+  border-style: dashed;
+  border-color: var(--g-input-border);
+}
+.gym-weekday[data-done="true"] {
+  background: #e8f0e2;
+  border-color: #a8c493;
+}
+.gym-weekday[data-today="true"] {
+  box-shadow: inset 0 2px 0 var(--g-accent);
+}
+
+.gym-weekday__name {
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  color: var(--g-dim);
+}
+.gym-weekday[data-today="true"] .gym-weekday__name {
+  color: var(--g-accent);
+}
+
+.gym-weekday__mark {
+  display: grid;
+  place-items: center;
+  height: 18px;
+  font-size: var(--pt-fs-lg);
+  line-height: 1;
+  color: var(--g-dim);
+}
+.gym-weekday[data-done="true"] .gym-weekday__mark {
+  color: #2f5a0e;
+}
+
+/* Supersatz-Code A1, A2 — dieselbe Schreibweise wie auf dem Programmzettel. */
+.gym-code {
+  flex: none;
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 26px;
+  padding: 0 6px;
+  margin-top: 2px;
+  border-radius: 7px;
+  background: #eae7e0;
+  color: #57534a;
+  font-size: var(--pt-fs-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pause und Fortsetzen der Uhr. */
+.gym-timerbtn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--g-input-border);
+  border-radius: 10px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-base);
+  -webkit-tap-highlight-color: transparent;
+}
+.gym-timerbtn:active {
+  background: #f1efe9;
+}
+
+/* Vorgaben des Coaches unter der Satztabelle. */
+.gym-spec {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--g-border);
+  font-size: var(--pt-fs-sm);
+  color: var(--g-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Summenzeile über dem Abschlussknopf. */
+.gym-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eae7e0;
+  font-size: var(--pt-fs-base);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Ziffernblock ---------- */
+
+/* Fährt von unten hoch und deckt die Navigation ab. Die Tasten sind
+   60 px hoch — Apples Richtwert liegt bei 44, im Studio ist mehr besser. */
+.gym-pad {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  background: var(--g-surface);
+  border-top: 1px solid var(--g-border);
+  border-radius: 18px 18px 0 0;
+  box-shadow: 0 -8px 32px rgba(15, 23, 42, 0.16);
+  padding: 14px 12px calc(12px + env(safe-area-inset-bottom));
+  animation: gym-pad-up 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes gym-pad-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+.gym-pad__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 4px 8px;
+}
+
+.gym-pad__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f1efe9;
+  color: var(--g-text);
+}
+
+.gym-pad__hint {
+  margin: 0 4px 10px;
+  font-size: var(--pt-fs-sm);
+  line-height: 1.4;
+  color: var(--g-dim);
+}
+
+.gym-pad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.gym-key {
+  min-height: 60px;
+  border: 1px solid var(--g-border);
+  border-radius: 12px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-2xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.08s ease;
+}
+.gym-key:active {
+  background: #eae7e0;
+}
+.gym-key:disabled {
+  opacity: 0.35;
+}
+
+.gym-pad__next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 12px;
+  background: var(--g-accent);
+  color: #ffffff;
+  font-size: var(--pt-fs-input);
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-pad {
+    animation: none;
+  }
+  .gym-key {
+    transition: none;
+  }
+}
+
+/* ---------- Satztabelle ---------- */
+
+.gym-setrow {
+  display: grid;
+  /* Letzte Spalte: Löschknopf. Schmal gehalten — die Werte sollen so
+     breit wie möglich bleiben, die werden im Gehen getroffen. */
+  grid-template-columns: 22px 1fr 1fr 1fr 38px;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Ein Wert im Satz: sieht aus wie ein Feld, ist aber ein Knopf, der den
+   Ziffernblock öffnet. Systemtastatur bleibt damit komplett aussen vor. */
+.gym-cell {
+  min-height: 46px;
+  border: 1px solid var(--g-input-border);
+  border-radius: 10px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-input);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+.gym-cell[data-empty="true"] {
+  color: var(--g-dim);
+  font-weight: 400;
+}
+.gym-cell[data-active="true"] {
+  border-color: var(--g-accent);
+  box-shadow: inset 0 0 0 1px var(--g-accent);
+}
+.gym-cell:active {
+  background: #f7f5f1;
+}
+
+.gym-setrow__head {
+  display: grid;
+  grid-template-columns: 22px 1fr 1fr 1fr 38px;
+  gap: 6px;
+  padding: 0 0 4px;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--g-dim);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-cell {
+    transition: none;
+  }
+}
+
+/* ---------- Bestätigungs-Modal ---------- */
+
+.gym-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: gym-fade 0.16s ease-out;
+}
+
+.gym-modal {
+  width: 100%;
+  max-width: 380px;
+  background: var(--g-surface);
+  border-radius: 18px;
+  padding: 26px 22px 22px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.28);
+  animation: gym-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Der grüne Haken ist die Quittung. Grün statt Vermilion, weil Vermilion
+   in dieser App durchgängig Handlung und Warnung bedeutet. */
+.gym-modal__mark {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto;
+  border-radius: 50%;
+  background: #e8f0e2;
+  color: #2f5a0e;
+  animation: gym-pop 0.3s cubic-bezier(0.22, 1.4, 0.44, 1) 0.05s backwards;
+}
+
+@keyframes gym-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes gym-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes gym-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-overlay,
+  .gym-modal,
+  .gym-modal__mark {
+    animation: none;
+  }
+}
+
+/* Ladeplatzhalter. */
+.gym-skel {
+  background: linear-gradient(90deg, #e7e3db 25%, #efece5 37%, #e7e3db 63%);
+  background-size: 400% 100%;
+  animation: gym-shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes gym-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-skel {
+    animation: none;
+    background: #e7e3db;
+  }
+}
+
+/* Feste Navigation am unteren Rand — Daumenreichweite.
+   Leicht abgehoben statt bündig: der Schatten trennt sie vom Inhalt,
+   ohne eine harte Linie zu ziehen. */
+.gym-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(12px);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  border-top: 1px solid var(--g-border);
+  box-shadow: 0 -1px 12px rgba(15, 23, 42, 0.05);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.gym-nav a,
+.gym-nav button {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 4px 11px;
+  font-size: var(--pt-fs-xs);
+  font-weight: 600;
+  color: var(--g-dim);
+  text-decoration: none;
+  background: none;
+  border: none;
+  /* Mindestens 48px hoch — Daumenziel nach Apples Richtwert. */
+  min-height: 56px;
+}
+
+/* Pille hinter dem Icon: markiert den aktiven Punkt auch ohne Farbe. */
+.gym-nav__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  transition: background-color 0.18s ease, color 0.18s ease;
+}
+
+/* Wo bin ich?
+   -------------------------------------------------------------------
+   Dieselbe Sprache wie die Coach-Leiste: ein Balken ueber dem aktiven
+   Feld, eine getoente Pille hinter dem Symbol, dunklere Schrift.
+
+   Der Balken ist der wichtigste von den dreien. Er wirkt ueber Lage und
+   Flaeche und bleibt lesbar, wenn Farben nicht unterschieden werden —
+   Farbe allein traegt hier keine Information.
+
+   Die Toene sind die geprueften: #ad2415 auf #f6dcd6 sind 5,30:1, also
+   AA auch bei 11px. Das vorherige #fbefea war so blass, dass Aaron es
+   auf der Coach-Seite fuer "nicht markiert" gehalten hat. */
+
+.gym-nav a {
+  position: relative;
+}
+
+.gym-nav a[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 3px;
+  border-radius: 0 0 3px 3px;
+  background: var(--g-accent);
+}
+
+.gym-nav a[data-active="true"] {
+  color: #ad2415;
+  font-weight: 700;
+}
+.gym-nav a[data-active="true"] .gym-nav__icon {
+  background: #f6dcd6;
+}
+
+/* Fuenf Felder statt vier: Auf 320px sind das je 64px. Die Beschriftung
+   muss dann umbrechen duerfen, statt die Leiste zu sprengen. */
+.gym-nav a > span:last-child,
+.gym-nav button > span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .gym-nav a,
+  .gym-nav button {
+    font-size: var(--pt-fs-2xs);
+    padding-left: 1px;
+    padding-right: 1px;
+  }
+  .gym-nav__icon {
+    width: 40px;
+  }
+  .gym-nav a[data-active="true"]::before {
+    left: 8px;
+    right: 8px;
+  }
+}
+
+/* ---------- Profilbild ----------
+   Im Profil gross, sonst als Kreis mit Initialen wie beim Trainer. */
+
+.gym-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f1efe9;
+  color: var(--g-dim);
+  font-size: var(--pt-fs-xl);
+  font-weight: 700;
+}
+
+.gym-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gym-nav a:active .gym-nav__icon,
+.gym-nav button:active .gym-nav__icon {
+  background: #f1efe9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-nav__icon {
+    transition: none;
+  }
+}
+
+/* ---------- Unterer Bereich: Pause + Ziffernblock ----------
+   Ein gemeinsamer Behälter statt zweier schwebender Elemente. Der
+   Ziffernblock deckt die Navigation ab, die Pausenleiste allein muss
+   über ihr bleiben — deshalb die Fallunterscheidung am Behälter und
+   nicht an jedem Kind. */
+
+.gym-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ohne Ziffernblock über der Navigation absetzen. 56px ist deren
+   Mindesthöhe, der Rest ist die Home-Leiste des Geräts. */
+.gym-dock[data-pad="false"] {
+  bottom: calc(56px + env(safe-area-inset-bottom));
+  padding: 0 12px 10px;
+}
+
+/* Im Behälter positioniert der Ziffernblock sich nicht mehr selbst. */
+.gym-dock .gym-pad {
+  position: static;
+  z-index: auto;
+}
+
+/* ---------- Pausenleiste ----------
+   Die Zahl ist groß genug, um sie aus Armlänge auf der Bank zu lesen —
+   das ist der Abstand, aus dem sie gelesen wird. */
+
+.gym-rest {
+  position: relative;
+  overflow: hidden;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 14px;
+  box-shadow: 0 -6px 24px rgba(15, 23, 42, 0.12);
+}
+
+.gym-dock[data-pad="true"] .gym-rest {
+  /* Auf dem Ziffernblock sitzend: unten bündig, damit kein Spalt bleibt. */
+  border-radius: 14px 14px 0 0;
+  border-bottom: none;
+  margin-bottom: -1px;
+}
+
+/* Der Balken läuft hinter dem Text durch, statt eine eigene Zeile zu
+   belegen. Bei laufender Pause blass, damit der Text lesbar bleibt. */
+.gym-rest__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #faf0ee;
+  transition: width 0.25s linear;
+}
+
+.gym-rest[data-over="true"] {
+  border-color: #4d8a26;
+  background: #eef6e8;
+}
+
+.gym-rest[data-over="true"] .gym-rest__fill {
+  background: #eef6e8;
+}
+
+.gym-rest__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.gym-rest__label {
+  margin: 0;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--g-dim);
+}
+
+.gym-rest[data-over="true"] .gym-rest__label {
+  color: #2f6b12;
+}
+
+.gym-rest__time {
+  margin: 1px 0 0;
+  font-size: var(--pt-fs-3xl);
+  line-height: 1.05;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--g-text);
+}
+
+.gym-rest[data-over="true"] .gym-rest__time {
+  color: #2f6b12;
+}
+
+.gym-rest__actions {
+  display: flex;
+  gap: 6px;
+  flex: none;
+}
+
+.gym-rest__actions button {
+  min-height: 44px;
+  min-width: 52px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--g-input-border);
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gym-rest__actions button[data-primary] {
+  border-color: var(--g-accent);
+  color: var(--g-accent);
+}
+
+.gym-rest[data-over="true"] .gym-rest__actions button[data-primary] {
+  border-color: #4d8a26;
+  color: #2f6b12;
+}
+
+.gym-rest__actions button:active {
+  background: #f1efe9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gym-rest__fill {
+    transition: none;
+  }
+}
+
+/* Satz löschen. Zurückhaltend, aber mit vollem Daumenziel: Die Fläche
+   ist 44px hoch, sichtbar ist nur das Kreuz. Ein auffälliger Knopf neben
+   jedem Satz würde die Zeile beherrschen, und gelöscht wird selten. */
+.gym-setdel {
+  min-height: 44px;
+  width: 38px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  color: var(--g-dim);
+  padding: 0;
+}
+
+.gym-setdel:disabled {
+  opacity: 0.25;
+}
+
+.gym-setdel:not(:disabled):active {
+  background: #f1efe9;
+  color: var(--g-accent);
+}
+
+/* ---------- Auswahlliste ----------
+   Dasselbe Modal wie beim Abschluss, nur höher und links ausgerichtet:
+   Eine Liste liest man nicht zentriert. */
+
+.gym-modal--list {
+  text-align: left;
+  max-width: 460px;
+}
+
+.gym-iconbtn {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  min-height: 40px;
+  border: 1px solid var(--g-border);
+  border-radius: 10px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  flex: none;
+}
+
+.gym-iconbtn:active {
+  background: #f1efe9;
+}
+
+/* Eine Zeile der Auswahl. Die ganze Zeile ist das Ziel, nicht nur das
+   Kästchen — mit dem Daumen trifft man keine 20 Pixel. */
+.gym-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 9px 11px;
+  border: 1px solid var(--g-border);
+  border-radius: 12px;
+  background: var(--g-surface);
+  color: var(--g-text);
+  text-align: left;
+  font-size: var(--pt-fs-md);
+  line-height: 1.4;
+}
+
+.gym-pick[data-active="true"] {
+  border-color: var(--g-accent);
+  background: #fdf6f4;
+}
+
+.gym-pick__box {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1.5px solid var(--g-input-border);
+  border-radius: 6px;
+  color: #ffffff;
+  flex: none;
+}
+
+.gym-pick[data-active="true"] .gym-pick__box {
+  background: var(--g-accent);
+  border-color: var(--g-accent);
+}
+
+.gym-pick:active {
+  background: #f1efe9;
+}
+
+/* ---------- Homescreen-Modus ----------
+
+   Ohne Browser-Rahmen beginnt die Seite ganz oben — dort, wo auf dem
+   iPhone Uhrzeit und Batterie stehen. `viewportFit: cover` im Layout
+   zieht sie bewusst bis in die Ecken; hier kommt der Abstand zurück,
+   damit der Inhalt nicht unter der Statusleiste liegt.
+
+   Nur im Homescreen-Modus: Im Browser übernimmt das dessen eigene
+   Leiste, und ein zusätzlicher Abstand wäre doppelt. */
+
+/* Aus demselben Grund wie im Coach-Bereich ohne Bedingung: `viewportFit:
+   cover` wirkt auch im Browser, nicht erst auf dem Homescreen. */
+.gym {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Seitlich bis in die Ecken, aber nicht unter die Notch im Querformat. */
+.gym-shell {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* ---------- Fotogalerie (nur Athlet) ----------
+   Der Vergleich selbst steht in globals.css: Die Klientenakte
+   zeigt dasselbe Nebeneinander, und der Coach-Bereich laedt
+   diese Datei nicht. */
+
+/* Die Galerie. Zwei Spalten auch auf dem Handy — bei einer Spalte
+   scrollt man ein Jahr lang. */
+.gym-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.gym-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+.gym-shot {
+  margin: 0;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gym-shot img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  display: block;
+  background: #efece6;
+}
+
+.gym-shot figcaption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  font-size: var(--pt-fs-xs);
+  line-height: 1.3;
+}
+
+.gym-shot figcaption > span:first-child {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gym-shot figcaption > span:nth-child(2) {
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.gym-shot figcaption button {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin: -6px -4px -6px 0;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  color: var(--g-dim);
+}
+
+.gym-shot figcaption button:disabled {
+  opacity: 0.35;
+}
+
+/* ---------- Bilanz am Ende: neue Bestleistungen ----------
+
+   Der Abschlussschirm nannte bisher Saetze, Zeit und Volumen — alles
+   richtig, alles Buchhaltung. Das hier ist die Zeile, die man jemandem
+   zeigt.
+
+   Je Uebung nur einmal, siehe `neueBestleistungen` in client.tsx: Wer
+   vier Saetze ueber der alten Marke macht, hat EINE Bestleistung
+   verbessert und nicht vier aufgestellt. */
+
+.gym-pbs {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fdf3f0;
+  border: 1px solid #f2d2ca;
+  text-align: left;
+}
+
+.gym-pbs__kopf {
+  margin: 0 0 8px;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ad2415; /* 5,30:1 auf dem hellen Grund */
+}
+
+.gym-pbs__zeile {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  font-size: var(--pt-fs-md);
+}
+
+.gym-pbs__zeile > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gym-pbs__zeile > span:last-child {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #ad2415;
+}
