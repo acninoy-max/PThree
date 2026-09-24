@@ -49,6 +49,28 @@ export function AcceptInvite({
     const adresse = email.trim().toLowerCase();
 
     /*
+      Erst eine fremde Sitzung beenden.
+
+      Der Fall aus dem Testlauf: Auf dem Handy liegt noch die Anmeldung
+      von vorhin. Man oeffnet den Einladungslink, `signUp` scheitert
+      still oder liefert die ALTE Sitzung zurueck — und die Einladung
+      wird fuer das falsche Konto angenommen. Der Eingeladene landet in
+      einer App ohne Daten, und der Link ist verbraucht.
+
+      Deshalb: Wer hier ankommt und schon unter einer anderen Adresse
+      angemeldet ist, wird abgemeldet. Wer unter DERSELBEN Adresse
+      angemeldet ist, bleibt es — das ist der zweite Klick auf denselben
+      Link und kein Grund, jemanden hinauszuwerfen.
+    */
+    const { data: bisher } = await db.auth.getUser();
+    if (
+      bisher.user &&
+      (bisher.user.email ?? "").toLowerCase() !== adresse
+    ) {
+      await db.auth.signOut();
+    }
+
+    /*
       Erst anlegen, bei Misserfolg anmelden.
 
       Die Reihenfolge ist Absicht und nicht umzudrehen: Ein Anmeldeversuch

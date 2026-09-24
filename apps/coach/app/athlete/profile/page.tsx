@@ -1,5 +1,6 @@
 import { AVATAR_BUCKET } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { KeinKlientenkonto } from "../kein-konto";
 import { ProfileForm } from "./profile-form";
 
 export const dynamic = "force-dynamic";
@@ -18,15 +19,7 @@ export default async function ProfilePage() {
 
   if (!me) {
     return (
-      <main className="gym-shell" style={{ paddingTop: 26 }}>
-        <p className="gym-label">Profil</p>
-        <div className="gym-card" style={{ marginTop: 12 }}>
-          <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", lineHeight: 1.55 }}>
-            Zu diesem Zugang gehört kein Klientenkonto. Melde dich bei
-            deinem Trainer.
-          </p>
-        </div>
-      </main>
+      <KeinKlientenkonto loginEmail={user?.email ?? null} bereich="Profil" />
     );
   }
 

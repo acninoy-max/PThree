@@ -5,6 +5,7 @@ import {
   fetchProgressPhotos,
 } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { KeinKlientenkonto } from "../kein-konto";
 import { PhotosClient } from "./photos-client";
 
 export const dynamic = "force-dynamic";
@@ -23,15 +24,7 @@ export default async function PhotosPage() {
 
   if (!me) {
     return (
-      <main className="gym-shell" style={{ paddingTop: 26 }}>
-        <p className="gym-label">Fotos</p>
-        <div className="gym-card" style={{ marginTop: 12 }}>
-          <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", lineHeight: 1.55 }}>
-            Zu diesem Zugang gehört kein Klientenkonto. Melde dich bei
-            deinem Trainer.
-          </p>
-        </div>
-      </main>
+      <KeinKlientenkonto loginEmail={user?.email ?? null} bereich="Fotos" />
     );
   }
 
