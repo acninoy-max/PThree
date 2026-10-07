@@ -184,8 +184,8 @@ was gerissen ist. Erwartung: `✓ Alle zehn Pruefungen sauber.`
 | `check-texte.mjs` | Texte am Wörterbuch vorbei; Obergrenze je Datei in `texte-baseline.json`, darf nur sinken |
 | `check_sql.py` | SQL-Syntax aller Migrationen (braucht `pglast` in `.venv`) |
 | `check_enums.py` | Rollen-Namen gegen die echten Enum-Werte |
-| Engine-Tests | 93 Tests |
-| App-Tests | 27 Tests |
+| Engine-Tests | 84 Tests (Textbausteine sind in die App-Tests gewandert) |
+| App-Tests | 56 Tests, darunter Formate und Wörterbücher je Sprache |
 
 **Jeder dieser Prüfer hat eine Selbstprüfung und endet mit Code 2, wenn
 er sein eigenes Fundament nicht findet.** Grund: Die erste Fassung von
@@ -336,10 +336,32 @@ Texte raus aus den Dateien, Sprachdatei rein, überall durchziehen.
 Bestand. Nach den Punkten 1 bis 12 betrifft es den Bestand plus alles
 Neue, und jeder neue Bildschirm wird zweimal gebaut.
 
-**Entschieden am 07.10.2026:** Der NL-Launch kommt. Die Oberfläche wird
+**Entschieden am 07.10.2026:** Der NL-Launch kommt. Die Oberfläche ist
 Englisch (Standard) und Deutsch (wählbar), mit europäischen Formaten.
-Code, Kommentare und Dokumente bleiben Deutsch. Der Umbau läuft
-Bereich für Bereich; wie weit er ist, zeigt `check-texte.mjs`.
+Code, Kommentare und Dokumente bleiben Deutsch.
+
+**Umgesetzt am 07.10.2026:** Jeder sichtbare Text steht in
+`app/i18n/de` und `app/i18n/en`; `check-texte.mjs` steht auf null und
+schlägt bei jedem neuen Text im Code an. Sprachwahl auf der
+Anmeldeseite, in der Kopfzeile des Trainers und im Profil des Athleten.
+Die Engine liefert nur noch Zahlen (`Insight.facts`, `unit`), die Sätze
+baut die App. Meldungen aus Postgres übersetzt `i18n/db-fehler.ts`.
+
+**Noch Deutsch, weil es Inhalt ist und nicht Oberfläche:**
+
+- **Die globale Übungsbibliothek** (Name, Aufbau, Hinweis, typischer
+  Fehler) liegt deutsch in der Datenbank. Braucht eine Migration mit
+  englischen Spalten — und Joëls fachlichen Blick auf die Übersetzung.
+- **Mailvorlagen in Supabase** (Einladung, Passwort) — im Dashboard,
+  nicht im Code.
+- **Was Nutzer selbst eintippen** (Plan- und Tagesnamen, Notizen,
+  eigene Übungen) bleibt in der Sprache, in der es geschrieben wurde.
+  Die Vorlagen im Plan-Dialog legen Tagesnamen in der Sprache dessen an,
+  der den Plan anlegt.
+- **Der Einwilligungstext** steht jetzt in beiden Sprachen
+  (`i18n/einwilligung.ts`) — beide ungeprüft, siehe Abschnitt 9. Die
+  Fassung trägt die Sprache (`v1-de`, `v1-en`); ältere Einwilligungen
+  mit `v1` sind die deutsche Fassung.
 
 **Erledigt seit dem Test:** Punkt 6 (nur noch der erste Satz ist die
 „erste Leistung", `markBefore`), Punkt 2 (nach dem Anlegen direkt in
@@ -354,8 +376,8 @@ die Akte mit offenem Plan-Dialog).
 - Impressum fehlt. Für ein gewerbliches Angebot Pflicht.
 - Datenschutzerklärung fehlt.
 - Der Einwilligungstext für die Fotos
-  (`app/athlete/photos/consent-text.ts`) ist **von mir, nicht von einem
-  Anwalt**. Drei Lücken, die ein Anwalt füllen muss: Wer ist
+  (`app/i18n/einwilligung.ts`, deutsch und englisch) ist **von mir,
+  nicht von einem Anwalt**. Der Anwalt muss beide Fassungen sehen. Drei Lücken, die ein Anwalt füllen muss: Wer ist
   Verantwortlicher (die BV gibt es noch nicht)? Welche Löschfrist nach
   Betreuungsende? Wo liegen die Daten körperlich?
 
