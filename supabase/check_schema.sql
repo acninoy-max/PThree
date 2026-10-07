@@ -124,13 +124,19 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   -- Der Trigger soll genau das verhindern; findet sich doch eine Zeile,
   -- stammt sie aus der Zeit davor.
   select 1, '0012', 'keine unsortierten oder doppelten Wochentage',
-         (select count(*) = 0 from plan_days d
-          where jsonb_typeof(to_jsonb(d) -> 'weekdays') = 'array'
-            and (select array_agg(distinct e::int order by e::int)
-                 from jsonb_array_elements_text(to_jsonb(d) -> 'weekdays') e)
+         -- Erst auf Listen einschränken (Unterabfrage), dann auswerten:
+         -- Ein `and` würde Postgres erlauben, die Elemente auch von
+         -- NULL-Wochentagen zu holen — und das bricht ab.
+         (select count(*) = 0 from (
+            select to_jsonb(d) -> 'weekdays' as w from plan_days d
+             where jsonb_typeof(to_jsonb(d) -> 'weekdays') = 'array'
+             offset 0
+          ) listen
+          where (select array_agg(distinct e::int order by e::int)
+                 from jsonb_array_elements_text(listen.w) e)
                 is distinct from
                 (select array_agg(e::int)
-                 from jsonb_array_elements_text(to_jsonb(d) -> 'weekdays') e))
+                 from jsonb_array_elements_text(listen.w) e))
 
   -- 0013: Muskelgruppen
   union all
@@ -610,9 +616,16 @@ zahlen(sortierung, bereich, pruefung, ist_ok) as (
              where jsonb_typeof(to_jsonb(d) -> 'weekdays') = 'array'), null::boolean
   union all
   select 2, 'INFO', 'davon mehrmals pro Woche: '
+         -- `case` statt `and`: Postgres garantiert keine Reihenfolge bei
+         -- `and` und rechnete die Länge auch für NULL-Wochentage aus —
+         -- „cannot get array length of a scalar" (aufgefallen nach 0028,
+         -- deren Vorlagentage keine Wochentage haben).
          || (select count(*) from plan_days d
-             where jsonb_typeof(to_jsonb(d) -> 'weekdays') = 'array'
-               and jsonb_array_length(to_jsonb(d) -> 'weekdays') > 1),
+             where case
+                     when jsonb_typeof(to_jsonb(d) -> 'weekdays') = 'array'
+                     then jsonb_array_length(to_jsonb(d) -> 'weekdays')
+                     else 0
+                   end > 1),
          null::boolean
   union all
   select 2, 'INFO', 'Check-ins mit Massen: '
