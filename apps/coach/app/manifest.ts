@@ -78,14 +78,16 @@ export default function manifest(): MetadataRoute.Manifest {
      */
     shortcuts: [
       {
-        name: "Training tracken",
-        short_name: "Tracken",
+        // Englisch wie die Beschreibung oben — das Manifest kennt die
+        // Sprache des Nutzers nicht.
+        name: "Track a workout",
+        short_name: "Track",
         url: "/coach/track",
         icons: [{ src: "/favicon-192x192.png", sizes: "192x192" }],
       },
       {
-        name: "Eigenes Training",
-        short_name: "Training",
+        name: "My workout",
+        short_name: "Workout",
         url: "/athlete/log",
         icons: [{ src: "/favicon-192x192.png", sizes: "192x192" }],
       },

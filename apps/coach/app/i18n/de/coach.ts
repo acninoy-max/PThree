@@ -160,6 +160,12 @@ export const coach = {
     /** Körpergewicht in der Satzliste: „12×KG". */
     bwShort: "KG",
     since: (datum: string) => `dabei seit ${datum}`,
+    tabsAria: "Bereiche der Klientenakte",
+    tabs: { track: "Tracken", checkins: "Check-ins", progress: "Progress" },
+    manage: "Stammdaten",
+    startTraining: "Training starten",
+    tabEmpty:
+      "Alle Abschnitte dieses Reiters sind ausgeblendet. Über „Ansicht“ oben rechts holst du sie zurück.",
   },
   manage: {
     appAccess: "App-Zugang",
@@ -529,5 +535,15 @@ export const coach = {
     deleteExplain: (name: string) =>
       `„${name}“ mit allen Tagen und Slots wird entfernt. Bereits geloggte Einheiten bleiben erhalten — sie verlieren nur den Bezug zu diesem Plan.`,
     deleteFinal: "Endgültig löschen",
+  },
+  profile: {
+    kicker: "Profil",
+    title: "Einstellungen",
+    account: "Konto",
+    name: "Name",
+    email: "E-Mail",
+    languageHint:
+      "Gilt für dieses Gerät. Deine Klienten wählen ihre Sprache selbst.",
+    signOutHint: "Auf diesem Gerät abmelden.",
   },
 };

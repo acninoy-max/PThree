@@ -153,6 +153,12 @@ export const coach: Dict["coach"] = {
     recordedByYou: " · recorded by you",
     bwShort: "BW",
     since: (date) => `client since ${date}`,
+    tabsAria: "Client file sections",
+    tabs: { track: "Track", checkins: "Check-ins", progress: "Progress" },
+    manage: "Details",
+    startTraining: "Start training",
+    tabEmpty:
+      "All sections of this tab are hidden. Use “View” at the top right to bring them back.",
   },
   manage: {
     appAccess: "App access",
@@ -519,5 +525,15 @@ export const coach: Dict["coach"] = {
     deleteExplain: (name) =>
       `“${name}” with all days and slots will be removed. Sessions already logged are kept — they just lose their link to this plan.`,
     deleteFinal: "Delete permanently",
+  },
+  profile: {
+    kicker: "Profile",
+    title: "Settings",
+    account: "Account",
+    name: "Name",
+    email: "Email",
+    languageHint:
+      "Applies to this device. Your clients choose their own language.",
+    signOutHint: "Sign out on this device.",
   },
 };

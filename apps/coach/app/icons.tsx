@@ -56,6 +56,18 @@ export function IconClients({
   );
 }
 
+/** Eine Person — das eigene Profil. Nicht IconClients: Zwei Nachbarn
+ *  in derselben Leiste mit demselben Zeichen heben die Unterscheidung
+ *  auf, für die Zeichen da sind. */
+export function IconUser({ size = 22, strokeWidth = 1.8, filled }: IconProps) {
+  return (
+    <svg {...base(size, strokeWidth)}>
+      <circle cx="12" cy="8" r="3.6" fill={filled ? "currentColor" : "none"} />
+      <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" />
+    </svg>
+  );
+}
+
 export function IconCalendar({
   size = 22,
   strokeWidth = 1.8,

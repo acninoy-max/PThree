@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   IconCalendar,
-  IconCheckIn,
   IconClients,
   IconDumbbell,
   IconTrend,
@@ -31,14 +30,23 @@ const LINKS: {
   Icon: typeof IconCalendar;
   also?: string[];
 }[] = [
-  { href: "/athlete", label: "today", Icon: IconCalendar },
+  /*
+    Check-in stand hier als eigener Punkt. Joëls Punkt 11: braucht es
+    nicht — die Karte auf „Heute" zeigt, ob es offen ist, und führt hin.
+    Check-in und Termine gehören deshalb zu „Heute" und heben es hervor.
+  */
+  {
+    href: "/athlete",
+    label: "today",
+    Icon: IconCalendar,
+    also: ["/athlete/checkin", "/athlete/schedule"],
+  },
   {
     href: "/athlete/plan",
     label: "plan",
     Icon: IconDumbbell,
     also: ["/athlete/log"],
   },
-  { href: "/athlete/checkin", label: "checkin", Icon: IconCheckIn },
   {
     href: "/athlete/progress",
     label: "progress",
@@ -58,11 +66,11 @@ export function GymNav() {
   return (
     <nav className="gym-nav" aria-label={t.nav.main}>
       {LINKS.map(({ href, label, Icon, also }) => {
+        // "/athlete" ist Präfix aller Unterseiten — daher exakter
+        // Vergleich, plus die ausdrücklich zugeordneten Unterseiten.
         const active =
-          href === "/athlete"
-            ? path === "/athlete"
-            : path.startsWith(href) ||
-              (also ?? []).some((p) => path.startsWith(p));
+          (href === "/athlete" ? path === "/athlete" : path.startsWith(href)) ||
+          (also ?? []).some((p) => path.startsWith(p));
         return (
           <Link
             key={href}

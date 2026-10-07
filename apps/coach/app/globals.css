@@ -473,6 +473,42 @@ a.pt-card:active {
   }
 }
 
+/* Schmale Spalte steht im Markup zuerst (am Handy oben), am Rechner
+   aber rechts. Nur mit order — die Spaltenbreiten bleiben. */
+@media (min-width: 901px) {
+  .pt-split--aside-first > :first-child {
+    order: 2;
+  }
+}
+
+/* Eine Übung in „Letzte Einheiten": Name, Muskelgruppe, Sätze. Am
+   Rechner in einer Zeile; am Handy überlagerten sich Name und
+   Muskelgruppe, deshalb dort Name allein und der Rest darunter. */
+.pt-setline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px 12px;
+  padding: 5px 0;
+  border-top: 1px solid var(--pt-border);
+  font-size: var(--pt-fs-base);
+}
+.pt-setline__name {
+  font-weight: 500;
+  min-width: 0;
+}
+.pt-setline__muscle,
+.pt-setline__sets {
+  color: var(--pt-text-dim);
+}
+@media (max-width: 640px) {
+  .pt-setline {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .pt-setline__name {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Felder nebeneinander in Formularen und Karten. Zahl plus Zahl, Datum
    plus Uhrzeit — auf dem Laptop nebeneinander, auf dem Handy
    untereinander, weil drei Felder auf 375px Breite je 110px hätten. */
@@ -917,13 +953,6 @@ a.pt-card:active {
 }
 .pt-langswitch[data-pending="true"] {
   opacity: 0.6;
-}
-.pt-langswitch[data-kurz="true"] {
-  gap: 4px;
-}
-.pt-langswitch[data-kurz="true"] .pt-toggle {
-  padding: 4px 7px;
-  font-size: var(--pt-fs-xs);
 }
 .pt-toggle--day {
   min-width: 42px;
@@ -1393,6 +1422,65 @@ a.pt-card:active {
 .pt-pick[data-active="true"] .pt-pick__box {
   background: var(--pt-action);
   border-color: var(--pt-action);
+}
+
+/* ---------- Reiter der Klientenakte ----------
+
+   Tracken, Check-ins, Progress — und abgesetzt „Stammdaten & Zugang".
+   Unterstrichen statt als Pillen: Die Pillen (.pt-toggle) bedeuten in
+   dieser App „Auswahl in einem Formular". Ein Reiter wechselt die
+   Seite, und das soll man ihm ansehen.
+
+   Am Handy dürfen die Reiter waagerecht laufen, falls „Stammdaten &
+   Zugang" nicht mehr in die Zeile passt — die drei Hauptreiter stehen
+   vorn und bleiben immer sichtbar. */
+.pt-subtabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--pt-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pt-subtabs::-webkit-scrollbar {
+  display: none;
+}
+.pt-subtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  font-size: var(--pt-fs-md);
+  font-weight: 600;
+  color: var(--pt-text-dim);
+  white-space: nowrap;
+}
+.pt-subtab:hover {
+  color: var(--pt-text);
+  text-decoration: none;
+}
+.pt-subtab[data-active="true"] {
+  color: var(--pt-text);
+  border-bottom-color: var(--pt-action);
+}
+.pt-subtab--aside {
+  margin-left: auto;
+  font-weight: 500;
+  font-size: var(--pt-fs-base);
+}
+/* Offene Check-ins als Zahl am Reiter — damit man nicht erst
+   hineinklicken muss, um zu sehen, ob etwas wartet. */
+.pt-subtab__badge {
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--pt-action);
+  color: #fff;
+  font-size: var(--pt-fs-xs);
+  font-weight: 700;
+  text-align: center;
 }
 
 /* Knopf oben rechts in der Klientenakte: Zahnrad plus „Ansicht".

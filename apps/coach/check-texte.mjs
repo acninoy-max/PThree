@@ -77,6 +77,8 @@ const DEUTSCH = new RegExp(
       "heute", "gestern", "morgen", "Ziel", "Ziele", "erste[snr]?",
       "neue[snr]?", "alle", "jetzt", "hier", "Monat", "Uhr", "Minuten?",
       "Sekunden?", "Tag", "Übung(en)?", "Trainingsplan", "Klientin",
+      // Fiel bei den Manifest-Verknüpfungen durch („Training tracken").
+      "eigene[snmr]?", "tracken",
     ].join("|") +
     ")\\b",
   "i",

@@ -13,7 +13,7 @@ import { LOCALES } from "./locale";
  * „German") — wer die aktuelle Sprache nicht liest, muss seine eigene
  * trotzdem finden.
  */
-export function Sprachwahl({ kurz = false }: { kurz?: boolean }) {
+export function Sprachwahl() {
   const t = useT();
   const aktiv = useLocale();
   const router = useRouter();
@@ -24,7 +24,6 @@ export function Sprachwahl({ kurz = false }: { kurz?: boolean }) {
       role="group"
       aria-label={t.language.label}
       className="pt-langswitch"
-      data-kurz={kurz}
       data-pending={pending}
     >
       {LOCALES.map((l) => (
@@ -46,9 +45,7 @@ export function Sprachwahl({ kurz = false }: { kurz?: boolean }) {
             })
           }
         >
-          {/* Kurz für die Kopfzeile, wo neben Name und Abmelden kein
-              Platz für zwei ausgeschriebene Sprachen ist. */}
-          {kurz ? l.toUpperCase() : t.language[l]}
+          {t.language[l]}
         </button>
       ))}
     </div>

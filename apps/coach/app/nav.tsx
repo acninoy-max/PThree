@@ -3,18 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase-browser";
 import {
   IconCalendar,
-  IconCheckIn,
   IconClients,
-  IconDumbbell,
   IconFeed,
   IconLibrary,
-  IconLogout,
+  IconUser,
 } from "@/app/icons";
 import { useT } from "@/app/i18n/client";
-import { Sprachwahl } from "@/app/i18n/sprachwahl";
 import type { Dict } from "@/app/i18n";
 
 const LINKS: {
@@ -23,24 +19,23 @@ const LINKS: {
   Icon: typeof IconFeed;
 }[] = [
   { href: "/coach", label: "feed", Icon: IconFeed },
+  /*
+    Tracken und Check-ins standen hier als eigene Punkte. Seit die
+    Klientenansicht eigene Reiter dafür hat (Joëls Punkt 13), sind sie
+    dort — getrackt wird immer FÜR jemanden. Die Sammelseite der offenen
+    Check-ins bleibt über die Karte im Feed erreichbar. So hat die Leiste
+    fünf Punkte statt sechs, und der fünfte ist das Profil mit den
+    Einstellungen.
+  */
   { href: "/coach/clients", label: "clients", Icon: IconClients },
-  { href: "/coach/track", label: "track", Icon: IconDumbbell },
   { href: "/coach/schedule", label: "calendar", Icon: IconCalendar },
-  { href: "/coach/checkins", label: "checkins", Icon: IconCheckIn },
-  // Eigenes Symbol, nicht noch einmal die Hantel: „Tracken" und
-  // „Übungen" trugen dieselbe, und zwei Nachbarn mit demselben
-  // Zeichen heben die Unterscheidung auf, für die Zeichen da sind.
   { href: "/coach/exercises", label: "exercises", Icon: IconLibrary },
+  { href: "/coach/profile", label: "profile", Icon: IconUser },
 ];
 
 export function Nav({ coachName }: { coachName: string }) {
   const t = useT();
   const path = usePathname();
-
-  async function signOut() {
-    await createClient().auth.signOut();
-    window.location.assign("/login");
-  }
 
   return (
     <>
@@ -88,9 +83,12 @@ export function Nav({ coachName }: { coachName: string }) {
             })}
           </nav>
 
+          {/* Der Name führt ins Profil — dort stehen Sprache und
+              Abmelden. Vorher lagen beide hier oben und füllten die
+              Kopfzeile mit Dingen, die man selten braucht. */}
           <div className="pt-header__right">
-            <Sprachwahl kurz />
-            <span
+            <Link
+              href="/coach/profile"
               style={{
                 fontSize: "var(--pt-fs-base)",
                 color: "var(--pt-text-dim)",
@@ -98,16 +96,7 @@ export function Nav({ coachName }: { coachName: string }) {
               }}
             >
               {coachName}
-            </span>
-            <button
-              type="button"
-              onClick={signOut}
-              className="pt-iconbtn"
-              aria-label={t.common.signOut}
-              title={t.common.signOut}
-            >
-              <IconLogout size={18} />
-            </button>
+            </Link>
           </div>
         </div>
       </header>

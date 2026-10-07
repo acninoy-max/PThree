@@ -33,6 +33,36 @@ export const SECTIONS = [
 
 export type SectionKey = (typeof SECTIONS)[number]["key"];
 
+/**
+ * Die drei Reiter der Akte (Joëls Punkt 13, Nachtrag 06.10.): Tracken,
+ * Check-ins, Progress. Jeder Abschnitt gehört zu genau einem. Die
+ * Anordnung aus den Einstellungen gilt innerhalb des Reiters.
+ *
+ * „manage" ist kein Reiter in der Leiste, sondern die Seite hinter
+ * „Stammdaten & Zugang" — selten gebraucht, deshalb nicht gleichrangig.
+ */
+export type ClientTab = "track" | "checkins" | "progress";
+export const CLIENT_TABS: readonly ClientTab[] = ["track", "checkins", "progress"];
+export type ClientView = ClientTab | "manage";
+
+export const SECTION_TAB: Record<SectionKey, ClientTab> = {
+  // Beim Trainieren braucht man die Ziele und das letzte Mal vor Augen.
+  goal: "track",
+  sessions: "track",
+  checkins: "checkins",
+  // Hinweise der Engine sind Aussagen über den Verlauf.
+  insights: "progress",
+  progress: "progress",
+  body: "progress",
+  photos: "progress",
+  volume: "progress",
+};
+
+/** Reiter aus der Adresse. Unbekannt oder leer: Tracken. */
+export function parseView(v: string | undefined): ClientView {
+  return v === "checkins" || v === "progress" || v === "manage" ? v : "track";
+}
+
 export const SECTION_KEYS: SectionKey[] = SECTIONS.map((s) => s.key);
 
 const BEKANNT = new Set<string>(SECTION_KEYS);

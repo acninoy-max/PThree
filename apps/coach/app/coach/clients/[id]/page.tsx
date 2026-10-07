@@ -37,7 +37,15 @@ import { CheckInConfig } from "./checkin-config";
 import { getT } from "@/app/i18n/server";
 import { ViewSettings } from "./view-settings";
 import { ClientPhotos } from "./photos";
-import { resolveSections, type SectionKey } from "./sections";
+import {
+  CLIENT_TABS,
+  SECTION_TAB,
+  parseView,
+  resolveSections,
+  type ClientTab,
+  type ClientView,
+  type SectionKey,
+} from "./sections";
 import { Fragment, type ReactNode } from "react";
 
 export const dynamic = "force-dynamic";
@@ -74,10 +82,11 @@ export default async function ClientDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { neu?: string };
+  searchParams: { neu?: string; tab?: string };
 }) {
   const t = getT();
   const A = t.coach.file;
+  const view = parseView(searchParams.tab);
   const db = createServerSupabase();
   const {
     data: { user },
@@ -470,33 +479,21 @@ export default async function ClientDetailPage({
                   </span>
                 </div>
                 {s.slots.map((slot) => (
-                  <div
-                    key={slot.id}
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      fontSize: "var(--pt-fs-base)",
-                      padding: "5px 0",
-                      borderTop: "1px solid var(--pt-border)",
-                    }}
-                  >
+                  // Klasse statt Inline-Layout: Am Handy bricht die Zeile
+                  // um (siehe .pt-setline), und ein `style` würde die
+                  // Media-Query überstimmen — Regel 6.
+                  <div key={slot.id} className="pt-setline">
                     {/* Erst die Übung, dann die Einordnung — der Trainer
                         liest die Einheit nach und sucht Namen, keine
                         Kategorien. */}
-                    <span style={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
+                    <span className="pt-setline__name">
                       {exercises.get(slot.exerciseId)?.name ??
                         t.athlete.progress.fallbackExercise}
                     </span>
-                    <span
-                      style={{
-                        minWidth: 110,
-                        color: "var(--pt-text-dim)",
-                        textAlign: "right",
-                      }}
-                    >
+                    <span className="pt-setline__muscle">
                       {muscleLabel(t, slot.muscleGroup)}
                     </span>
-                    <span style={{ color: "var(--pt-text-dim)" }}>
+                    <span className="pt-setline__sets">
                       {slot.sets
                         .map((set) =>
                           set.isBodyweight || set.weightKg === 0
@@ -515,6 +512,36 @@ export default async function ClientDetailPage({
     ),
   };
 
+  /*
+    Die Akte in drei Reitern (Joëls Punkt 13): Tracken, Check-ins,
+    Progress. Vorher stand alles untereinander, und am Handy lag der
+    Plan unter fünf Bildschirmhöhen Kurven. Jetzt sieht man, was zur
+    Situation gehört — im Studio Tracken, am Sonntagabend Check-ins.
+
+    Über die Adresse (?tab=) statt über einen Zustand im Browser: Ein
+    Link aus dem Feed kann so direkt auf „Check-ins" zeigen, und
+    Zurück im Browser führt zum vorigen Reiter.
+  */
+  const sichtbarIm = (tab: ClientTab) =>
+    anordnung.filter((s) => s.isVisible && SECTION_TAB[s.key] === tab);
+
+  const bloeckeIm = (tab: ClientTab) => {
+    const liste = sichtbarIm(tab);
+    if (liste.length === 0) {
+      return (
+        <div className="pt-card">
+          <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
+            {A.tabEmpty}
+          </p>
+        </div>
+      );
+    }
+    return liste.map((s) => <Fragment key={s.key}>{bloecke[s.key]}</Fragment>);
+  };
+
+  const tabHref = (v: ClientView) =>
+    v === "track" ? `/coach/clients/${client.id}` : `/coach/clients/${client.id}?tab=${v}`;
+
   return (
     <>
       <Nav coachName={profile?.full_name ?? "Coach"} />
@@ -531,7 +558,7 @@ export default async function ClientDetailPage({
             display: "flex",
             alignItems: "center",
             gap: 16,
-            margin: "14px 0 26px",
+            margin: "14px 0 18px",
           }}
         >
           <Avatar name={client.fullName} size={52} />
@@ -552,17 +579,11 @@ export default async function ClientDetailPage({
           </div>
 
           {/*
-            Rechtsbündig und oben auf Höhe des Namens.
-
-            `alignSelf: flex-start` statt der Ausrichtung des Containers:
-            Avatar und Namensblock bleiben zueinander mittig, nur der
-            Knopf geht nach oben. Ohne das säße er auf halber Höhe
-            zwischen Name und Unterzeile — und mit einem Umbruch, wie
-            ich ihn zwischendurch als Rückfall drin hatte, rutschte er
-            ganz in die nächste Zeile.
-
-            Die 2px gleichen die Zeilenhöhe der Überschrift aus: Deren
-            Kasten ist höher als die Buchstaben, der Knopf nicht.
+            Rechtsbündig und oben auf Höhe des Namens. `alignSelf:
+            flex-start` statt der Ausrichtung des Containers: Avatar und
+            Namensblock bleiben zueinander mittig, nur die Knöpfe gehen
+            nach oben. Die 2px gleichen die Zeilenhöhe der Überschrift
+            aus.
           */}
           <div
             style={{
@@ -579,48 +600,90 @@ export default async function ClientDetailPage({
           </div>
         </div>
 
-        <div className="pt-split" style={{ marginBottom: 28 }}>
-          <section>
-            {/*
-              Die Blöcke in der Anordnung, die dieser Trainer eingestellt
-              hat. Ausgeblendete fallen raus, leere (kein Ziel, noch kein
-              Volumen) zeichnen sich selbst als null.
-            */}
-            {anordnung
-              .filter((s) => s.isVisible)
-              .map((s) => (
-                <Fragment key={s.key}>{bloecke[s.key]}</Fragment>
-              ))}
-          </section>
+        <nav className="pt-subtabs" aria-label={A.tabsAria}>
+          {CLIENT_TABS.map((tab) => (
+            <Link
+              key={tab}
+              href={tabHref(tab)}
+              className="pt-subtab"
+              data-active={view === tab}
+              aria-current={view === tab ? "page" : undefined}
+            >
+              {A.tabs[tab]}
+              {tab === "checkins" && openCheckIns.length > 0 && (
+                <span className="pt-subtab__badge">{openCheckIns.length}</span>
+              )}
+            </Link>
+          ))}
+          {/* Selten gebraucht, deshalb kein gleichrangiger Reiter —
+              aber in derselben Zeile, damit man es findet. */}
+          <Link
+            href={tabHref("manage")}
+            className="pt-subtab pt-subtab--aside"
+            data-active={view === "manage"}
+            aria-current={view === "manage" ? "page" : undefined}
+          >
+            {A.manage}
+          </Link>
+        </nav>
 
-          {/* Rechte Spalte: Stammdaten und Steuerung — nichts, woran man
-              arbeitet, sondern was man nachschlägt. */}
-          <div style={{ display: "grid", gap: 12 }}>
-            <ClientPlan
-              clientId={client.id}
-              level={client.level}
-              active={activePlan}
-              older={olderPlans}
-              startWithPlan={searchParams.neu === "1" && !activePlan}
-            />
-            <ClientAppointments
-              client={{
-                id: client.id,
-                name: client.fullName,
-                status: client.status,
-              }}
-              upcoming={upcoming}
-              unresolved={unresolved}
-            />
-            {/* Körperwerte standen hier. Sie sind jetzt links unter den
-                anordenbaren Blöcken: Rechts steht, was man bedient,
-                links, was man liest. */}
+        {view === "track" && (
+          /*
+            Plan und Termine stehen im Markup VOR den Abschnitten. Am
+            Handy, wo die Spalten untereinander rutschen, kommt der Plan
+            damit gleich nach „Training starten" — und nicht erst unter
+            sechs Einheiten Verlauf. Genau das war Joëls Punkt 2: der
+            Plan kommt zu spät. Am Rechner setzt .pt-split--aside-first
+            die Spalte trotzdem nach rechts.
+          */
+          <div className="pt-split pt-split--aside-first" style={{ marginBottom: 28 }}>
+            {/* Rechts, was man bedient: Start, Plan und Termine. */}
+            <div style={{ display: "grid", gap: 12 }}>
+              {/* Der eine Knopf, für den man im Studio diese Seite öffnet. */}
+              {client.status === "active" && (
+                <Link
+                  href={`/coach/track/${client.id}`}
+                  className="pt-btn"
+                  style={{ textDecoration: "none" }}
+                >
+                  {A.startTraining}
+                </Link>
+              )}
+              <ClientPlan
+                clientId={client.id}
+                level={client.level}
+                active={activePlan}
+                older={olderPlans}
+                startWithPlan={searchParams.neu === "1" && !activePlan}
+              />
+              <ClientAppointments
+                client={{
+                  id: client.id,
+                  name: client.fullName,
+                  status: client.status,
+                }}
+                upcoming={upcoming}
+                unresolved={unresolved}
+              />
+            </div>
+            <section>{bloeckeIm("track")}</section>
+          </div>
+        )}
+
+        {(view === "checkins" || view === "progress") && (
+          <section style={{ maxWidth: 760, marginBottom: 28 }}>
+            {bloeckeIm(view)}
+          </section>
+        )}
+
+        {view === "manage" && (
+          <section style={{ maxWidth: 560, marginBottom: 28 }}>
             <ManageClient
               client={client}
               hasAccount={client.profileId !== null}
             />
-          </div>
-        </div>
+          </section>
+        )}
       </main>
     </>
   );
