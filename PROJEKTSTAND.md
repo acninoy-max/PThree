@@ -375,9 +375,32 @@ Profil. Sprache und Abmelden stehen im Profil. Die Sammelseiten
 `/coach/track` und `/coach/checkins` gibt es weiter, nur ohne eigenen
 Punkt: erreichbar über die Akte, den Feed und die Homescreen-Verknüpfung.
 
-**Als Nächstes, nach Absprache mit Joël:** Punkt 4 und 5 zusammen mit
-englischen Übungsnamen in einer Migration 0026 — braucht von Joël die
-Listen für Attachment und Grip und eine Vorführung von Punkt 3.
+**Seit dem 07.10. außerdem:**
+
+- Punkt 4: Übungsauswahl im Plan-Editor in zwei Schritten — erst die
+  Übung (Suche, „Zuletzt benutzt", Filter nach Muskelgruppe und
+  Bewegung), dann Sätze und Vorgaben. Nach dem Anlegen eines Tages
+  öffnet sie direkt.
+- Punkt 5: Joël reicht Freitext. Der Platzhalter im Slot-Hinweis nennt
+  jetzt Griff und Aufsatz.
+- „Übungen" heißt „Training", mit Reitern Übungen und **Programme**
+  (Pläne ohne Klienten, Tabelle `templates`): eigene anlegen, App-
+  Vorlagen kopieren, an Klienten zuweisen.
+- Feedback-Feld im Profil (Trainer und Athlet) für den Test.
+- Einstellung „Ansicht" in der Akte entfernt; Monatskalender schmaler.
+
+**Einzuspielen, in dieser Reihenfolge:** 0026 (Übungen englisch),
+0027 (Feedback), 0028 (Programme). Die App läuft auch vorher — ohne
+0026 bleiben die Übungen deutsch, ohne 0027 meldet das Feedback-Feld,
+dass die Migration fehlt, ohne 0028 gibt es keine App-Vorlagen und
+kein Zuweisen.
+
+**Feedback lesen** im SQL-Editor:
+`select f.created_at, p.full_name, f.role, f.message from app_feedback f
+left join profiles p on p.id = f.user_id order by f.created_at desc;`
+
+**Offen von Joël:** Punkt 3 zeigen; die drei App-Vorlagen und die
+englischen Übungstexte fachlich durchsehen.
 
 ---
 
