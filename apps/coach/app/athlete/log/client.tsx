@@ -30,17 +30,15 @@ import {
 import { IconCheck, IconClock, IconX } from "@/app/icons";
 import {
   beatsBest,
-  bestLabel,
   markBefore,
   type AttemptSet,
-  volumeLabel,
   type VolumePoint,
 } from "@ptfive/coach-engine";
 import { saveSessionAction, type LoggedSlotInput } from "../actions";
-import { WEEKDAY_SHORT, durationLabel, estimateMinutes } from "@/app/plan-week";
+import { estimateMinutes } from "@/app/plan-week";
 import { Numpad, type FieldKind } from "./numpad";
 import { CountUp } from "@/app/count-up";
-import { dayMonthNumeric } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 
 export interface ExerciseOption {
   id: string;
@@ -168,6 +166,8 @@ export function LogWorkout({
   /** Aus ?day= — kommt der Athlet direkt aus dem Plan. */
   startDayId: string | null;
 }) {
+  const t = useT();
+  const L = t.athlete.log;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -470,7 +470,8 @@ export function LogWorkout({
               ...s,
               sets: s.sets.map((set) => ({
                 ...set,
-                weight: last.weightKg === 0 ? "" : String(last.weightKg),
+                // In der Schreibweise der Sprache: „82,5" statt „82.5".
+                weight: last.weightKg === 0 ? "" : t.fmt.num(last.weightKg),
                 reps: String(last.reps),
               })),
             }
@@ -578,7 +579,7 @@ export function LogWorkout({
         if (!bisher || r.deltaScore > bisher.wert) {
           je.set(slot.exercise.id, {
             name: slot.exercise.name,
-            text: r.isFirst ? "Erstes Mal" : `+${r.percent} %`,
+            text: t.engine.bestShort(r),
             wert: r.deltaScore,
           });
         }
@@ -586,7 +587,7 @@ export function LogWorkout({
     }
 
     return [...je.values()].sort((a, b) => b.wert - a.wert);
-  }, [slots, bests, bodyWeightKg]);
+  }, [slots, bests, bodyWeightKg, t]);
 
   function save() {
     setError(null);
@@ -618,13 +619,15 @@ export function LogWorkout({
       .filter((s) => s.sets.length > 0);
 
     if (payload.length === 0) {
-      setError("Trag mindestens einen Satz mit Wiederholungen ein.");
+      setError(L.needOneSet);
       setEnding(false);
       return;
     }
 
     startTransition(async () => {
-      const res = await saveSessionAction(payload, day?.title ?? "Training", {
+      // Ohne Plantag kein Titel — den Standard setzt die Action in der
+      // Sprache des Nutzers.
+      const res = await saveSessionAction(payload, day?.title ?? "", {
         planId: day ? planId : null,
         planDayId: day?.id ?? null,
         durationSeconds: elapsed,
@@ -644,10 +647,10 @@ export function LogWorkout({
       <main className="gym-shell" style={{ paddingTop: 26 }}>
         <p className="gym-label">{planName}</p>
         <h1 style={{ margin: "3px 0 6px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
-          Was steht an?
+          {L.whatsUp}
         </h1>
         <p style={{ margin: "0 0 20px", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-          Dein Coach hat die Tage vorbereitet. Übungen darin kannst du tauschen.
+          {L.coachPrepared}
         </p>
 
         <div style={{ display: "grid", gap: 10 }}>
@@ -677,7 +680,7 @@ export function LogWorkout({
                       whiteSpace: "nowrap",
                     }}
                   >
-                    DRAN
+                    {L.due}
                   </span>
                 )}
               </span>
@@ -693,15 +696,17 @@ export function LogWorkout({
               >
                 <span>
                   {d.weekdays.length === 0
-                    ? "flexibel"
-                    : d.weekdays.map((w) => WEEKDAY_SHORT[w - 1]).join(" + ")}
+                    ? L.flexible
+                    : d.weekdays.map((w) => t.time.weekdayShort[w - 1]).join(" + ")}
                 </span>
                 <span>·</span>
-                <span>{d.isGuided ? "Mit Trainer" : "Allein"}</span>
+                <span>{d.isGuided ? L.withCoach : L.alone}</span>
                 <span>·</span>
-                <span>{d.slots.length} Übungen</span>
+                <span>{L.exercises(d.slots.length)}</span>
                 <span>·</span>
-                <span>ca. {durationLabel(estimateMinutes(d.slots))}</span>
+                <span>
+                  {t.time.approx} {t.time.duration(estimateMinutes(d.slots))}
+                </span>
               </span>
               <span
                 style={{
@@ -724,7 +729,7 @@ export function LogWorkout({
           className="gym-btn gym-btn--ghost"
           style={{ marginTop: 16 }}
         >
-          Freies Training
+          {L.freeTraining}
         </button>
 
         {confirming && (
@@ -732,7 +737,7 @@ export function LogWorkout({
             className="gym-overlay"
             role="dialog"
             aria-modal="true"
-            aria-label="Einheit starten"
+            aria-label={L.startSession}
             onClick={(e) => {
               if (e.target === e.currentTarget) setConfirming(null);
             }}
@@ -754,10 +759,11 @@ export function LogWorkout({
                   lineHeight: 1.55,
                 }}
               >
-                {confirming.slots.length} Übungen, etwa{" "}
-                {durationLabel(estimateMinutes(confirming.slots))}
-                {confirming.isGuided ? ", mit deinem Trainer" : ""}. Die Uhr
-                läuft ab jetzt mit.
+                {L.confirmBody(
+                  confirming.slots.length,
+                  t.time.duration(estimateMinutes(confirming.slots)),
+                  confirming.isGuided,
+                )}
               </p>
               <div style={{ display: "grid", gap: 8, marginTop: 22 }}>
                 <button
@@ -765,14 +771,14 @@ export function LogWorkout({
                   className="gym-btn"
                   onClick={() => startDay(confirming)}
                 >
-                  Los geht&apos;s
+                  {L.letsGo}
                 </button>
                 <button
                   type="button"
                   className="gym-btn gym-btn--ghost"
                   onClick={() => setConfirming(null)}
                 >
-                  Abbrechen
+                  {t.common.cancel}
                 </button>
               </div>
             </div>
@@ -816,11 +822,11 @@ export function LogWorkout({
             fontSize: "var(--pt-fs-md)",
           }}
         >
-          ‹ Zurück
+          {L.back}
         </button>
 
         <h1 style={{ margin: "12px 0 6px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-          {choice ? muscleLabel(choice) : "Was trainierst du?"}
+          {choice ? muscleLabel(t, choice) : L.whatTraining}
         </h1>
 
         {swapping ? (
@@ -832,7 +838,7 @@ export function LogWorkout({
               lineHeight: 1.5,
             }}
           >
-            Andere Übung im selben Muster — dein Verlauf läuft weiter.
+            {L.swapHint}
           </p>
         ) : (
           <div style={{ height: 12 }} />
@@ -843,7 +849,7 @@ export function LogWorkout({
             {recent.length > 0 && (
               <>
                 <p className="gym-label" style={{ marginBottom: 8 }}>
-                  Zuletzt benutzt
+                  {L.recentlyUsed}
                 </p>
                 <div style={{ display: "grid", gap: 8, marginBottom: 22 }}>
                   {recent.map((ex) => (
@@ -865,7 +871,7 @@ export function LogWorkout({
                           marginTop: 2,
                         }}
                       >
-                        {muscleSummary(ex)}
+                        {muscleSummary(t, ex)}
                       </span>
                     </button>
                   ))}
@@ -874,7 +880,7 @@ export function LogWorkout({
             )}
 
             <p className="gym-label" style={{ marginBottom: 8 }}>
-              Nach Muskelgruppe
+              {L.byMuscle}
             </p>
             <div style={{ display: "grid", gap: 8 }}>
               {MUSCLE_CHOICES.map((g) => (
@@ -892,7 +898,7 @@ export function LogWorkout({
                   }}
                 >
                   <span style={{ fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-                    {muscleLabel(g)}
+                    {muscleLabel(t, g)}
                   </span>
                   <span style={{ color: "var(--g-dim)" }}>›</span>
                 </button>
@@ -936,10 +942,10 @@ export function LogWorkout({
                         marginTop: 4,
                       }}
                     >
-                      Bestleistung:{" "}
+                      {L.bestColon}{" "}
                       {pb.isBodyweight
-                        ? `${pb.reps} Wdh.`
-                        : `${pb.weightKg} kg × ${pb.reps}`}
+                        ? t.athlete.home.reps(pb.reps)
+                        : `${t.fmt.num(pb.weightKg)} kg × ${pb.reps}`}
                     </span>
                   )}
                 </button>
@@ -977,9 +983,9 @@ export function LogWorkout({
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <p className="gym-label">{day ? planName : "Freies Training"}</p>
+          <p className="gym-label">{day ? planName : L.freeTraining}</p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-            {day ? day.title : "Heute"}
+            {day ? day.title : L.today}
           </h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -997,8 +1003,8 @@ export function LogWorkout({
             type="button"
             className="gym-timerbtn"
             onClick={togglePause}
-            aria-label={paused ? "Uhr fortsetzen" : "Uhr anhalten"}
-            title={paused ? "Fortsetzen" : "Pause"}
+            aria-label={paused ? L.resumeClock : L.pauseClock}
+            title={paused ? L.resume : L.pause}
           >
             {paused ? "▶" : "❚❚"}
           </button>
@@ -1015,8 +1021,7 @@ export function LogWorkout({
               lineHeight: 1.55,
             }}
           >
-            Füg deine erste Übung hinzu. Die Reihenfolge ist dir überlassen —
-            dein Coach sieht später, welche Muster du trainiert hast.
+            {L.firstExercise}
           </p>
         </div>
       )}
@@ -1065,6 +1070,7 @@ export function LogWorkout({
                     }}
                   >
                     {muscleLabel(
+                      t,
                       plan?.muscleGroup ?? slot.exercise.muscleGroup,
                     )}
                     {plan && (
@@ -1089,7 +1095,7 @@ export function LogWorkout({
                             textDecoration: "underline",
                           }}
                         >
-                          tauschen
+                          {L.swap}
                         </button>
                       </>
                     )}
@@ -1099,7 +1105,7 @@ export function LogWorkout({
               <button
                 type="button"
                 onClick={() => removeSlot(slot.key)}
-                aria-label="Übung entfernen"
+                aria-label={L.removeExercise}
                 style={{
                   background: "none",
                   border: "none",
@@ -1120,11 +1126,11 @@ export function LogWorkout({
               >
                 <span style={{ fontWeight: 700 }}>
                   {last.weightKg === 0
-                    ? `${last.reps} Wdh.`
-                    : `${last.weightKg} kg × ${last.reps}`}
+                    ? t.athlete.home.reps(last.reps)
+                    : `${t.fmt.num(last.weightKg)} kg × ${last.reps}`}
                 </span>
                 <span style={{ color: "var(--g-dim)" }}>
-                  vom {dayMonthNumeric(new Date(last.on))} — übernehmen
+                  {L.carryFrom(t.fmt.dayMonthNumeric(new Date(last.on)))}
                 </span>
               </button>
             )}
@@ -1161,8 +1167,8 @@ export function LogWorkout({
                 }}
               >
                 {bodyLoad(slot.exercise) !== null
-                  ? `Zählt mit ${bodyLoad(slot.exercise)} kg Körpergewicht. Ins kg-Feld nur, was du zusätzlich dranhängst.`
-                  : "Trag dein Gewicht im Check-in ein — dann zählt diese Übung mit Last statt nur mit Wiederholungen."}
+                  ? L.bodyLoad(t.fmt.num(bodyLoad(slot.exercise)!))
+                  : L.noBodyWeight}
               </p>
             )}
 
@@ -1176,7 +1182,7 @@ export function LogWorkout({
                     ? "+ kg"
                     : "kg"}
                 </span>
-                <span>Wdh.</span>
+                <span>{t.engine.units.reps}</span>
                 <span>RIR</span>
                 <span />
               </div>
@@ -1242,11 +1248,11 @@ export function LogWorkout({
                       type="button"
                       className="gym-setdel"
                       disabled={slot.sets.length <= 1}
-                      aria-label={`Satz ${i + 1} löschen`}
+                      aria-label={L.deleteSet(i + 1)}
                       title={
                         slot.sets.length <= 1
-                          ? "Der letzte Satz bleibt — nimm sonst die Übung raus"
-                          : `Satz ${i + 1} löschen`
+                          ? L.lastSetStays
+                          : L.deleteSet(i + 1)
                       }
                       onClick={() => removeSet(slot.key, i)}
                     >
@@ -1265,7 +1271,7 @@ export function LogWorkout({
                     */}
                     {rekord && (
                       <span className="gym-best" aria-live="polite">
-                        {bestLabel(rekord)}
+                        {t.engine.best(rekord)}
                       </span>
                     )}
                   </div>
@@ -1287,11 +1293,7 @@ export function LogWorkout({
                   lineHeight: 1.45,
                 }}
               >
-                {slot.sets.length > plan.targetSets
-                  ? `${slot.sets.length} statt ${plan.targetSets} Sätzen`
-                  : `${slot.sets.length} statt ${plan.targetSets} Sätzen`}{" "}
-                — nur für heute. Dein Plan bleibt, wie er ist; dein Coach sieht,
-                was du tatsächlich gemacht hast.
+                {L.deviation(slot.sets.length, plan.targetSets)}
               </p>
             )}
 
@@ -1302,11 +1304,17 @@ export function LogWorkout({
                   {plan.targetSets} × {plan.targetRepsMin}
                   {plan.targetRepsMin !== plan.targetRepsMax &&
                     `–${plan.targetRepsMax}`}{" "}
-                  Wdh.
+                  {t.engine.units.reps}
                 </span>
-                {plan.tempo && <span>Tempo {plan.tempo}</span>}
+                {plan.tempo && (
+                  <span>
+                    {t.common.tempo} {plan.tempo}
+                  </span>
+                )}
                 {plan.restSeconds !== null && (
-                  <span>Pause {restLabel(plan.restSeconds)}</span>
+                  <span>
+                    {t.common.rest} {restLabel(plan.restSeconds)}
+                  </span>
                 )}
               </div>
             )}
@@ -1319,13 +1327,13 @@ export function LogWorkout({
                   color: "var(--g-accent)",
                 }}
               >
-                Bestleistung{" "}
+                {L.best}{" "}
                 {pb.isBodyweight
-                  ? `${pb.reps} Wdh.`
-                  : `${pb.weightKg} kg × ${pb.reps}`}
+                  ? t.athlete.home.reps(pb.reps)
+                  : `${t.fmt.num(pb.weightKg)} kg × ${pb.reps}`}
                 <span style={{ color: "var(--g-dim)" }}>
                   {" "}
-                  am {dayMonthNumeric(new Date(pb.on))}
+                  {L.on(t.fmt.dayMonthNumeric(new Date(pb.on)))}
                 </span>
               </p>
             )}
@@ -1350,7 +1358,7 @@ export function LogWorkout({
                 className="gym-btn gym-btn--ghost"
                 style={{ flex: 1, minHeight: 44, fontSize: "var(--pt-fs-md)" }}
               >
-                Satz hinzufügen
+                {L.addSet}
               </button>
               {/* Für alles ohne Vorgabe: Pause von Hand. Die Vorgabe des
                   Slots hat Vorrang, sonst die Voreinstellung. */}
@@ -1366,9 +1374,11 @@ export function LogWorkout({
                   fontSize: "var(--pt-fs-md)",
                   paddingInline: 16,
                 }}
-                aria-label={`Pause starten: ${restLabel(plan?.restSeconds ?? DEFAULT_REST_SECONDS)}`}
+                aria-label={L.startRest(
+                  restLabel(plan?.restSeconds ?? DEFAULT_REST_SECONDS) ?? "",
+                )}
               >
-                Pause
+                {L.rest}
               </button>
             </div>
           </div>
@@ -1381,7 +1391,7 @@ export function LogWorkout({
         className="gym-btn gym-btn--ghost"
         style={{ marginBottom: 12 }}
       >
-        Übung hinzufügen
+        {L.addExercise}
       </button>
 
       {error && (
@@ -1396,11 +1406,10 @@ export function LogWorkout({
         <>
           <div className="gym-total">
             <span>
-              {filledSets} {filledSets === 1 ? "Satz" : "Sätze"}
-              {plannedSets > 0 && ` von ${plannedSets}`}
+              {L.setsOf(filledSets, plannedSets)}
             </span>
             <span style={{ fontWeight: 700 }}>
-              {Math.round(totalVolume).toLocaleString("de-DE")} kg gesamt
+              {L.totalKg(t.fmt.integer(totalVolume))}
             </span>
           </div>
           <button
@@ -1409,7 +1418,7 @@ export function LogWorkout({
             className="gym-btn"
             disabled={pending}
           >
-            {pending ? "Speichert …" : "Training abschließen"}
+            {pending ? L.saving : L.finish}
           </button>
         </>
       )}
@@ -1420,7 +1429,7 @@ export function LogWorkout({
           className="gym-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Training abschließen"
+          aria-label={L.finish}
           onClick={(e) => {
             if (e.target === e.currentTarget) setEnding(false);
           }}
@@ -1438,7 +1447,7 @@ export function LogWorkout({
               {isComplete ? <IconCheck size={34} strokeWidth={2.6} /> : "!"}
             </div>
             <h2 style={{ margin: "18px 0 6px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-              {isComplete ? "Alles drin" : "Noch nicht alles ausgefüllt"}
+              {isComplete ? L.allIn : L.notAllFilled}
             </h2>
             <p
               style={{
@@ -1449,8 +1458,8 @@ export function LogWorkout({
               }}
             >
               {isComplete
-                ? `${filledSets} Sätze in ${clock(elapsed)} Minuten. Sauber.`
-                : `${filledPlannedSets} von ${plannedSets} geplanten Sätzen sind eingetragen. Du kannst trotzdem abschließen — die Einheit wird dann als unvollständig gezählt.`}
+                ? L.doneBody(filledSets, clock(elapsed))
+                : L.incompleteBody(filledPlannedSets, plannedSets)}
             </p>
 
             {/*
@@ -1503,12 +1512,13 @@ export function LogWorkout({
                   }}
                 >
                   {vergleich.prozent === 0
-                    ? "Genauso viel wie letztes Mal."
-                    : `${Math.abs(vergleich.prozent)} % ${
-                        vergleich.prozent > 0 ? "mehr" : "weniger"
-                      } als letztes Mal (${
-                        vergleich.delta > 0 ? "+" : "−"
-                      }${volumeLabel(Math.abs(vergleich.delta))}).`}
+                    ? L.sameAsLast
+                    : L.volumeVsLast(
+                        vergleich.prozent,
+                        `${vergleich.delta > 0 ? "+" : "\u2212"}${t.engine.volume(
+                          Math.abs(vergleich.delta),
+                        )}`,
+                      )}
                 </p>
               </div>
             )}
@@ -1528,9 +1538,7 @@ export function LogWorkout({
             {neueBestleistungen.length > 0 && (
               <div className="gym-pbs">
                 <p className="gym-pbs__kopf">
-                  {neueBestleistungen.length === 1
-                    ? "Neue Bestleistung"
-                    : `${neueBestleistungen.length} neue Bestleistungen`}
+                  {L.newBests(neueBestleistungen.length)}
                 </p>
                 {neueBestleistungen.map((b) => (
                   <div key={b.name} className="gym-pbs__zeile">
@@ -1549,17 +1557,17 @@ export function LogWorkout({
                 disabled={pending}
               >
                 {pending
-                  ? "Speichert …"
+                  ? L.saving
                   : isComplete
-                    ? "Speichern"
-                    : "Trotzdem abschließen"}
+                    ? L.save
+                    : L.finishAnyway}
               </button>
               <button
                 type="button"
                 className="gym-btn gym-btn--ghost"
                 onClick={() => setEnding(false)}
               >
-                Zurück zum Training
+                {L.backToTraining}
               </button>
             </div>
           </div>
@@ -1597,7 +1605,7 @@ export function LogWorkout({
               <div className="gym-rest__row">
                 <div style={{ minWidth: 0 }}>
                   <p className="gym-rest__label">
-                    {restLeft === 0 ? "Pause vorbei" : "Pause"}
+                    {restLeft === 0 ? L.restOver : L.rest}
                   </p>
                   <p className="gym-rest__time">{restClock(restLeft)}</p>
                 </div>
@@ -1608,7 +1616,7 @@ export function LogWorkout({
                     onClick={() =>
                       setRest((r) => (r ? shiftRest(r, -15, Date.now()) : r))
                     }
-                    aria-label="Pause um 15 Sekunden kürzen"
+                    aria-label={L.restShorter}
                   >
                     −15
                   </button>
@@ -1617,19 +1625,17 @@ export function LogWorkout({
                     onClick={() =>
                       setRest((r) => (r ? shiftRest(r, 15, Date.now()) : r))
                     }
-                    aria-label="Pause um 15 Sekunden verlängern"
+                    aria-label={L.restLonger}
                   >
                     +15
                   </button>
                   <button
                     type="button"
                     onClick={() => setRest(null)}
-                    aria-label={
-                      restLeft === 0 ? "Ausblenden" : "Pause überspringen"
-                    }
+                    aria-label={restLeft === 0 ? L.hide : L.skipRest}
                     data-primary
                   >
-                    {restLeft === 0 ? "Weiter" : "Skip"}
+                    {restLeft === 0 ? L.next : L.skip}
                   </button>
                 </div>
               </div>

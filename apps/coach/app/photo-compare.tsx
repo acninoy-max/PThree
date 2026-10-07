@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { ProgressPhoto } from "@ptfive/db";
-import { deltaLabel } from "@ptfive/coach-engine";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 import {
   availablePoses,
   buildComparison,
   byPose,
   defaultComparison,
-  poseLabel,
   type Pose,
   type WeightPoint,
 } from "@/app/athlete/photos/compare";
@@ -37,6 +35,7 @@ export function PhotoCompare({
   weights: WeightPoint[];
   gross?: boolean;
 }) {
+  const t = useT();
   const vorhandene = useMemo(() => availablePoses(photos), [photos]);
   const [pose, setPose] = useState<Pose | null>(null);
   const aktive = pose ?? vorhandene[0] ?? null;
@@ -66,9 +65,7 @@ export function PhotoCompare({
           lineHeight: 1.5,
         }}
       >
-        {photos.length === 0
-          ? "Noch kein Bild."
-          : "Erst ein Bild in dieser Ansicht — ein Vergleich braucht zwei."}
+        {photos.length === 0 ? t.compare.noPhoto : t.compare.needTwo}
       </p>
     );
   }
@@ -92,7 +89,7 @@ export function PhotoCompare({
                 setRechtsId(null);
               }}
             >
-              {poseLabel(p)}
+              {t.labels.pose[p]}
             </button>
           ))}
         </div>
@@ -101,13 +98,13 @@ export function PhotoCompare({
       <div className="cmp">
         <Seite
           photo={vergleich.before}
-          label="Vorher"
+          label={t.compare.before}
           auswahl={reihe}
           onPick={setLinksId}
         />
         <Seite
           photo={vergleich.after}
-          label="Nachher"
+          label={t.compare.after}
           auswahl={reihe}
           onPick={setRechtsId}
         />
@@ -125,11 +122,11 @@ export function PhotoCompare({
           fontSize: gross ? "var(--pt-fs-lg)" : "var(--pt-fs-base)",
         }}
       >
-        <strong>{vergleich.span}</strong>
+        <strong>{t.time.span(vergleich.spanDays)}</strong>
         {vergleich.weightDelta !== null && (
           <>
             {" · "}
-            <strong>{deltaLabel(vergleich.weightDelta, "kg")}</strong>
+            <strong>{t.fmt.signed(vergleich.weightDelta)} kg</strong>
           </>
         )}
       </p>
@@ -149,6 +146,7 @@ function Seite({
   auswahl: ProgressPhoto[];
   onPick: (id: string) => void;
 }) {
+  const t = useT();
   return (
     <div>
       <p className="cmp__label">{label}</p>
@@ -160,7 +158,7 @@ function Seite({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={photo.url} alt={`${label}, ${photo.takenOn}`} />
         ) : (
-          <div className="cmp__fehlt">nicht ladbar</div>
+          <div className="cmp__fehlt">{t.compare.notLoadable}</div>
         )}
       </div>
       {/* Ab drei Aufnahmen darf man wählen; darunter gibt es nichts zu
@@ -170,17 +168,17 @@ function Seite({
         <select
           value={photo.id}
           onChange={(e) => onPick(e.target.value)}
-          aria-label={`${label}: Aufnahme wählen`}
+          aria-label={t.compare.pick(label)}
           style={{ marginTop: 6, fontSize: "var(--pt-fs-base)" }}
         >
           {auswahl.map((p) => (
             <option key={p.id} value={p.id}>
-              {dateMedium(new Date(p.takenOn))}
+              {t.fmt.dateMedium(new Date(p.takenOn))}
             </option>
           ))}
         </select>
       ) : (
-        <p className="cmp__datum">{dateMedium(new Date(photo.takenOn))}</p>
+        <p className="cmp__datum">{t.fmt.dateMedium(new Date(photo.takenOn))}</p>
       )}
     </div>
   );

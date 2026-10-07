@@ -8,6 +8,8 @@ import type {
   TrainingBlock,
 } from "@ptfive/types";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getT } from "@/app/i18n/server";
+import type { Dict } from "@/app/i18n";
 
 export type PlanResult =
   { ok: true; id: string } | { ok: false; error: string };
@@ -36,19 +38,20 @@ export async function createPlanAction(input: {
   startsOn: string;
   dayTitles: string[];
 }): Promise<PlanResult> {
+  const t = getT();
   const name = input.name.trim();
-  if (name === "") return { ok: false, error: "Der Plan braucht einen Namen." };
+  if (name === "") return { ok: false, error: t.coach.planErrors.planName };
 
   const titles = input.dayTitles.map((t) => t.trim()).filter((t) => t !== "");
   if (titles.length === 0) {
-    return { ok: false, error: "Mindestens ein Trainingstag ist nötig." };
+    return { ok: false, error: t.coach.planErrors.oneDay };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   await db
     .from("plans")
@@ -72,7 +75,7 @@ export async function createPlanAction(input: {
   if (error || !plan) {
     return {
       ok: false,
-      error: error?.message ?? "Plan konnte nicht angelegt werden.",
+      error: error?.message ?? t.coach.planErrors.planNotCreated,
     };
   }
 
@@ -99,6 +102,7 @@ export async function updatePlanAction(
   planId: string,
   patch: { name?: string; startsOn?: string; isActive?: boolean },
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
 
   // Aktivieren heißt: die anderen stilllegen.
@@ -121,7 +125,7 @@ export async function updatePlanAction(
   if (patch.name !== undefined) {
     const name = patch.name.trim();
     if (name === "")
-      return { ok: false, error: "Der Name darf nicht leer sein." };
+      return { ok: false, error: t.coach.planErrors.nameEmpty };
     update.name = name;
   }
   if (patch.startsOn !== undefined) update.starts_on = patch.startsOn;
@@ -135,6 +139,7 @@ export async function updatePlanAction(
 }
 
 export async function deletePlanAction(planId: string): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
   // sessions.plan_id ist "on delete set null" — geloggte Einheiten bleiben
   // erhalten, sie verlieren nur den Bezug zum gelöschten Plan.
@@ -168,16 +173,17 @@ export async function createExerciseAction(input: {
   isBodyweight: boolean;
   cue: string | null;
 }): Promise<ExerciseResult> {
+  const t = getT();
   const name = input.name.trim();
   if (name === "")
-    return { ok: false, error: "Die Übung braucht einen Namen." };
-  if (name.length > 80) return { ok: false, error: "Der Name ist zu lang." };
+    return { ok: false, error: t.coach.planErrors.exerciseName };
+  if (name.length > 80) return { ok: false, error: t.coach.planErrors.nameTooLong };
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   // Doppelte Namen in der eigenen Bibliothek vermeiden — im Auswahlmenü
   // wären zwei gleich benannte Einträge nicht unterscheidbar.
@@ -190,7 +196,7 @@ export async function createExerciseAction(input: {
   if (existing) {
     return {
       ok: false,
-      error: "Eine eigene Übung mit dem Namen gibt es schon.",
+      error: t.coach.planErrors.exerciseExists,
     };
   }
 
@@ -216,7 +222,7 @@ export async function createExerciseAction(input: {
     .single();
 
   if (error || !data) {
-    return { ok: false, error: error?.message ?? "Anlegen fehlgeschlagen." };
+    return { ok: false, error: error?.message ?? t.coach.planErrors.createFailed };
   }
 
   revalidatePath("/coach/exercises");
@@ -226,6 +232,7 @@ export async function createExerciseAction(input: {
 export async function deleteExerciseAction(
   exerciseId: string,
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
   // Globale Übungen sind über RLS ohnehin geschützt; der Filter macht die
   // Absicht im Code sichtbar.
@@ -246,8 +253,9 @@ export async function addPlanDayAction(
   planId: string,
   title: string,
 ): Promise<SimpleResult> {
+  const t = getT();
   const clean = title.trim();
-  if (clean === "") return { ok: false, error: "Der Tag braucht einen Namen." };
+  if (clean === "") return { ok: false, error: t.coach.planErrors.dayName };
 
   const db = createServerSupabase();
   const { data: last } = await db
@@ -274,8 +282,9 @@ export async function renamePlanDayAction(
   planId: string,
   title: string,
 ): Promise<SimpleResult> {
+  const t = getT();
   const clean = title.trim();
-  if (clean === "") return { ok: false, error: "Der Tag braucht einen Namen." };
+  if (clean === "") return { ok: false, error: t.coach.planErrors.dayName };
 
   const db = createServerSupabase();
   const { error } = await db
@@ -294,6 +303,7 @@ export async function setPlanDayGuidedAction(
   planId: string,
   isGuided: boolean,
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { error } = await db
     .from("plan_days")
@@ -322,9 +332,10 @@ export async function setPlanDayWeekdaysAction(
   planId: string,
   weekdays: number[],
 ): Promise<SimpleResult> {
+  const t = getT();
   const clean = [...new Set(weekdays)].sort((a, b) => a - b);
   if (clean.some((w) => !Number.isInteger(w) || w < 1 || w > 7)) {
-    return { ok: false, error: "Ungültiger Wochentag." };
+    return { ok: false, error: t.coach.planErrors.invalidWeekday };
   }
 
   const db = createServerSupabase();
@@ -345,6 +356,7 @@ export async function deletePlanDayAction(
   dayId: string,
   planId: string,
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { error } = await db.from("plan_days").delete().eq("id", dayId);
   if (error) return { ok: false, error: error.message };
@@ -373,30 +385,30 @@ export interface SlotInput {
   note: string | null;
 }
 
-function validateSlot(input: SlotInput): string | null {
-  if (input.label.trim() === "") return "Der Slot braucht eine Bezeichnung.";
+function validateSlot(t: Dict, input: SlotInput): string | null {
+  if (input.label.trim() === "") return t.coach.planErrors.slotLabel;
   if (input.targetSets < 1 || input.targetSets > 12) {
-    return "Sätze müssen zwischen 1 und 12 liegen.";
+    return t.coach.planErrors.setsRange;
   }
   if (input.targetRepsMin < 1 || input.targetRepsMax > 100) {
-    return "Die Wiederholungen sehen nicht plausibel aus.";
+    return t.coach.planErrors.repsImplausible;
   }
   if (input.targetRepsMin > input.targetRepsMax) {
-    return "Die untere Wiederholungszahl darf nicht über der oberen liegen.";
+    return t.coach.planErrors.repsOrder;
   }
   // Dieselben Regeln wie die Datenbank-Constraints — hier nur früher und
   // mit einer Meldung, die der Coach versteht.
   if (input.tempo !== null && !/^[0-9X]{4}$/.test(input.tempo)) {
-    return "Tempo braucht vier Zeichen, z. B. 3111 oder 30X0.";
+    return t.coach.planErrors.tempo;
   }
   if (
     input.restSeconds !== null &&
     (input.restSeconds < 0 || input.restSeconds > 900)
   ) {
-    return "Die Pause muss zwischen 0 und 15 Minuten liegen.";
+    return t.coach.planErrors.restRange;
   }
   if (input.supersetGroup !== null && !/^[A-Z]$/.test(input.supersetGroup)) {
-    return "Die Supersatz-Gruppe ist ein einzelner Buchstabe.";
+    return t.coach.planErrors.superset;
   }
   return null;
 }
@@ -423,7 +435,8 @@ export async function addSlotAction(
   planId: string,
   input: SlotInput,
 ): Promise<SimpleResult> {
-  const problem = validateSlot(input);
+  const t = getT();
+  const problem = validateSlot(t, input);
   if (problem) return { ok: false, error: problem };
 
   const db = createServerSupabase();
@@ -451,7 +464,8 @@ export async function updateSlotAction(
   planId: string,
   input: SlotInput,
 ): Promise<SimpleResult> {
-  const problem = validateSlot(input);
+  const t = getT();
+  const problem = validateSlot(t, input);
   if (problem) return { ok: false, error: problem };
 
   const db = createServerSupabase();
@@ -469,6 +483,7 @@ export async function deleteSlotAction(
   slotId: string,
   planId: string,
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { error } = await db.from("plan_slots").delete().eq("id", slotId);
   if (error) return { ok: false, error: error.message };
@@ -488,6 +503,7 @@ export async function moveSlotAction(
   planId: string,
   direction: "up" | "down",
 ): Promise<SimpleResult> {
+  const t = getT();
   const db = createServerSupabase();
 
   const { data: slot } = await db
@@ -495,7 +511,7 @@ export async function moveSlotAction(
     .select("id, plan_day_id, position")
     .eq("id", slotId)
     .maybeSingle();
-  if (!slot) return { ok: false, error: "Slot nicht gefunden." };
+  if (!slot) return { ok: false, error: t.coach.planErrors.slotNotFound };
 
   const { data: neighbour } = await db
     .from("plan_slots")
@@ -536,24 +552,25 @@ export async function setCoachProgressSelectionAction(
   clientId: string,
   exerciseIds: string[],
 ): Promise<SimpleResult> {
+  const t = getT();
   if (exerciseIds.length > 8) {
-    return { ok: false, error: "Höchstens acht Übungen auf einmal." };
+    return { ok: false, error: t.fehler.action.maxEight };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const { data: client } = await db
     .from("clients")
     .select("id, coach_id")
     .eq("id", clientId)
     .maybeSingle();
-  if (!client) return { ok: false, error: "Klient nicht gefunden." };
+  if (!client) return { ok: false, error: t.coach.planErrors.clientNotFound };
   if (client.coach_id !== user.id) {
-    return { ok: false, error: "Dieser Klient gehört nicht zu dir." };
+    return { ok: false, error: t.coach.planErrors.notYourClient };
   }
 
   const sauber = [...new Set(exerciseIds)];
@@ -599,15 +616,16 @@ export async function setClientViewSectionsAction(
   order: string[],
   visible: string[],
 ): Promise<SimpleResult> {
+  const t = getT();
   if (order.length > 40) {
-    return { ok: false, error: "Zu viele Abschnitte." };
+    return { ok: false, error: t.coach.planErrors.tooManySections };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const sichtbar = new Set(visible);
   const sauber = [...new Set(order)].filter(
@@ -615,7 +633,7 @@ export async function setClientViewSectionsAction(
   );
 
   if (sauber.length === 0) {
-    return { ok: false, error: "Keine Abschnitte übergeben." };
+    return { ok: false, error: t.coach.planErrors.noSections };
   }
 
   // Ersetzen statt zusammenführen: Abschnitte, die es nicht mehr gibt,
@@ -645,9 +663,7 @@ export async function setClientViewSectionsAction(
     if (/schema cache|does not exist/i.test(error.message)) {
       return {
         ok: false,
-        error:
-          "Die Einstellung kann noch nicht gespeichert werden: In der " +
-          "Datenbank fehlt die Migration 0019.",
+        error: t.coach.planErrors.migration0019,
       };
     }
     return { ok: false, error: error.message };

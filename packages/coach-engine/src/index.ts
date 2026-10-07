@@ -8,7 +8,6 @@ export {
   comparableScores,
   beatsBest,
   markBefore,
-  bestLabel,
 } from "./metrics";
 export type {
   PatternPoint,
@@ -23,9 +22,6 @@ export {
   dayVolumeHistory,
   volumeByDay,
   compareToPrevious,
-  volumeChangeLabel,
-  volumeLabel,
-  deltaLabel,
 } from "./volume";
 export type { VolumePoint, VolumeChange } from "./volume";
 
@@ -56,6 +52,7 @@ export {
 } from "./insights";
 export type {
   Insight,
+  InsightFacts,
   InsightKind,
   InsightSeverity,
   EngineConfig,

@@ -20,13 +20,12 @@
 
 import { exerciseValue, type ExerciseMetric } from "@ptfive/coach-engine";
 import type { Series } from "@/app/metric-chart";
+import type { Dict } from "@/app/i18n";
 
 export type { ExerciseMetric };
 
-export const METRICS: { key: ExerciseMetric; label: string }[] = [
-  { key: "best", label: "Bestleistung" },
-  { key: "volume", label: "Volumen" },
-];
+/** Beschriftet über `t.chart.metrics`. */
+export const METRICS: readonly ExerciseMetric[] = ["best", "volume"];
 
 export interface CurvePoint {
   performedAt: string;
@@ -59,6 +58,7 @@ export interface CurveLike {
  * Aussagen.
  */
 export function exerciseSeries(
+  t: Dict,
   curves: readonly CurveLike[],
   metric: ExerciseMetric,
   colors: readonly string[],
@@ -68,7 +68,7 @@ export function exerciseSeries(
     // Bestleistung ist dann der beste Satz in Wiederholungen, das
     // Volumen die Summe aller Wiederholungen.
     const repsOnly = c.points[0]?.isRepsOnly ?? false;
-    const unit = repsOnly ? "Wdh." : "kg";
+    const unit = repsOnly ? t.engine.units.reps : t.engine.units.kg;
 
     return {
       key: c.id,
@@ -85,9 +85,4 @@ export function exerciseSeries(
   });
 }
 
-/** Was unter der Kurve steht, je nach Modus. */
-export function metricHint(metric: ExerciseMetric): string {
-  return metric === "best"
-    ? "Bester Satz je Einheit, umgerechnet auf ein Einer-Maximum."
-    : "Alle Sätze je Einheit zusammen — Last mal Wiederholungen. Übungen ohne bezifferbare Last zählen in Wiederholungen.";
-}
+// Was unter der Kurve steht, je nach Modus: t.chart.metricHint.

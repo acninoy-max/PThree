@@ -7,6 +7,8 @@ import type {
   TrainingBlock,
 } from "@ptfive/types";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getT } from "@/app/i18n/server";
+import type { Dict } from "@/app/i18n";
 
 export type TrackResult =
   { ok: true; id: string } | { ok: false; error: string };
@@ -53,15 +55,16 @@ export async function trackSessionAction(
     isComplete?: boolean;
   } = {},
 ): Promise<TrackResult> {
+  const t = getT();
   if (slots.length === 0) {
-    return { ok: false, error: "Keine Übung eingetragen." };
+    return { ok: false, error: t.coach.planErrors.noExerciseEntered };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const { data: client } = await db
     .from("clients")
@@ -69,9 +72,9 @@ export async function trackSessionAction(
     .eq("id", clientId)
     .maybeSingle();
 
-  if (!client) return { ok: false, error: "Klient nicht gefunden." };
+  if (!client) return { ok: false, error: t.coach.planErrors.clientNotFound };
   if (client.coach_id !== user.id) {
-    return { ok: false, error: "Dieser Klient gehört nicht zu dir." };
+    return { ok: false, error: t.coach.planErrors.notYourClient };
   }
 
   const { data: session, error: sessionError } = await db
@@ -93,7 +96,7 @@ export async function trackSessionAction(
           ? Math.min(Math.max(origin.durationSeconds, 0), 43_200)
           : null,
       is_complete: origin.isComplete ?? true,
-      title: title.trim() || "Training",
+      title: title.trim() || t.fehler.action.defaultSessionTitle,
     })
     .select("id")
     .single();
@@ -101,7 +104,7 @@ export async function trackSessionAction(
   if (sessionError || !session) {
     return {
       ok: false,
-      error: sessionError?.message ?? "Speichern fehlgeschlagen.",
+      error: sessionError?.message ?? t.fehler.action.saveFailed,
     };
   }
 
@@ -126,7 +129,7 @@ export async function trackSessionAction(
       await db.from("sessions").delete().eq("id", session.id);
       return {
         ok: false,
-        error: slotError?.message ?? "Übung konnte nicht gespeichert werden.",
+        error: slotError?.message ?? t.fehler.action.exerciseNotSaved,
       };
     }
 

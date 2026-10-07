@@ -21,6 +21,8 @@ import {
   updateSlotAction,
   type SlotInput,
 } from "../actions";
+import { useT } from "@/app/i18n/client";
+import { dictFor } from "@/app/i18n";
 
 export interface ExercisePick {
   id: string;
@@ -33,13 +35,6 @@ export interface ExercisePick {
   /** true = vom Coach selbst angelegt. */
   own?: boolean;
 }
-
-export const BLOCK_LABEL: Record<TrainingBlock, string> = {
-  compound: "Grundübung",
-  functional: "Funktionell",
-  isolation: "Isolation",
-  core: "Rumpf",
-};
 
 /** Typische Spannen je Block — als Startwert, nicht als Vorschrift. */
 const BLOCK_DEFAULTS: Record<
@@ -68,9 +63,11 @@ export function SlotForm({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const t = useT();
+  const S = t.coach.slot;
   const [group, setGroup] = useState<MuscleGroup>(slot?.muscleGroup ?? "chest");
   const [block, setBlock] = useState<TrainingBlock>(slot?.block ?? "compound");
-  const [label, setLabel] = useState(slot?.label ?? muscleLabel("chest"));
+  const [label, setLabel] = useState(slot?.label ?? muscleLabel(t, "chest"));
   const [exerciseId, setExerciseId] = useState(slot?.defaultExerciseId ?? "");
   const [sets, setSets] = useState(slot?.targetSets ?? 4);
   const [repsMin, setRepsMin] = useState(slot?.targetRepsMin ?? 5);
@@ -145,9 +142,9 @@ export function SlotForm({
         .sort((a, b) => {
           const ah = a.muscleGroup === group ? 0 : 1;
           const bh = b.muscleGroup === group ? 0 : 1;
-          return ah !== bh ? ah - bh : a.name.localeCompare(b.name, "de");
+          return ah !== bh ? ah - bh : a.name.localeCompare(b.name, t.locale);
         }),
-    [exercises, extra, group],
+    [exercises, extra, group, t],
   );
 
   /**
@@ -157,7 +154,13 @@ export function SlotForm({
    * eingetippt hat, gehört sie ihm — dann fasst sie niemand mehr an.
    */
   function istAutomatisch(aktuell: string): boolean {
-    if (MUSCLE_CHOICES.some((g) => muscleLabel(g) === aktuell)) return true;
+    // In BEIDEN Sprachen: Ein Slot, der unter Deutsch „Brust" bekommen
+    // hat, ist auch nach dem Umschalten auf Englisch noch automatisch
+    // benannt — sonst bliebe er für immer „Brust".
+    const automatisch = (["de", "en"] as const).some((l) =>
+      MUSCLE_CHOICES.some((g) => muscleLabel(dictFor(l), g) === aktuell),
+    );
+    if (automatisch) return true;
     return [...exercises, ...extra].some((e) => e.name === aktuell);
   }
 
@@ -168,14 +171,14 @@ export function SlotForm({
     const gewaehlt = [...exercises, ...extra].find((e) => e.id === id);
     // Ohne Übung fällt die Bezeichnung auf die Muskelgruppe zurück —
     // dann ist sie das Einzige, was den Slot beschreibt.
-    setLabel(gewaehlt ? gewaehlt.name : muscleLabel(group));
+    setLabel(gewaehlt ? gewaehlt.name : muscleLabel(t, group));
   }
 
   function pickGroup(next: MuscleGroup) {
     setGroup(next);
     // Bezeichnung mitziehen, solange der Trainer sie nicht selbst
     // angepasst hat — ein eigener Name ist eine Entscheidung.
-    if (istAutomatisch(label)) setLabel(muscleLabel(next));
+    if (istAutomatisch(label)) setLabel(muscleLabel(t, next));
     // Die gewählte Übung gehört vielleicht nicht zur neuen Gruppe.
     if (
       ![...exercises, ...extra].some(
@@ -240,7 +243,7 @@ export function SlotForm({
       className="pt-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label={slot ? "Slot bearbeiten" : "Slot hinzufügen"}
+      aria-label={slot ? S.edit : S.add}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -255,13 +258,13 @@ export function SlotForm({
           }}
         >
           <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-            {slot ? "Slot bearbeiten" : "Slot hinzufügen"}
+            {slot ? S.edit : S.add}
           </h2>
           <button
             type="button"
             className="pt-iconbtn"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             <IconX size={17} />
           </button>
@@ -273,7 +276,7 @@ export function SlotForm({
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Muskelgruppe
+              {S.muscleGroup}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {MUSCLE_CHOICES.map((g) => (
@@ -285,7 +288,7 @@ export function SlotForm({
                   aria-pressed={group === g}
                   onClick={() => pickGroup(g)}
                 >
-                  {muscleLabel(g)}
+                  {muscleLabel(t, g)}
                 </button>
               ))}
             </div>
@@ -300,9 +303,7 @@ export function SlotForm({
                 lineHeight: 1.45,
               }}
             >
-              Rumpfarbeit wird geloggt und steht im Plan, läuft aber ohne
-              Kraftkurve — sonst würde ein Plank die Kreuzheben-Zahlen
-              verwässern.
+              {S.coreHint}
             </p>
           )}
 
@@ -311,7 +312,7 @@ export function SlotForm({
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Block
+              {S.block}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {BLOCK_ORDER.map((b) => (
@@ -322,33 +323,33 @@ export function SlotForm({
                   data-active={block === b}
                   onClick={() => pickBlock(b)}
                 >
-                  {BLOCK_LABEL[b]}
+                  {t.labels.block[b]}
                 </button>
               ))}
             </div>
           </div>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Bezeichnung im Plan</span>
+            <span className="pt-label">{S.label}</span>
             <input
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="z. B. Oberkörper drücken"
+              placeholder={S.labelPlaceholder}
               required
             />
           </label>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Vorschlagsübung</span>
+            <span className="pt-label">{S.suggestion}</span>
             <select
               value={exerciseId}
               onChange={(e) => pickExercise(e.target.value)}
             >
-              <option value="">Keine — Athlet wählt selbst</option>
+              <option value="">{S.noneAthleteChooses}</option>
               {options.map((e) => (
                 <option key={e.id} value={e.id}>
                   {e.name}
-                  {e.own ? " (eigene)" : ""}
+                  {e.own ? S.ownSuffix : ""}
                 </option>
               ))}
             </select>
@@ -371,7 +372,7 @@ export function SlotForm({
                 }}
               >
                 <IconPlus size={14} />
-                Übung fehlt? Eigene anlegen
+                {S.missingCreate}
               </button>
             ) : (
               <div
@@ -387,7 +388,7 @@ export function SlotForm({
                 <input
                   value={newExercise}
                   autoFocus
-                  placeholder="Name der Übung"
+                  placeholder={S.exerciseName}
                   onChange={(e) => setNewExercise(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Escape") setNewExercise(null);
@@ -407,7 +408,7 @@ export function SlotForm({
                     onChange={(e) => setNewBodyweight(e.target.checked)}
                     style={{ width: "auto" }}
                   />
-                  Körpergewichtsübung
+                  {S.bodyweight}
                 </label>
                 <p
                   style={{
@@ -417,9 +418,7 @@ export function SlotForm({
                     lineHeight: 1.45,
                   }}
                 >
-                  Wird als „{muscleLabel(group)} · {BLOCK_LABEL[block]}"
-                  gespeichert und steht dir ab sofort in allen Plänen zur
-                  Verfügung.
+                  {S.savedAs(muscleLabel(t, group), t.labels.block[block])}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
@@ -428,21 +427,20 @@ export function SlotForm({
                     disabled={pending || newExercise.trim() === ""}
                     onClick={createExercise}
                   >
-                    Anlegen
+                    {S.create}
                   </button>
                   <button
                     type="button"
                     className="pt-btn pt-btn--ghost"
                     onClick={() => setNewExercise(null)}
                   >
-                    Abbrechen
+                    {t.common.cancel}
                   </button>
                 </div>
               </div>
             )}
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              Nur ein Vorschlag. Der Athlet darf im Slot tauschen — die
-              Musterhistorie läuft trotzdem weiter.
+              {S.onlySuggestion}
             </span>
           </label>
 
@@ -451,7 +449,7 @@ export function SlotForm({
               drei Zahlenfelder auf 375px wären je 110px breit. */}
           <div className="pt-cols pt-cols--3">
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Sätze</span>
+              <span className="pt-label">{S.sets}</span>
               <input
                 type="number"
                 min={1}
@@ -462,7 +460,7 @@ export function SlotForm({
               />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Wdh. von</span>
+              <span className="pt-label">{S.repsFrom}</span>
               <input
                 type="number"
                 min={1}
@@ -473,7 +471,7 @@ export function SlotForm({
               />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">bis</span>
+              <span className="pt-label">{S.repsTo}</span>
               <input
                 type="number"
                 min={1}
@@ -490,7 +488,7 @@ export function SlotForm({
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Supersatz
+              {S.superset}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               <button
@@ -499,7 +497,7 @@ export function SlotForm({
                 data-active={superset === ""}
                 onClick={() => setSuperset("")}
               >
-                Einzeln
+                {S.single}
               </button>
               {["A", "B", "C", "D", "E"].map((g) => (
                 <button
@@ -521,14 +519,13 @@ export function SlotForm({
                 lineHeight: 1.45,
               }}
             >
-              Slots mit demselben Buchstaben werden ohne Pause dazwischen
-              ausgeführt. Der Athlet sieht sie als A1, A2, A3.
+              {S.supersetHint}
             </p>
           </div>
 
           <div className="pt-cols">
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Tempo</span>
+              <span className="pt-label">{S.tempo}</span>
               <input
                 value={tempo}
                 onChange={(e) => setTempo(e.target.value)}
@@ -537,11 +534,11 @@ export function SlotForm({
                 style={{ fontVariantNumeric: "tabular-nums" }}
               />
               <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-                Ab, unten, auf, oben. X = explosiv.
+                {S.tempoHint}
               </span>
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Pause (Sekunden)</span>
+              <span className="pt-label">{S.rest}</span>
               <input
                 type="number"
                 min={0}
@@ -552,18 +549,18 @@ export function SlotForm({
                 placeholder="60"
               />
               <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-                Leer = keine Vorgabe.
+                {S.restHint}
               </span>
             </label>
           </div>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Hinweis für den Athleten</span>
+            <span className="pt-label">{S.note}</span>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
-              placeholder="z. B. letzte zwei Sätze bis kurz vors Versagen"
+              placeholder={S.notePlaceholder}
               style={{
                 resize: "vertical",
                 fontFamily: "inherit",
@@ -580,18 +577,14 @@ export function SlotForm({
 
           <div style={{ display: "flex", gap: 8 }}>
             <button type="submit" className="pt-btn" disabled={pending}>
-              {pending
-                ? "Wird gespeichert …"
-                : slot
-                  ? "Speichern"
-                  : "Hinzufügen"}
+              {pending ? t.common.saving : slot ? S.save : S.addButton}
             </button>
             <button
               type="button"
               className="pt-btn pt-btn--ghost"
               onClick={onClose}
             >
-              Abbrechen
+              {t.common.cancel}
             </button>
           </div>
         </div>

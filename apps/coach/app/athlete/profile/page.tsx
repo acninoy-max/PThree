@@ -2,6 +2,7 @@ import { AVATAR_BUCKET } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { KeinKlientenkonto } from "../kein-konto";
 import { ProfileForm } from "./profile-form";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +20,10 @@ export default async function ProfilePage() {
 
   if (!me) {
     return (
-      <KeinKlientenkonto loginEmail={user?.email ?? null} bereich="Profil" />
+      <KeinKlientenkonto
+        loginEmail={user?.email ?? null}
+        bereich={getT().athlete.profile.area}
+      />
     );
   }
 

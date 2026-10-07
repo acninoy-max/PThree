@@ -3,25 +3,23 @@ import type { Insight } from "@ptfive/coach-engine";
 import { CountUp } from "@/app/count-up";
 import {
   MUSCLE_GROUPS,
-  MUSCLE_GROUP_LABEL,
   type MovementPattern,
   type MuscleGroup,
 } from "@ptfive/types";
+import type { Dict } from "@/app/i18n";
 
-export const PATTERN_LABEL: Record<MovementPattern, string> = {
-  push: "Oberkörper drücken",
-  pull: "Oberkörper ziehen",
-  squat: "Unterkörper drücken",
-  hinge: "Hüftbeuge",
-  overhead: "Über Kopf drücken",
-};
+/*
+  Die Beschriftungen bekommen das Wörterbuch übergeben, statt es selbst
+  zu holen: Diese Datei wird von Server- und Client-Komponenten
+  benutzt, und die holen es auf verschiedenen Wegen (getT / useT).
+*/
 
 /**
  * Beschriftung eines Musters. Rumpfarbeit hat keins — sie läuft bewusst
  * ohne Musterkurve, damit ein Plank die Kreuzheben-Zahlen nicht verwässert.
  */
-export function patternLabel(pattern: MovementPattern | null): string {
-  return pattern ? PATTERN_LABEL[pattern] : "Rumpf";
+export function patternLabel(t: Dict, pattern: MovementPattern | null): string {
+  return pattern ? t.labels.pattern[pattern] : t.labels.patternCore;
 }
 
 /* ---------- Muskelgruppen ----------
@@ -51,19 +49,22 @@ export function inGroup(
 }
 
 /** „Brust" oder „Brust · auch Trizeps" — für die Zeile unter dem Namen. */
-export function muscleSummary(exercise: {
-  muscleGroup: MuscleGroup;
-  secondaryMuscleGroups: MuscleGroup[];
-}): string {
-  const haupt = muscleLabel(exercise.muscleGroup);
+export function muscleSummary(
+  t: Dict,
+  exercise: {
+    muscleGroup: MuscleGroup;
+    secondaryMuscleGroups: MuscleGroup[];
+  },
+): string {
+  const haupt = muscleLabel(t, exercise.muscleGroup);
   if (exercise.secondaryMuscleGroups.length === 0) return haupt;
-  return `${haupt} · auch ${exercise.secondaryMuscleGroups
-    .map((g) => muscleLabel(g))
+  return `${haupt} · ${t.labels.muscleAlso} ${exercise.secondaryMuscleGroups
+    .map((g) => muscleLabel(t, g))
     .join(", ")}`;
 }
 
-export function muscleLabel(group: MuscleGroup | null): string {
-  return group ? MUSCLE_GROUP_LABEL[group] : "offen";
+export function muscleLabel(t: Dict, group: MuscleGroup | null): string {
+  return group ? t.labels.muscle[group] : t.labels.muscleOpen;
 }
 
 /**
@@ -118,8 +119,8 @@ export const PATTERN_CHOICES: readonly PatternChoice[] = [
   "core",
 ] as const;
 
-export function choiceLabel(choice: PatternChoice): string {
-  return choice === "core" ? "Rumpf" : PATTERN_LABEL[choice];
+export function choiceLabel(t: Dict, choice: PatternChoice): string {
+  return choice === "core" ? t.labels.patternCore : t.labels.pattern[choice];
 }
 
 /**
@@ -193,20 +194,17 @@ const SEVERITY_STYLE: Record<
   info: { bar: "var(--pt-border)", chipBg: "#eff3ec", chipFg: "#3b6d11" },
 };
 
-const KIND_LABEL: Record<Insight["kind"], string> = {
-  plateau: "Plateau",
-  inactive: "Inaktiv",
-  progress: "Fortschritt",
-};
-
 export function InsightCard({
+  t,
   insight,
   clientName,
 }: {
+  t: Dict;
   insight: Insight;
   clientName: string;
 }) {
   const s = SEVERITY_STYLE[insight.severity];
+  const text = t.engine.insight(insight, clientName);
   return (
     <div
       style={{
@@ -245,11 +243,11 @@ export function InsightCard({
               borderRadius: 999,
             }}
           >
-            {KIND_LABEL[insight.kind]}
+            {t.labels.insightKind[insight.kind]}
           </span>
         </div>
         <p style={{ margin: 0, fontWeight: 500, lineHeight: 1.35 }}>
-          {insight.title}
+          {text.title}
         </p>
         <p
           style={{
@@ -259,9 +257,9 @@ export function InsightCard({
             lineHeight: 1.5,
           }}
         >
-          {insight.body}
+          {text.body}
         </p>
-        {insight.action && (
+        {text.action && (
           <p
             style={{
               margin: "8px 0 0",
@@ -271,7 +269,7 @@ export function InsightCard({
               lineHeight: 1.45,
             }}
           >
-            → {insight.action}
+            → {text.action}
           </p>
         )}
       </div>

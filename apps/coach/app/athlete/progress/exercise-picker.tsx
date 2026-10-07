@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { IconCheck, IconX } from "@/app/icons";
 import { Spinner } from "@/app/spinner";
 import { setProgressSelectionAction } from "@/app/athlete/actions";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 
 export interface PickerExercise {
   id: string;
@@ -36,6 +36,8 @@ export function ExercisePicker({
   selected: string[];
   onClose: () => void;
 }) {
+  const t = useT();
+  const k = t.athlete.progress.picker;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [pick, setPick] = useState<string[]>(selected);
@@ -53,7 +55,7 @@ export function ExercisePicker({
     setPick((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= MAX) {
-        setError(`Mehr als ${MAX} Kurven kann man nicht mehr lesen.`);
+        setError(k.tooMany(MAX));
         return prev;
       }
       return [...prev, id];
@@ -78,7 +80,7 @@ export function ExercisePicker({
       className="gym-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Übungen für den Fortschritt wählen"
+      aria-label={k.aria}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -93,13 +95,13 @@ export function ExercisePicker({
           }}
         >
           <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-            Deine Übungen
+            {t.athlete.progress.yourExercises}
           </h2>
           <button
             type="button"
             className="gym-iconbtn"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             <IconX size={18} />
           </button>
@@ -114,16 +116,15 @@ export function ExercisePicker({
             textAlign: "left",
           }}
         >
-          Alles, was du je getrackt hast. Wähl die aus, die dich interessieren —{" "}
-          {pick.length} von höchstens {MAX}.
+          {k.intro(pick.length, MAX)}
         </p>
 
         {exercises.length > 8 && (
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Suchen"
-            aria-label="Übung suchen"
+            placeholder={k.search}
+            aria-label={k.searchAria}
             style={{ marginTop: 12 }}
           />
         )}
@@ -140,7 +141,7 @@ export function ExercisePicker({
         >
           {shown.length === 0 && (
             <p style={{ margin: "8px 0", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-              Nichts gefunden.
+              {k.nothingFound}
             </p>
           )}
           {shown.map((e) => {
@@ -169,8 +170,11 @@ export function ExercisePicker({
                       marginTop: 1,
                     }}
                   >
-                    {e.muscleLabel} · {e.sets} {e.sets === 1 ? "Satz" : "Sätze"}{" "}
-                    · zuletzt {dateMedium(new Date(e.lastPerformedAt))}
+                    {k.meta(
+                      e.muscleLabel,
+                      e.sets,
+                      t.fmt.dateMedium(new Date(e.lastPerformedAt)),
+                    )}
                   </span>
                 </span>
               </button>
@@ -198,7 +202,7 @@ export function ExercisePicker({
             onClick={save}
             disabled={pending}
           >
-            {pending ? <Spinner size={15} label="Speichert" /> : "Übernehmen"}
+            {pending ? <Spinner size={15} label={k.saving} /> : k.apply}
           </button>
           <button
             type="button"
@@ -206,7 +210,7 @@ export function ExercisePicker({
             onClick={onClose}
             disabled={pending}
           >
-            Abbrechen
+            {t.common.cancel}
           </button>
         </div>
       </div>

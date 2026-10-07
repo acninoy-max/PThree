@@ -4,7 +4,8 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CheckInFields } from "@ptfive/db";
 import { IconX } from "@/app/icons";
-import { MEASURE_INFO, MEASURE_KEYS } from "@/app/athlete/checkin/measurements";
+import { MEASURE_KEYS } from "@/app/athlete/checkin/measurements";
+import { useT } from "@/app/i18n/client";
 import { updateCheckInConfigAction } from "@/app/actions";
 
 const RHYTHM = [1, 2, 4, 8, 12];
@@ -23,6 +24,8 @@ export function CheckInConfig({
   clientId: string;
   fields: CheckInFields;
 }) {
+  const t = useT();
+  const C = t.coach.checkinConfig;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
@@ -70,7 +73,7 @@ export function CheckInConfig({
           fontWeight: 500,
         }}
       >
-        Check-in einstellen
+        {C.title}
       </button>
 
       {open && (
@@ -78,7 +81,7 @@ export function CheckInConfig({
           className="pt-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Check-in einstellen"
+          aria-label={C.title}
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
@@ -93,13 +96,13 @@ export function CheckInConfig({
               }}
             >
               <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-                Check-in einstellen
+                {C.title}
               </h2>
               <button
                 type="button"
                 className="pt-iconbtn"
                 onClick={() => setOpen(false)}
-                aria-label="Schließen"
+                aria-label={t.common.close}
               >
                 <IconX size={17} />
               </button>
@@ -111,18 +114,18 @@ export function CheckInConfig({
                   className="pt-label"
                   style={{ display: "block", marginBottom: 8 }}
                 >
-                  Jede Woche
+                  {C.weekly}
                 </span>
                 <div style={{ display: "grid", gap: 8 }}>
                   {(
                     [
-                      ["askWeight", "Gewicht"],
-                      ["askEnergy", "Energie"],
-                      ["askSleep", "Schlaf"],
-                      ["askStress", "Stress"],
-                      ["askFreeText", "Freitext"],
+                      "askWeight",
+                      "askEnergy",
+                      "askSleep",
+                      "askStress",
+                      "askFreeText",
                     ] as const
-                  ).map(([key, label]) => (
+                  ).map((key) => (
                     <label
                       key={key}
                       style={{
@@ -140,7 +143,7 @@ export function CheckInConfig({
                         }
                         style={{ width: "auto" }}
                       />
-                      {label}
+                      {C.fields[key]}
                     </label>
                   ))}
                 </div>
@@ -151,7 +154,7 @@ export function CheckInConfig({
                   className="pt-label"
                   style={{ display: "block", marginBottom: 4 }}
                 >
-                  Maßband
+                  {C.tape}
                 </span>
                 <p
                   style={{
@@ -161,8 +164,7 @@ export function CheckInConfig({
                     lineHeight: 1.45,
                   }}
                 >
-                  Der Athlet bekommt zu jedem Maß eine Anleitung eingeblendet,
-                  damit er immer an derselben Stelle misst.
+                  {C.tapeHint}
                 </p>
                 <div style={{ display: "grid", gap: 8 }}>
                   {MEASURE_KEYS.map((k) => {
@@ -194,7 +196,7 @@ export function CheckInConfig({
                           style={{ width: "auto", marginTop: 3 }}
                         />
                         <span>
-                          {MEASURE_INFO[k].label}
+                          {t.labels.measure[k].label}
                           <span
                             style={{
                               display: "block",
@@ -203,7 +205,7 @@ export function CheckInConfig({
                               lineHeight: 1.4,
                             }}
                           >
-                            {MEASURE_INFO[k].how}
+                            {t.labels.measure[k].how}
                           </span>
                         </span>
                       </label>
@@ -217,7 +219,7 @@ export function CheckInConfig({
                   className="pt-label"
                   style={{ display: "block", marginBottom: 7 }}
                 >
-                  Maßband alle
+                  {C.tapeEvery}
                 </span>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {RHYTHM.map((w) => (
@@ -230,7 +232,7 @@ export function CheckInConfig({
                         setDraft((d) => ({ ...d, measureEveryWeeks: w }))
                       }
                     >
-                      {w} {w === 1 ? "Woche" : "Wochen"}
+                      {C.weeks(w)}
                     </button>
                   ))}
                 </div>
@@ -255,14 +257,14 @@ export function CheckInConfig({
                   onClick={save}
                   disabled={pending}
                 >
-                  {pending ? "Wird gespeichert …" : "Speichern"}
+                  {pending ? t.common.saving : t.common.save}
                 </button>
                 <button
                   type="button"
                   className="pt-btn pt-btn--ghost"
                   onClick={() => setOpen(false)}
                 >
-                  Abbrechen
+                  {t.common.cancel}
                 </button>
               </div>
             </div>
@@ -279,8 +281,10 @@ export function CheckInConfig({
             lineHeight: 1.45,
           }}
         >
-          Maßband alle {fields.measureEveryWeeks} Wochen:{" "}
-          {activeMeasures.map((k) => MEASURE_INFO[k].label).join(", ")}
+          {C.summary(
+            fields.measureEveryWeeks,
+            activeMeasures.map((k) => t.labels.measure[k].label).join(", "),
+          )}
         </p>
       )}
     </>

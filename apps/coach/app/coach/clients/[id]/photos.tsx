@@ -1,6 +1,7 @@
 import type { ProgressPhoto } from "@ptfive/db";
 import { PhotoCompare } from "@/app/photo-compare";
 import type { WeightPoint } from "@/app/athlete/photos/compare";
+import { getT } from "@/app/i18n/server";
 
 /**
  * Fortschrittsfotos in der Klientenakte.
@@ -34,10 +35,11 @@ export function ClientPhotos({
   photos: ProgressPhoto[];
   weights: WeightPoint[];
 }) {
+  const F = getT().coach.clientPhotos;
   return (
     <div style={{ marginBottom: 22 }}>
       <p className="pt-label" style={{ marginBottom: 10 }}>
-        Fotos
+        {F.title}
       </p>
 
       {!hasConsent ? (
@@ -49,7 +51,7 @@ export function ClientPhotos({
               lineHeight: 1.55,
             }}
           >
-            {clientName} hat der Speicherung von Fotos nicht zugestimmt.
+            {F.noConsent(clientName)}
           </p>
           <p
             style={{
@@ -59,9 +61,9 @@ export function ClientPhotos({
               color: "var(--pt-text-dim)",
             }}
           >
-            Die Zustimmung kann nur {clientName} selbst geben, in der eigenen
-            App unter <em>Fortschritt → Fotos</em>. Du kannst sie nicht für ihn
-            erteilen — eine Einwilligung, die ein anderer gibt, ist keine.
+            {F.consentOnlySelfBefore(clientName)}
+            <em>{F.consentPath}</em>
+            {F.consentOnlySelfAfter}
           </p>
         </div>
       ) : photos.length === 0 ? (
@@ -73,7 +75,7 @@ export function ClientPhotos({
               color: "var(--pt-text-dim)",
             }}
           >
-            Zugestimmt, aber noch kein Bild hochgeladen.
+            {F.noPhotos}
           </p>
         </div>
       ) : (
@@ -88,8 +90,7 @@ export function ClientPhotos({
               color: "var(--pt-text-dim)",
             }}
           >
-            {photos.length} {photos.length === 1 ? "Bild" : "Bilder"} · Nur
-            ansehen. Löschen und Zurücknehmen kann nur {clientName} selbst.
+            {F.viewOnly(photos.length, clientName)}
           </p>
         </div>
       )}

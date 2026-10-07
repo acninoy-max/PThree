@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { volumeLabel } from "@ptfive/coach-engine";
+import { useT } from "@/app/i18n/client";
+import type { Dict } from "@/app/i18n";
 
 /**
  * Eine Zahl, die beim Erscheinen hochläuft.
@@ -45,9 +46,9 @@ import { volumeLabel } from "@ptfive/coach-engine";
  */
 export type CountFormat = "integer" | "volume";
 
-function formatieren(n: number, art: CountFormat): string {
-  if (art === "volume") return volumeLabel(n);
-  return String(Math.round(n));
+function formatieren(t: Dict, n: number, art: CountFormat): string {
+  if (art === "volume") return t.engine.volume(n);
+  return t.fmt.integer(n);
 }
 
 export function CountUp({
@@ -59,6 +60,7 @@ export function CountUp({
   format?: CountFormat;
   durationMs?: number;
 }) {
+  const t = useT();
   // Startwert ist der Endwert: Auf dem Server und beim ersten Zeichnen
   // steht die fertige Zahl. Die Animation beginnt erst im Effekt.
   const [gezeigt, setGezeigt] = useState(value);
@@ -95,7 +97,7 @@ export function CountUp({
 
   return (
     <span style={{ fontVariantNumeric: "tabular-nums" }}>
-      {formatieren(gezeigt, format)}
+      {formatieren(t, gezeigt, format)}
     </span>
   );
 }

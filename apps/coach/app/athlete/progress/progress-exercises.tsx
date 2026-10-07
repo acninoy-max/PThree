@@ -1,15 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { deltaLabel, exerciseChange } from "@ptfive/coach-engine";
+import { exerciseChange } from "@ptfive/coach-engine";
 import { IconPlus } from "@/app/icons";
 import { MetricChart } from "@/app/metric-chart";
 import { ExercisePicker, type PickerExercise } from "./exercise-picker";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 import {
   METRICS,
   exerciseSeries,
-  metricHint,
   type ExerciseMetric,
 } from "@/app/exercise-series";
 
@@ -56,6 +55,8 @@ export function ProgressExercises({
   selected: string[];
   hasSessions: boolean;
 }) {
+  const t = useT();
+  const p = t.athlete.progress;
   const [picking, setPicking] = useState(false);
   const [metric, setMetric] = useState<ExerciseMetric>("best");
 
@@ -71,7 +72,7 @@ export function ProgressExercises({
         }}
       >
         <p className="gym-label" style={{ margin: 0 }}>
-          Deine Übungen
+          {p.yourExercises}
         </p>
         {all.length > 0 && (
           <button
@@ -89,7 +90,7 @@ export function ProgressExercises({
             }}
           >
             <IconPlus size={14} />
-            Auswählen
+            {p.choose}
           </button>
         )}
       </div>
@@ -97,7 +98,7 @@ export function ProgressExercises({
       {!hasSessions ? (
         <div className="gym-card">
           <p style={{ margin: 0, fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-            Noch nichts da
+            {p.nothingYet}
           </p>
           <p
             style={{
@@ -107,14 +108,13 @@ export function ProgressExercises({
               lineHeight: 1.55,
             }}
           >
-            Sobald du dein erstes Training loggst, siehst du hier deine
-            Entwicklung — für jede Übung, die du machst.
+            {p.nothingYetBody}
           </p>
         </div>
       ) : curves.length === 0 ? (
         <div className="gym-card">
           <p style={{ margin: 0, fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-            Keine Übung gewählt
+            {p.noneChosen}
           </p>
           <p
             style={{
@@ -124,8 +124,7 @@ export function ProgressExercises({
               lineHeight: 1.55,
             }}
           >
-            Tipp oben auf „Auswählen" und such dir aus, was dich interessiert.
-            Alles, was du je getrackt hast, steht dort.
+            {p.noneChosenBody}
           </p>
         </div>
       ) : (
@@ -136,25 +135,25 @@ export function ProgressExercises({
           <div
             style={{ display: "flex", gap: 6, marginBottom: 12 }}
             role="group"
-            aria-label="Was die Kurve zeigt"
+            aria-label={p.curveShows}
           >
             {METRICS.map((m) => (
               <button
-                key={m.key}
+                key={m}
                 type="button"
                 className="mc-range"
-                data-active={metric === m.key}
-                aria-pressed={metric === m.key}
-                onClick={() => setMetric(m.key)}
+                data-active={metric === m}
+                aria-pressed={metric === m}
+                onClick={() => setMetric(m)}
               >
-                {m.label}
+                {t.chart.metrics[m]}
               </button>
             ))}
           </div>
 
           <MetricChart
-            series={exerciseSeries(curves, metric, COLORS)}
-            emptyHint="Noch keine Einheiten für diese Übungen."
+            series={exerciseSeries(t, curves, metric, COLORS)}
+            emptyHint={p.noSessionsForThese}
           />
 
           <p
@@ -165,7 +164,7 @@ export function ProgressExercises({
               lineHeight: 1.45,
             }}
           >
-            {metricHint(metric)}
+            {t.chart.metricHint[metric]}
           </p>
 
           <div style={{ marginTop: 18, display: "grid", gap: 14 }}>
@@ -196,7 +195,7 @@ export function ProgressExercises({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {deltaLabel(change.delta, change.unit)}
+                        {t.fmt.signed(change.delta)} {t.engine.units[change.unit]}
                         <span
                           style={{ fontWeight: 500, color: "var(--g-dim)" }}
                         >
@@ -215,20 +214,18 @@ export function ProgressExercises({
                       lineHeight: 1.45,
                     }}
                   >
-                    {c.points.length}{" "}
-                    {c.points.length === 1 ? "Einheit" : "Einheiten"} · zuletzt{" "}
-                    {dateMedium(new Date(letzter.performedAt))}
-                    {letzter.isRepsOnly && " · gezählt in Wiederholungen"}
+                    {p.curveMeta(
+                      c.points.length,
+                      t.fmt.dateMedium(new Date(letzter.performedAt)),
+                    )}
+                    {letzter.isRepsOnly && p.countedInReps}
                     {/*
                       Ehrlich benannt statt versteckt: Wer erst ab einem
                       bestimmten Tag sein Gewicht meldet, bekommt für seine
                       Klimmzüge rückwirkend eine Last. Die Punkte davor sind
                       Wiederholungen und gehören nicht in dieselbe Linie.
                     */}
-                    {c.verworfen > 0 &&
-                      ` · ${c.verworfen} ältere ${
-                        c.verworfen === 1 ? "Einheit" : "Einheiten"
-                      } auf anderer Skala, nicht vergleichbar`}
+                    {c.verworfen > 0 && p.otherScale(c.verworfen)}
                   </p>
                 </div>
               );

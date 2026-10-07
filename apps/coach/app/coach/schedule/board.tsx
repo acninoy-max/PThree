@@ -20,13 +20,7 @@ import {
 } from "@/app/actions";
 import { Avatar } from "@/app/components";
 import { NewAppointment } from "./form";
-import {
-  dayMonthLong,
-  dayMonthNumeric,
-  monthYear,
-  time,
-  weekdayShort,
-} from "@/app/format";
+import { useT } from "@/app/i18n/client";
 
 export interface ClientOption {
   id: string;
@@ -36,8 +30,6 @@ export interface ClientOption {
 
 export type ScheduleView = "week" | "month";
 
-const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
-
 /** Ortsdatum als YYYY-MM-DD — toISOString() würde in die UTC-Zone rutschen. */
 function localISO(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
@@ -45,22 +37,16 @@ function localISO(d: Date): string {
   ).padStart(2, "0")}`;
 }
 
-const LOCATION: Record<Appointment["location"], string> = {
-  gym: "Studio",
-  park: "Park",
-  home: "Zuhause",
-  online: "Online",
-};
-
+/** Farben je Status. Beschriftung: t.labels.apptStatus. */
 const STATUS_STYLE: Record<
   Appointment["status"],
-  { label: string; bg: string; fg: string; dim?: boolean }
+  { bg: string; fg: string; dim?: boolean }
 > = {
-  scheduled: { label: "Geplant", bg: "#f1efe9", fg: "#6e6a60" },
-  completed: { label: "Stattgefunden", bg: "#eff3ec", fg: "#3b6d11" },
-  rescheduled: { label: "Verschoben", bg: "#f1efe9", fg: "#6e6a60", dim: true },
-  cancelled: { label: "Abgesagt", bg: "#f1efe9", fg: "#8c877a", dim: true },
-  no_show: { label: "No-Show", bg: "#fbefea", fg: "#c42d1a" },
+  scheduled: { bg: "#f1efe9", fg: "#6e6a60" },
+  completed: { bg: "#eff3ec", fg: "#3b6d11" },
+  rescheduled: { bg: "#f1efe9", fg: "#6e6a60", dim: true },
+  cancelled: { bg: "#f1efe9", fg: "#8c877a", dim: true },
+  no_show: { bg: "#fbefea", fg: "#c42d1a" },
 };
 
 export function ScheduleBoard({
@@ -85,6 +71,9 @@ export function ScheduleBoard({
   unresolved: Appointment[];
   clients: ClientOption[];
 }) {
+  const t = useT();
+  const K = t.coach.calendar;
+  const unbekannt = t.coach.feed.unknown;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [creating, setCreating] = useState(false);
@@ -109,8 +98,8 @@ export function ScheduleBoard({
   const lastDay = days[days.length - 1] ?? rangeStart;
   const title =
     view === "month" && monthISO
-      ? monthYear(new Date(monthISO))
-      : `${dayMonthLong(rangeStart)} – ${dayMonthLong(lastDay)}`;
+      ? t.fmt.monthYear(new Date(monthISO))
+      : `${t.fmt.dayMonthLong(rangeStart)} – ${t.fmt.dayMonthLong(lastDay)}`;
 
   const step = (delta: number) =>
     `/coach/schedule?v=${view}&o=${offset + delta}`;
@@ -156,7 +145,7 @@ export function ScheduleBoard({
       >
         <div>
           <p className="pt-label" style={{ margin: 0 }}>
-            Kalender
+            {K.kicker}
           </p>
           <h1
             style={{
@@ -186,14 +175,14 @@ export function ScheduleBoard({
               className="pt-toggle"
               data-active={view === "week"}
             >
-              Woche
+              {K.week}
             </Link>
             <Link
               href="/coach/schedule?v=month&o=0"
               className="pt-toggle"
               data-active={view === "month"}
             >
-              Monat
+              {K.month}
             </Link>
           </div>
 
@@ -201,7 +190,7 @@ export function ScheduleBoard({
             href={step(-1)}
             className="pt-iconbtn"
             aria-label={
-              view === "month" ? "Vorheriger Monat" : "Vorherige Woche"
+              view === "month" ? K.prevMonth : K.prevWeek
             }
           >
             <IconChevronLeft />
@@ -211,13 +200,13 @@ export function ScheduleBoard({
               href={`/coach/schedule?v=${view}&o=0`}
               className="pt-btn pt-btn--ghost"
             >
-              Heute
+              {K.today}
             </Link>
           )}
           <Link
             href={step(1)}
             className="pt-iconbtn"
-            aria-label={view === "month" ? "Nächster Monat" : "Nächste Woche"}
+            aria-label={view === "month" ? K.nextMonth : K.nextWeek}
           >
             <IconChevronRight />
           </Link>
@@ -227,7 +216,7 @@ export function ScheduleBoard({
             onClick={() => openCreate(null)}
           >
             <IconPlus size={17} />
-            Termin
+            {K.appointment}
           </button>
         </div>
       </div>
@@ -254,8 +243,7 @@ export function ScheduleBoard({
           >
             <IconAlert size={17} />
             <span style={{ fontWeight: 500, fontSize: "var(--pt-fs-md)" }}>
-              {unresolved.length} vergangene{" "}
-              {unresolved.length === 1 ? "Termin" : "Termine"} ohne Status
+              {K.unresolved(unresolved.length)}
             </span>
           </div>
           <div style={{ display: "grid", gap: 8 }}>
@@ -271,11 +259,11 @@ export function ScheduleBoard({
               >
                 <Avatar name={byId.get(a.clientId) ?? "?"} size={26} />
                 <span style={{ fontSize: "var(--pt-fs-base)", fontWeight: 500 }}>
-                  {byId.get(a.clientId) ?? "Unbekannt"}
+                  {byId.get(a.clientId) ?? unbekannt}
                 </span>
                 <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-                  {dayMonthNumeric(new Date(a.startsAt))} ·{" "}
-                  {time(new Date(a.startsAt))}
+                  {t.fmt.dayMonthNumeric(new Date(a.startsAt))} ·{" "}
+                  {t.fmt.time(new Date(a.startsAt))}
                 </span>
                 <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
                   <button
@@ -284,7 +272,7 @@ export function ScheduleBoard({
                     disabled={pending}
                     onClick={() => setStatus(a.id, "completed")}
                   >
-                    <IconCheck size={14} /> Stattgefunden
+                    <IconCheck size={14} /> {t.labels.apptStatus.completed}
                   </button>
                   <button
                     type="button"
@@ -292,7 +280,7 @@ export function ScheduleBoard({
                     disabled={pending}
                     onClick={() => setStatus(a.id, "no_show")}
                   >
-                    <IconX size={14} /> No-Show
+                    <IconX size={14} /> {t.labels.apptStatus.no_show}
                   </button>
                 </div>
               </div>
@@ -313,10 +301,10 @@ export function ScheduleBoard({
               <div key={iso} className="pt-daycol" data-today={isToday}>
                 <div className="pt-daycol__head">
                   <span style={{ fontWeight: 600, fontSize: "var(--pt-fs-sm)" }}>
-                    {weekdayShort(day)}
+                    {t.fmt.weekdayShort(day)}
                   </span>
                   <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-                    {dayMonthNumeric(day)}
+                    {t.fmt.dayMonthNumeric(day)}
                   </span>
                 </div>
 
@@ -338,7 +326,7 @@ export function ScheduleBoard({
                           }}
                         >
                           <strong style={{ fontSize: "var(--pt-fs-base)", fontWeight: 600 }}>
-                            {time(new Date(a.startsAt))}
+                            {t.fmt.time(new Date(a.startsAt))}
                           </strong>
                           <span
                             style={{
@@ -359,7 +347,7 @@ export function ScheduleBoard({
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {byId.get(a.clientId) ?? "Unbekannt"}
+                          {byId.get(a.clientId) ?? unbekannt}
                         </p>
                         <p
                           style={{
@@ -372,7 +360,7 @@ export function ScheduleBoard({
                           }}
                         >
                           <IconPin size={12} />
-                          {LOCATION[a.location]}
+                          {t.labels.location[a.location]}
                         </p>
 
                         {a.status !== "scheduled" && (
@@ -388,15 +376,15 @@ export function ScheduleBoard({
                               borderRadius: 999,
                             }}
                           >
-                            {s.label}
+                            {t.labels.apptStatus[a.status]}
                           </span>
                         )}
 
                         <div className="pt-appt__actions">
                           <button
                             type="button"
-                            title="Stattgefunden"
-                            aria-label="Als stattgefunden markieren"
+                            title={t.labels.apptStatus.completed}
+                            aria-label={K.markDone}
                             disabled={pending}
                             onClick={() => setStatus(a.id, "completed")}
                           >
@@ -404,8 +392,8 @@ export function ScheduleBoard({
                           </button>
                           <button
                             type="button"
-                            title="No-Show"
-                            aria-label="Als No-Show markieren"
+                            title={t.labels.apptStatus.no_show}
+                            aria-label={K.markNoShow}
                             disabled={pending}
                             onClick={() => setStatus(a.id, "no_show")}
                           >
@@ -413,8 +401,8 @@ export function ScheduleBoard({
                           </button>
                           <button
                             type="button"
-                            title="Löschen"
-                            aria-label="Termin löschen"
+                            title={K.delete}
+                            aria-label={K.deleteAppt}
                             disabled={pending}
                             onClick={() => remove(a.id)}
                           >
@@ -430,7 +418,7 @@ export function ScheduleBoard({
                   type="button"
                   className="pt-daycol__add"
                   onClick={() => openCreate(iso)}
-                  aria-label={`Termin am ${dayMonthNumeric(day)} anlegen`}
+                  aria-label={K.createOn(t.fmt.dayMonthNumeric(day))}
                 >
                   <IconPlus size={15} />
                 </button>
@@ -446,7 +434,7 @@ export function ScheduleBoard({
       {view === "month" && (
         <div className="pt-month-scroll">
           <div className="pt-month">
-            {WEEKDAYS.map((w) => (
+            {t.time.weekdayShort.map((w) => (
               <div key={w} className="pt-month__head">
                 {w}
               </div>
@@ -474,7 +462,7 @@ export function ScheduleBoard({
                     type="button"
                     className="pt-monthcell__hit"
                     onClick={() => openCreate(iso)}
-                    aria-label={`Termin am ${dayMonthNumeric(day)} anlegen`}
+                    aria-label={K.createOn(t.fmt.dayMonthNumeric(day))}
                   />
 
                   <span className="pt-monthcell__num">{day.getDate()}</span>
@@ -487,9 +475,11 @@ export function ScheduleBoard({
                         href={`/coach/clients/${a.clientId}`}
                         className="pt-mchip"
                         style={{ opacity: s.dim ? 0.55 : 1 }}
-                        title={`${time(new Date(a.startsAt))} · ${
-                          byId.get(a.clientId) ?? "Unbekannt"
-                        } · ${LOCATION[a.location]} · ${s.label}`}
+                        title={`${t.fmt.time(new Date(a.startsAt))} · ${
+                          byId.get(a.clientId) ?? unbekannt
+                        } · ${t.labels.location[a.location]} · ${
+                          t.labels.apptStatus[a.status]
+                        }`}
                       >
                         <span
                           className="pt-mchip__dot"
@@ -497,10 +487,10 @@ export function ScheduleBoard({
                           aria-hidden
                         />
                         <strong style={{ fontWeight: 600 }}>
-                          {time(new Date(a.startsAt))}
+                          {t.fmt.time(new Date(a.startsAt))}
                         </strong>
                         <span className="pt-mchip__name">
-                          {byId.get(a.clientId) ?? "Unbekannt"}
+                          {byId.get(a.clientId) ?? unbekannt}
                         </span>
                       </Link>
                     );
@@ -508,7 +498,7 @@ export function ScheduleBoard({
 
                   {dayAppts.length > shown.length && (
                     <span className="pt-monthcell__more">
-                      +{dayAppts.length - shown.length} weitere
+                      {K.more(dayAppts.length - shown.length)}
                     </span>
                   )}
                 </div>
@@ -527,9 +517,7 @@ export function ScheduleBoard({
             textAlign: "center",
           }}
         >
-          {view === "month"
-            ? "In diesem Monat ist noch nichts geplant. Ein Klick auf einen Tag legt dort einen Termin an."
-            : "Diese Woche ist noch nichts geplant. Über das Plus in einer Spalte legst du direkt für den Tag an."}
+          {view === "month" ? K.emptyMonth : K.emptyWeek}
         </p>
       )}
 

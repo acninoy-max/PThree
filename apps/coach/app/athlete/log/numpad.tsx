@@ -2,20 +2,9 @@
 
 import { useEffect } from "react";
 import { IconCheck, IconChevronRight, IconX } from "@/app/icons";
+import { useT } from "@/app/i18n/client";
 
 export type FieldKind = "weight" | "reps" | "rir";
-
-const LABEL: Record<FieldKind, string> = {
-  weight: "Last (kg)",
-  reps: "Wiederholungen",
-  rir: "RIR",
-};
-
-const HINT: Record<FieldKind, string> = {
-  weight: "Bei Körpergewicht leer lassen oder Zusatzlast eintragen.",
-  reps: "Wie viele hast du geschafft?",
-  rir: "Wie viele wären noch gegangen? 0 heißt: keine mehr.",
-};
 
 /**
  * Eigener Ziffernblock statt Systemtastatur.
@@ -54,6 +43,13 @@ export function Numpad({
   onNext: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
+  const N = t.athlete.numpad;
+  // Das Dezimalzeichen der Sprache. Gerechnet wird überall mit
+  // `.replace(",", ".")`, also gilt beides — ein Wert, der vor dem
+  // Sprachwechsel mit Komma getippt wurde, bleibt lesbar.
+  const SEP = N.decimalSep;
+
   // Hardware-Tastatur unterstützen — praktisch beim Testen am Rechner.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -62,17 +58,17 @@ export function Numpad({
       if (e.key === "Backspace") return onChange(value.slice(0, -1));
       if (/^[0-9]$/.test(e.key)) return press(e.key);
       if ((e.key === "," || e.key === ".") && kind === "weight")
-        return press(",");
+        return press(SEP);
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   });
 
   function press(key: string) {
-    if (key === ",") {
-      // Nur ein Komma, und nur beim Gewicht.
-      if (kind !== "weight" || value.includes(",")) return;
-      onChange(value === "" ? "0," : `${value},`);
+    if (key === SEP) {
+      // Nur ein Trennzeichen, und nur beim Gewicht.
+      if (kind !== "weight" || /[.,]/.test(value)) return;
+      onChange(value === "" ? `0${SEP}` : `${value}${SEP}`);
       return;
     }
     // Führende Null verschlucken, damit nicht "07" entsteht.
@@ -93,7 +89,7 @@ export function Numpad({
       role="dialog"
       aria-modal="true"
       aria-label={
-        kind === "weight" && addedWeight ? "Zusatzgewicht (kg)" : LABEL[kind]
+        kind === "weight" && addedWeight ? N.addedAria : N.label[kind]
       }
     >
       <div className="gym-pad__head">
@@ -114,7 +110,7 @@ export function Numpad({
             {title}
           </p>
           <p style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-input)", fontWeight: 700 }}>
-            {kind === "weight" && addedWeight ? "Zusatz (kg)" : LABEL[kind]}{" "}
+            {kind === "weight" && addedWeight ? N.added : N.label[kind]}{" "}
             <span
               style={{
                 color: "var(--g-display)",
@@ -129,13 +125,13 @@ export function Numpad({
           type="button"
           className="gym-pad__close"
           onClick={onClose}
-          aria-label="Schließen"
+          aria-label={t.common.close}
         >
           <IconX size={18} />
         </button>
       </div>
 
-      <p className="gym-pad__hint">{HINT[kind]}</p>
+      <p className="gym-pad__hint">{N.hint[kind]}</p>
 
       <div className="gym-pad__grid">
         {keys.map((k) => (
@@ -151,11 +147,11 @@ export function Numpad({
         <button
           type="button"
           className="gym-key"
-          onClick={() => press(",")}
+          onClick={() => press(SEP)}
           disabled={kind !== "weight"}
-          aria-label="Komma"
+          aria-label={N.decimalAria}
         >
-          ,
+          {SEP}
         </button>
         <button type="button" className="gym-key" onClick={() => press("0")}>
           0
@@ -164,7 +160,7 @@ export function Numpad({
           type="button"
           className="gym-key"
           onClick={() => onChange(value.slice(0, -1))}
-          aria-label="Löschen"
+          aria-label={N.backspace}
         >
           ⌫
         </button>
@@ -174,11 +170,11 @@ export function Numpad({
         {isLast ? (
           <>
             <IconCheck size={18} strokeWidth={2.4} />
-            Fertig
+            {N.done}
           </>
         ) : (
           <>
-            Weiter
+            {N.next}
             <IconChevronRight size={18} />
           </>
         )}

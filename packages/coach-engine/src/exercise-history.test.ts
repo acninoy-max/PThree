@@ -355,7 +355,7 @@ describe("exerciseChange", () => {
     ];
     // Plank ohne Last: volumeKg ist bei beiden null, aber reps traegt.
     const c = exerciseChange(exerciseHistory(s, "plank"), "volume")!;
-    assert.equal(c.unit, "Wdh.");
+    assert.equal(c.unit, "reps");
     assert.equal(c.latest, 90);
     assert.equal(c.delta, 30);
     assert.equal(c.percent, 50);

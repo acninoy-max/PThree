@@ -2,10 +2,12 @@ import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { NewClientForm } from "./form";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewClientPage() {
+  const t = getT();
   const db = createServerSupabase();
   const {
     data: { user },
@@ -24,10 +26,10 @@ export default async function NewClientPage() {
           href="/coach/clients"
           style={{ fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
         >
-          ‹ Alle Klienten
+          {t.coach.clients.allClients}
         </Link>
         <h1 style={{ margin: "14px 0 4px", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-          Neuer Klient
+          {t.coach.clients.newTitle}
         </h1>
         <p
           style={{
@@ -36,8 +38,7 @@ export default async function NewClientPage() {
             fontSize: "var(--pt-fs-md)",
           }}
         >
-          Der Klient wird sofort angelegt. Den Einladungslink für die App
-          erzeugst du danach auf seiner Profilseite.
+          {t.coach.clients.newIntro}
         </p>
         <NewClientForm />
       </main>

@@ -233,7 +233,7 @@ describe("Plateau", () => {
     assert.equal(found.length, 1);
     assert.equal(found[0]?.pattern, "push");
     assert.equal(found[0]?.severity, "flag");
-    assert.ok(found[0]?.action?.includes("Volumen"));
+    assert.deepEqual(found[0]?.facts, { kind: "plateau", window: 3 });
   });
 
   it("meldet kein Plateau bei stetigem Zuwachs", () => {

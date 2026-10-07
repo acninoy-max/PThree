@@ -8,7 +8,8 @@ import { Avatar } from "@/app/components";
 import { IconCheck } from "@/app/icons";
 import { replyToCheckInAction } from "@/app/actions";
 import { toast } from "@/app/toast";
-import { dayMonthShort, weekdayTime } from "@/app/format";
+import { useT } from "@/app/i18n/client";
+import type { Dict } from "@/app/i18n";
 
 export interface InboxItem extends CheckInRecord {
   clientName: string;
@@ -16,18 +17,18 @@ export interface InboxItem extends CheckInRecord {
   deltaKg: number | null;
 }
 
-function weekLabel(weekOf: string): string {
+function weekLabel(t: Dict, weekOf: string): string {
   const start = new Date(`${weekOf}T00:00:00`);
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
-  return `${dayMonthShort(start)} – ${dayMonthShort(end)}`;
+  return `${t.fmt.dayMonthShort(start)} – ${t.fmt.dayMonthShort(end)}`;
 }
 
 /** Bei Stress ist ein hoher Wert schlecht — die Skala läuft andersherum. */
 const SCALES = [
-  { key: "energy", label: "Energie", inverted: false },
-  { key: "sleep", label: "Schlaf", inverted: false },
-  { key: "stress", label: "Stress", inverted: true },
+  { key: "energy", inverted: false },
+  { key: "sleep", inverted: false },
+  { key: "stress", inverted: true },
 ] as const;
 
 function scaleColor(value: number, inverted: boolean): string {
@@ -39,6 +40,7 @@ function scaleColor(value: number, inverted: boolean): string {
 }
 
 function Values({ item }: { item: InboxItem }) {
+  const t = useT();
   const has =
     item.weightKg !== null || SCALES.some((s) => item[s.key] !== null);
   if (!has) return null;
@@ -57,10 +59,10 @@ function Values({ item }: { item: InboxItem }) {
       {item.weightKg !== null && (
         <div>
           <p className="pt-label" style={{ margin: 0 }}>
-            Gewicht
+            {t.labels.weight}
           </p>
           <p style={{ margin: "3px 0 0", fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-            {item.weightKg.toFixed(1).replace(".", ",")} kg
+            {t.fmt.decimal(item.weightKg, 1)} kg
             {item.deltaKg !== null && item.deltaKg !== 0 && (
               <span
                 style={{
@@ -70,8 +72,8 @@ function Values({ item }: { item: InboxItem }) {
                   color: "var(--pt-text-dim)",
                 }}
               >
-                {item.deltaKg > 0 ? "+" : "−"}
-                {Math.abs(item.deltaKg).toFixed(1).replace(".", ",")}
+                {item.deltaKg > 0 ? "+" : "\u2212"}
+                {t.fmt.decimal(Math.abs(item.deltaKg), 1)}
               </span>
             )}
           </p>
@@ -84,7 +86,7 @@ function Values({ item }: { item: InboxItem }) {
         return (
           <div key={s.key}>
             <p className="pt-label" style={{ margin: 0 }}>
-              {s.label}
+              {t.athlete.checkin.scales[s.key].label}
             </p>
             <p
               style={{
@@ -126,6 +128,8 @@ export function CheckInCard({
   answered: boolean;
   showName?: boolean;
 }) {
+  const t = useT();
+  const I = t.coach.inbox;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [text, setText] = useState("");
@@ -143,7 +147,7 @@ export function CheckInCard({
       // Die Antwort verschwindet aus dem Posteingang, sobald die Seite
       // neu lädt — ohne ein Wort dazu sieht es aus, als sei sie weg,
       // nicht als sei sie raus.
-      toast("Antwort geschickt");
+      toast(I.sentReply);
       router.refresh();
     });
   }
@@ -174,19 +178,19 @@ export function CheckInCard({
             <p
               style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}
             >
-              Woche {weekLabel(item.weekOf)}
+              {I.week(weekLabel(t, item.weekOf))}
               {item.submittedAt &&
-                ` · abgeschickt ${weekdayTime(new Date(item.submittedAt))}`}
+                I.sentAt(t.fmt.weekdayTime(new Date(item.submittedAt)))}
             </p>
           </div>
         </div>
       ) : (
         // In der Klientenakte steht der Name schon oben auf der Seite.
         <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", fontWeight: 500 }}>
-          Woche {weekLabel(item.weekOf)}
+          {I.week(weekLabel(t, item.weekOf))}
           {item.submittedAt && (
             <span style={{ fontWeight: 400, color: "var(--pt-text-dim)" }}>
-              {` · abgeschickt ${weekdayTime(new Date(item.submittedAt))}`}
+              {I.sentAt(t.fmt.weekdayTime(new Date(item.submittedAt)))}
             </span>
           )}
         </p>
@@ -228,9 +232,9 @@ export function CheckInCard({
             }}
           >
             <IconCheck size={13} />
-            Deine Antwort
+            {I.yourReply}
             {item.coachRepliedAt &&
-              ` · ${weekdayTime(new Date(item.coachRepliedAt))}`}
+              ` · ${t.fmt.weekdayTime(new Date(item.coachRepliedAt))}`}
           </p>
           <p style={{ margin: "6px 0 0", fontSize: "var(--pt-fs-md)", lineHeight: 1.55 }}>
             {item.coachReply}
@@ -242,7 +246,7 @@ export function CheckInCard({
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={3}
-            placeholder={`Antwort an ${item.clientName.split(" ")[0]} …`}
+            placeholder={I.replyTo(item.clientName.split(" ")[0] ?? "")}
             style={{
               resize: "vertical",
               fontFamily: "inherit",
@@ -267,7 +271,7 @@ export function CheckInCard({
               onClick={send}
               disabled={pending || text.trim() === ""}
             >
-              {pending ? "Wird gesendet …" : "Antworten"}
+              {pending ? I.sending : I.reply}
             </button>
           </div>
         </>
@@ -283,12 +287,13 @@ export function CheckInInbox({
   open: InboxItem[];
   answered: InboxItem[];
 }) {
+  const I = useT().coach.inbox;
   return (
     <div style={{ maxWidth: 680 }}>
       {open.length > 0 && (
         <>
           <p className="pt-label" style={{ marginBottom: 10 }}>
-            Offen
+            {I.open}
           </p>
           {open.map((item) => (
             <CheckInCard key={item.id} item={item} answered={false} />
@@ -299,7 +304,7 @@ export function CheckInInbox({
       {answered.length > 0 && (
         <>
           <p className="pt-label" style={{ margin: "26px 0 10px" }}>
-            Beantwortet
+            {I.answered}
           </p>
           {answered.map((item) => (
             <CheckInCard key={item.id} item={item} answered />

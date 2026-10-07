@@ -18,7 +18,6 @@ export type {
 export {
   MOVEMENT_PATTERNS,
   MUSCLE_GROUPS,
-  MUSCLE_GROUP_LABEL,
   BLOCK_ORDER,
 } from "./training";
 

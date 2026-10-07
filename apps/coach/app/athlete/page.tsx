@@ -7,26 +7,15 @@ import {
 } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel } from "@/app/components";
-import { durationLabel, estimateMinutes } from "@/app/plan-week";
+import { estimateMinutes } from "@/app/plan-week";
 import { IconChevronRight } from "@/app/icons";
-import { dateMedium, weekdayTimeLong } from "@/app/format";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-const LOCATION: Record<string, string> = {
-  gym: "Studio",
-  park: "Park",
-  home: "Zuhause",
-  online: "Online",
-};
-
-function greeting(hour: number): string {
-  if (hour < 11) return "Guten Morgen";
-  if (hour < 18) return "Hey 👋";
-  return "Guten Abend";
-}
-
 export default async function AthleteHome() {
+  const t = getT();
+  const h = t.athlete.home;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -54,7 +43,7 @@ export default async function AthleteHome() {
         ]
       : null;
 
-  const firstName = (profile?.full_name ?? "").split(" ")[0] || "Athlet";
+  const firstName = (profile?.full_name ?? "").split(" ")[0] || h.fallbackName;
   const next = appointments[0];
   const last = sessions[sessions.length - 1];
 
@@ -73,7 +62,7 @@ export default async function AthleteHome() {
 
   return (
     <main className="gym-shell" style={{ paddingTop: 26 }}>
-      <p className="gym-label">{greeting(today.getHours())}</p>
+      <p className="gym-label">{h.greeting(today.getHours())}</p>
       <h1 style={{ margin: "3px 0 22px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
         {firstName}
       </h1>
@@ -82,31 +71,31 @@ export default async function AthleteHome() {
           als Nächstes. Vorher fiel der Plan nach dem ersten Training aus
           der Karte heraus und wirkte, als wäre er verschwunden. */}
       <div className="gym-card" style={{ marginBottom: 12 }}>
-        <p className="gym-label">Training</p>
+        <p className="gym-label">{h.training}</p>
 
         {trainedToday ? (
           <>
             <p style={{ margin: "8px 0 0", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-              Heute erledigt
+              {h.doneToday}
             </p>
             <p
               style={{ margin: "4px 0 0", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}
             >
-              {last!.title} · {last!.slots.length} Übungen ·{" "}
-              {last!.slots.reduce((n, s) => n + s.sets.length, 0)} Sätze
+              {last!.title} · {h.exercises(last!.slots.length)} ·{" "}
+              {h.sets(last!.slots.reduce((n, s) => n + s.sets.length, 0))}
             </p>
           </>
         ) : (
           <>
             <p style={{ margin: "8px 0 2px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-              {nextDay ? nextDay.title : "Heute noch nichts geloggt"}
+              {nextDay ? nextDay.title : h.nothingYet}
             </p>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
               {nextDay
-                ? `${nextDay.slots.length} ${
-                    nextDay.slots.length === 1 ? "Übung" : "Übungen"
-                  } · ca. ${durationLabel(estimateMinutes(nextDay.slots))}`
-                : "Leg einfach los — dein Coach sieht mit."}
+                ? `${h.exercises(nextDay.slots.length)} · ${t.time.approx} ${t.time.duration(
+                    estimateMinutes(nextDay.slots),
+                  )}`
+                : h.justStart}
             </p>
           </>
         )}
@@ -121,11 +110,11 @@ export default async function AthleteHome() {
               fontSize: "var(--pt-fs-md)",
             }}
           >
-            <span style={{ color: "var(--g-dim)" }}>Als Nächstes: </span>
+            <span style={{ color: "var(--g-dim)" }}>{h.upNext}</span>
             <strong>{nextDay.title}</strong>
             <span style={{ color: "var(--g-dim)" }}>
               {" "}
-              · ca. {durationLabel(estimateMinutes(nextDay.slots))}
+              · {t.time.approx} {t.time.duration(estimateMinutes(nextDay.slots))}
             </span>
           </p>
         )}
@@ -137,10 +126,10 @@ export default async function AthleteHome() {
             style={{ textDecoration: "none" }}
           >
             {trainedToday
-              ? "Noch was nachtragen"
+              ? h.addMore
               : nextDay
-                ? `${nextDay.title} starten`
-                : "Training starten"}
+                ? h.startDay(nextDay.title)
+                : h.startTraining}
           </Link>
           {plan && (
             <Link
@@ -148,7 +137,7 @@ export default async function AthleteHome() {
               className="gym-btn gym-btn--ghost"
               style={{ textDecoration: "none" }}
             >
-              Ganzen Plan ansehen
+              {h.viewPlan}
             </Link>
           )}
         </div>
@@ -168,9 +157,7 @@ export default async function AthleteHome() {
           }}
         >
           <p className="gym-label">
-            {appointments.length > 1
-              ? "Deine nächsten Termine"
-              : "Nächster Termin"}
+            {appointments.length > 1 ? h.nextAppointments : h.nextAppointment}
           </p>
           <span style={{ color: "var(--g-dim)", display: "flex" }}>
             <IconChevronRight size={16} />
@@ -180,11 +167,11 @@ export default async function AthleteHome() {
         {next ? (
           <>
             <p style={{ margin: "8px 0 2px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-              {weekdayTimeLong(new Date(next.startsAt))}
+              {t.fmt.weekdayTimeLong(new Date(next.startsAt))}
             </p>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-              {dateMedium(new Date(next.startsAt))} · {next.durationMinutes}{" "}
-              Minuten · {LOCATION[next.location] ?? next.location}
+              {t.fmt.dateMedium(new Date(next.startsAt))} · {next.durationMinutes}{" "}
+              {t.time.minutes} · {t.labels.location[next.location] ?? next.location}
               {next.locationNote ? ` · ${next.locationNote}` : ""}
             </p>
 
@@ -215,11 +202,11 @@ export default async function AthleteHome() {
                       fontSize: "var(--pt-fs-md)",
                     }}
                   >
-                    <span>{weekdayTimeLong(new Date(a.startsAt))}</span>
+                    <span>{t.fmt.weekdayTimeLong(new Date(a.startsAt))}</span>
                     <span
                       style={{ color: "var(--g-dim)", whiteSpace: "nowrap" }}
                     >
-                      {LOCATION[a.location] ?? a.location}
+                      {t.labels.location[a.location] ?? a.location}
                     </span>
                   </div>
                 ))}
@@ -228,7 +215,7 @@ export default async function AthleteHome() {
           </>
         ) : (
           <p style={{ margin: "8px 0 0", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-            Kein Termin geplant. Dein Coach meldet sich.
+            {h.noAppointment}
           </p>
         )}
       </Link>
@@ -246,7 +233,7 @@ export default async function AthleteHome() {
             justifyContent: "space-between",
           }}
         >
-          <p className="gym-label">Check-in diese Woche</p>
+          <p className="gym-label">{h.checkinThisWeek}</p>
           <span style={{ color: "var(--g-dim)", display: "flex" }}>
             <IconChevronRight size={16} />
           </span>
@@ -255,7 +242,7 @@ export default async function AthleteHome() {
         {checkIn?.coach_reply ? (
           <>
             <p style={{ margin: "8px 0 4px", fontSize: "var(--pt-fs-input)", fontWeight: 700 }}>
-              Dein Coach hat geantwortet
+              {h.coachReplied}
             </p>
             <p
               style={{
@@ -275,19 +262,19 @@ export default async function AthleteHome() {
         ) : checkIn?.submitted_at ? (
           <>
             <p style={{ margin: "8px 0 4px", fontSize: "var(--pt-fs-input)", fontWeight: 700 }}>
-              Abgeschickt
+              {h.submitted}
             </p>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-              Dein Coach schaut drauf und meldet sich.
+              {h.coachWillLook}
             </p>
           </>
         ) : (
           <>
             <p style={{ margin: "8px 0 4px", fontSize: "var(--pt-fs-input)", fontWeight: 700 }}>
-              Noch offen
+              {h.stillOpen}
             </p>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-              Zwei Minuten: Gewicht, Energie, Schlaf, Stress.
+              {h.twoMinutes}
             </p>
           </>
         )}
@@ -296,7 +283,7 @@ export default async function AthleteHome() {
       {/* Letzte Einheit */}
       {last && !trainedToday && (
         <div className="gym-card">
-          <p className="gym-label">Zuletzt trainiert</p>
+          <p className="gym-label">{h.lastTrained}</p>
           <p
             style={{
               margin: "8px 0 10px",
@@ -304,11 +291,11 @@ export default async function AthleteHome() {
               color: "var(--g-dim)",
             }}
           >
-            {dateMedium(new Date(last.performedAt))}
+            {t.fmt.dateMedium(new Date(last.performedAt))}
             {/* Hat der Trainer die Einheit eingetragen, soll der Athlet
                 das wissen — sonst wundert er sich über Sätze, die er
                 nicht selbst getippt hat. */}
-            {last.recordedBy && " · von deinem Trainer eingetragen"}
+            {last.recordedBy && h.byCoach}
           </p>
           {last.slots.map((slot) => {
             const best = [...slot.sets].sort(
@@ -328,13 +315,13 @@ export default async function AthleteHome() {
               >
                 <span style={{ minWidth: 0 }}>
                   {exercises.get(slot.exerciseId)?.name ??
-                    muscleLabel(slot.muscleGroup)}
+                    muscleLabel(t, slot.muscleGroup)}
                 </span>
                 <span style={{ color: "var(--g-dim)", whiteSpace: "nowrap" }}>
                   {best
                     ? best.isBodyweight || best.weightKg === 0
-                      ? `${best.reps} Wdh.`
-                      : `${best.weightKg} kg × ${best.reps}`
+                      ? h.reps(best.reps)
+                      : `${t.fmt.num(best.weightKg)} kg × ${best.reps}`
                     : "—"}
                 </span>
               </div>

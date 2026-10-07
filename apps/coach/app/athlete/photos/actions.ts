@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { PHOTO_BUCKET, type PhotoPose } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
-import { CONSENT_VERSION } from "./consent-text";
+import { consentVersion } from "@/app/i18n/einwilligung";
+import { getLocale, getT } from "@/app/i18n/server";
 
 export type PhotoResult = { ok: true } | { ok: false; error: string };
 
@@ -40,10 +41,9 @@ async function eigenerKlient() {
  */
 export async function grantPhotoConsentAction(): Promise<PhotoResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   // Schon eine offene Einwilligung? Dann ist nichts zu tun. Der
   // eindeutige Teilindex würde sonst mit einer technischen Meldung
@@ -59,7 +59,8 @@ export async function grantPhotoConsentAction(): Promise<PhotoResult> {
   const { error } = await db.from("photo_consents").insert({
     client_id: client.id,
     granted_by: user.id,
-    text_version: CONSENT_VERSION,
+    // Mit Sprache: zugestimmt wurde dem Text, der gelesen wurde.
+    text_version: consentVersion(getLocale()),
   });
   if (error) return { ok: false, error: error.message };
 
@@ -85,10 +86,9 @@ export async function grantPhotoConsentAction(): Promise<PhotoResult> {
  */
 export async function revokePhotoConsentAction(): Promise<PhotoResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   const { data: consent } = await db
     .from("photo_consents")
@@ -112,12 +112,7 @@ export async function revokePhotoConsentAction(): Promise<PhotoResult> {
       .from(PHOTO_BUCKET)
       .remove(pfade);
     if (speicherFehler) {
-      return {
-        ok: false,
-        error:
-          "Die Bilder konnten nicht gelöscht werden — der Widerruf wurde " +
-          "deshalb nicht eingetragen. Bitte noch einmal versuchen.",
-      };
+      return { ok: false, error: t.fehler.action.photosNotDeleted };
     }
   }
 
@@ -150,16 +145,15 @@ export async function savePhotoAction(input: {
   bytes: number;
 }): Promise<PhotoResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   // Der Pfad muss im eigenen Ordner liegen. Die Datenbank prüft das
   // auch (`progress_photos_pfad_passt`), aber hier lässt sich eine
   // verirrte Datei noch aufräumen statt nur abzulehnen.
   if (!input.storagePath.startsWith(`${client.id}/`)) {
-    return { ok: false, error: "Ungültiger Speicherort." };
+    return { ok: false, error: t.fehler.action.invalidPath };
   }
 
   const { error } = await db.from("progress_photos").insert({
@@ -188,10 +182,9 @@ export async function savePhotoAction(input: {
 /** Ein einzelnes Bild löschen — Datei und Zeile. */
 export async function deletePhotoAction(id: string): Promise<PhotoResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   const { data: foto } = await db
     .from("progress_photos")
@@ -199,7 +192,7 @@ export async function deletePhotoAction(id: string): Promise<PhotoResult> {
     .eq("id", id)
     .eq("client_id", client.id)
     .maybeSingle();
-  if (!foto) return { ok: false, error: "Bild nicht gefunden." };
+  if (!foto) return { ok: false, error: t.fehler.action.photoNotFound };
 
   // Erst die Datei, dann die Zeile — dieselbe Reihenfolge und derselbe
   // Grund wie beim Widerruf.

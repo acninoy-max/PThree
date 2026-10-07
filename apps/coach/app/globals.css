@@ -918,6 +918,13 @@ a.pt-card:active {
 .pt-langswitch[data-pending="true"] {
   opacity: 0.6;
 }
+.pt-langswitch[data-kurz="true"] {
+  gap: 4px;
+}
+.pt-langswitch[data-kurz="true"] .pt-toggle {
+  padding: 4px 7px;
+  font-size: var(--pt-fs-xs);
+}
 .pt-toggle--day {
   min-width: 42px;
   padding: 8px 6px;

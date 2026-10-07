@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getT } from "@/app/i18n/server";
 import { fetchClient, fetchExercises, fetchPlan } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
@@ -31,7 +32,7 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
       <Nav coachName={profile?.full_name ?? "Coach"} />
       <PlanEditor
         plan={plan}
-        clientName={client?.fullName ?? "Klient"}
+        clientName={client?.fullName ?? getT().coach.feed.unknown}
         exercises={[...exercises.values()].map((e) => ({
           id: e.id,
           name: e.name,

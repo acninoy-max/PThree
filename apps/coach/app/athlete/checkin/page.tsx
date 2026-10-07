@@ -7,7 +7,8 @@ import {
 import { createServerSupabase } from "@/lib/supabase-server";
 import { IconChevronLeft } from "@/app/icons";
 import { CheckInForm } from "./form";
-import { dayMonthLongNoYear } from "@/app/format";
+import { getT } from "@/app/i18n/server";
+import type { Dict } from "@/app/i18n";
 import { MEASURE_INFO, MEASURE_KEYS, isMeasureWeek } from "./measurements";
 
 export const dynamic = "force-dynamic";
@@ -21,14 +22,16 @@ function mondayOf(d: Date): string {
   ).padStart(2, "0")}`;
 }
 
-function weekLabel(weekOf: string): string {
+function weekLabel(t: Dict, weekOf: string): string {
   const start = new Date(`${weekOf}T00:00:00`);
   const end = new Date(start);
   end.setDate(start.getDate() + 6);
-  return `${dayMonthLongNoYear(start)} – ${dayMonthLongNoYear(end)}`;
+  return `${t.fmt.dayMonthLong(start)} – ${t.fmt.dayMonthLong(end)}`;
 }
 
 export default async function AthleteCheckInPage() {
+  const t = getT();
+  const c0 = t.athlete.checkin;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -65,14 +68,14 @@ export default async function AthleteCheckInPage() {
         }}
       >
         <IconChevronLeft size={16} />
-        Zurück
+        {c0.back}
       </Link>
 
       <h1 style={{ margin: "12px 0 2px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-        Check-in
+        {c0.title}
       </h1>
       <p style={{ margin: "0 0 20px", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-        Woche {weekLabel(thisWeek)}
+        {c0.week(weekLabel(t, thisWeek))}
       </p>
 
       <CheckInForm
@@ -104,7 +107,7 @@ export default async function AthleteCheckInPage() {
       {earlier.some((c) => c.coachReply) && (
         <>
           <p className="gym-label" style={{ margin: "28px 0 10px" }}>
-            Antworten deines Coaches
+            {c0.coachReplies}
           </p>
           <div style={{ display: "grid", gap: 10 }}>
             {earlier
@@ -119,7 +122,7 @@ export default async function AthleteCheckInPage() {
                       fontWeight: 600,
                     }}
                   >
-                    Woche {weekLabel(c.weekOf)}
+                    {c0.week(weekLabel(t, c.weekOf))}
                   </p>
                   <p
                     style={{

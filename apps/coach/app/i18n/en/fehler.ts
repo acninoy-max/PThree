@@ -21,6 +21,23 @@ export const fehler: Dict["fehler"] = {
     signedInAs: "You're signed in as",
     hint: "If your coach invited you under a different address, sign out here and open the invitation link again.",
   },
+  action: {
+    notSignedIn: "Not signed in.",
+    noClient: "No client account for this login.",
+    invalidPath: "Invalid storage location.",
+    photoNotFound: "Photo not found.",
+    noExercise: "No exercise recorded.",
+    noClientProfile: "No client profile found.",
+    saveFailed: "Saving failed.",
+    exerciseNotSaved: "The exercise couldn't be saved.",
+    weightImplausible: "That weight doesn't look plausible.",
+    cmImplausible: (what, value) =>
+      `${what}: ${value} cm doesn't look plausible.`,
+    maxEight: "At most eight exercises at once.",
+    defaultSessionTitle: "Workout",
+    photosNotDeleted:
+      "The photos couldn't be deleted — so the withdrawal was not recorded. Please try again.",
+  },
   db: {
     notSignedIn: "Not signed in.",
     coachAccount:

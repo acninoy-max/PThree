@@ -2,11 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getT } from "@/app/i18n/server";
 import type {
   MovementPattern,
   MuscleGroup,
   TrainingBlock,
 } from "@ptfive/types";
+import type { MeasureKey } from "./checkin/measurements";
 
 export type SimpleResult = { ok: true } | { ok: false; error: string };
 
@@ -64,15 +66,16 @@ export async function saveSessionAction(
   title: string,
   origin: SessionOrigin = {},
 ): Promise<SaveResult> {
+  const t = getT();
   if (slots.length === 0) {
-    return { ok: false, error: "Keine Übung erfasst." };
+    return { ok: false, error: t.fehler.action.noExercise };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const { data: client } = await db
     .from("clients")
@@ -81,7 +84,7 @@ export async function saveSessionAction(
     .maybeSingle();
 
   if (!client) {
-    return { ok: false, error: "Kein Klientenprofil gefunden." };
+    return { ok: false, error: t.fehler.action.noClientProfile };
   }
 
   const { data: session, error: sessionError } = await db
@@ -99,7 +102,9 @@ export async function saveSessionAction(
           ? Math.min(Math.max(origin.durationSeconds, 0), 43_200)
           : null,
       is_complete: origin.isComplete ?? true,
-      title: title.trim() || "Training",
+      // Gespeichert in der Sprache dessen, der die Einheit anlegt — ein
+      // Titel ist Inhalt, keine Beschriftung.
+      title: title.trim() || t.fehler.action.defaultSessionTitle,
     })
     .select("id")
     .single();
@@ -107,7 +112,7 @@ export async function saveSessionAction(
   if (sessionError || !session) {
     return {
       ok: false,
-      error: sessionError?.message ?? "Speichern fehlgeschlagen.",
+      error: sessionError?.message ?? t.fehler.action.saveFailed,
     };
   }
 
@@ -132,7 +137,7 @@ export async function saveSessionAction(
       await db.from("sessions").delete().eq("id", session.id);
       return {
         ok: false,
-        error: slotError?.message ?? "Übung konnte nicht gespeichert werden.",
+        error: slotError?.message ?? t.fehler.action.exerciseNotSaved,
       };
     }
 
@@ -185,12 +190,12 @@ export interface CheckInInput {
 }
 
 /** Grenzen wie die Datenbank-Constraints, nur mit lesbarer Meldung. */
-const CM_RANGE: Record<string, [number, number, string]> = {
-  shouldersCm: [50, 250, "Schultern"],
-  chestCm: [50, 250, "Brust"],
-  waistCm: [40, 250, "Taille"],
-  armCm: [15, 100, "Oberarm"],
-  thighCm: [25, 150, "Oberschenkel"],
+const CM_RANGE: Record<string, [number, number, MeasureKey]> = {
+  shouldersCm: [50, 250, "shoulders"],
+  chestCm: [50, 250, "chest"],
+  waistCm: [40, 250, "waist"],
+  armCm: [15, 100, "arm"],
+  thighCm: [25, 150, "thigh"],
 };
 
 /**
@@ -207,11 +212,12 @@ const CM_RANGE: Record<string, [number, number, string]> = {
 export async function saveCheckInAction(
   input: CheckInInput,
 ): Promise<SaveResult> {
+  const t = getT();
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const { data: client } = await db
     .from("clients")
@@ -219,7 +225,7 @@ export async function saveCheckInAction(
     .eq("profile_id", user.id)
     .maybeSingle();
 
-  if (!client) return { ok: false, error: "Kein Klientenprofil gefunden." };
+  if (!client) return { ok: false, error: t.fehler.action.noClientProfile };
 
   const scale = (v: number | null) =>
     v === null || v < 1 || v > 5 ? null : Math.round(v);
@@ -231,7 +237,7 @@ export async function saveCheckInAction(
       : Math.round(input.weightKg * 100) / 100;
 
   if (weight !== null && (weight < 25 || weight > 350)) {
-    return { ok: false, error: "Das Gewicht sieht nicht plausibel aus." };
+    return { ok: false, error: t.fehler.action.weightImplausible };
   }
 
   const cm = (key: keyof typeof CM_RANGE): number | null => {
@@ -243,11 +249,14 @@ export async function saveCheckInAction(
   for (const key of Object.keys(CM_RANGE)) {
     const value = cm(key);
     if (value === null) continue;
-    const [min, max, label] = CM_RANGE[key]!;
+    const [min, max, mass] = CM_RANGE[key]!;
     if (value < min || value > max) {
       return {
         ok: false,
-        error: `${label}: ${value} cm sieht nicht plausibel aus.`,
+        error: t.fehler.action.cmImplausible(
+          t.labels.measure[mass].label,
+          t.fmt.num(value),
+        ),
       };
     }
   }
@@ -301,24 +310,25 @@ export async function saveCheckInAction(
 export async function setProgressSelectionAction(
   exerciseIds: string[],
 ): Promise<SimpleResult> {
+  const t = getT();
   // Obergrenze, weil die Seite sonst wieder unlesbar wird — genau das
   // Problem, das die Auswahl lösen soll.
   if (exerciseIds.length > 8) {
-    return { ok: false, error: "Höchstens acht Übungen auf einmal." };
+    return { ok: false, error: t.fehler.action.maxEight };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const { data: client } = await db
     .from("clients")
     .select("id")
     .eq("profile_id", user.id)
     .maybeSingle();
-  if (!client) return { ok: false, error: "Kein Klientenprofil gefunden." };
+  if (!client) return { ok: false, error: t.fehler.action.noClientProfile };
 
   const sauber = [...new Set(exerciseIds)];
 

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import type { CheckInFields } from "@ptfive/db";
-import { MEASURE_INFO, activeMeasures, type MeasureKey } from "./measurements";
+import { activeMeasures, type MeasureKey } from "./measurements";
 import { IconCheck } from "@/app/icons";
 import { saveCheckInAction } from "../actions";
+import { useT } from "@/app/i18n/client";
 
 export interface ExistingCheckIn {
   weightKg: number | null;
@@ -20,14 +21,9 @@ export interface ExistingCheckIn {
   measures: Partial<Record<MeasureKey, string>>;
 }
 
-/** Endpunkte der Skalen. Ohne Worte wäre "3" nicht interpretierbar. */
-const SCALES = {
-  energy: { label: "Energie", low: "am Boden", high: "voll da" },
-  sleep: { label: "Schlaf", low: "schlecht", high: "erholsam" },
-  stress: { label: "Stress", low: "entspannt", high: "am Limit" },
-} as const;
-
-type ScaleKey = keyof typeof SCALES;
+/** Endpunkte der Skalen stehen im Wörterbuch. Ohne Worte wäre "3"
+ *  nicht interpretierbar. */
+type ScaleKey = "energy" | "sleep" | "stress";
 
 function Scale({
   name,
@@ -38,7 +34,8 @@ function Scale({
   value: number | null;
   onChange: (v: number) => void;
 }) {
-  const s = SCALES[name];
+  const t = useT();
+  const s = t.athlete.checkin.scales[name];
   return (
     <fieldset style={{ border: "none", padding: 0, margin: "0 0 18px" }}>
       <legend
@@ -59,7 +56,7 @@ function Scale({
             className="gym-scale"
             data-active={value === n}
             aria-pressed={value === n}
-            aria-label={`${s.label}: ${n} von 5`}
+            aria-label={t.athlete.checkin.scaleAria(s.label, n)}
             onClick={() => onChange(n)}
           >
             {n}
@@ -96,6 +93,8 @@ function SuccessModal({
   correction: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
+  const c = t.athlete.checkin;
   const primary = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -132,7 +131,7 @@ function SuccessModal({
           id="checkin-done-title"
           style={{ margin: "18px 0 6px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}
         >
-          {correction ? "Änderung gespeichert" : "Check-in abgeschickt"}
+          {correction ? c.savedTitle : c.sentTitle}
         </h2>
         <p
           style={{
@@ -142,9 +141,7 @@ function SuccessModal({
             lineHeight: 1.55,
           }}
         >
-          {correction
-            ? "Dein Coach sieht die aktualisierten Angaben."
-            : "Dein Coach schaut drauf und meldet sich bei dir. Die Antwort erscheint hier und auf deiner Startseite."}
+          {correction ? c.savedBody : c.sentBody}
         </p>
 
         <div style={{ display: "grid", gap: 8, marginTop: 22 }}>
@@ -154,14 +151,14 @@ function SuccessModal({
             className="gym-btn"
             style={{ textDecoration: "none" }}
           >
-            Zur Startseite
+            {c.toHome}
           </Link>
           <button
             type="button"
             className="gym-btn gym-btn--ghost"
             onClick={onClose}
           >
-            Hier bleiben
+            {c.stayHere}
           </button>
         </div>
       </div>
@@ -181,6 +178,8 @@ export function CheckInForm({
   /** Ob diese Woche das Maßband herauskommt. */
   measureWeek: boolean;
 }) {
+  const t = useT();
+  const c = t.athlete.checkin;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -248,7 +247,7 @@ export function CheckInForm({
             borderRadius: "0 14px 14px 0",
           }}
         >
-          <p className="gym-label">Antwort deines Coaches</p>
+          <p className="gym-label">{c.coachReply}</p>
           <p style={{ margin: "8px 0 0", fontSize: "var(--pt-fs-lg)", lineHeight: 1.55 }}>
             {existing.coachReply}
           </p>
@@ -268,7 +267,7 @@ export function CheckInForm({
             }}
           >
             <IconCheck size={15} />
-            Abgeschickt — du kannst noch korrigieren.
+            {c.alreadySent}
           </p>
         )}
 
@@ -282,7 +281,7 @@ export function CheckInForm({
                 marginBottom: 8,
               }}
             >
-              Gewicht
+              {t.labels.weight}
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <input
@@ -290,7 +289,7 @@ export function CheckInForm({
                 inputMode="decimal"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                placeholder="z. B. 78,4"
+                placeholder={c.weightPlaceholder}
                 style={{ maxWidth: 140 }}
               />
               <span style={{ fontSize: "var(--pt-fs-lg)", color: "var(--g-dim)" }}>kg</span>
@@ -303,7 +302,7 @@ export function CheckInForm({
                 color: "var(--g-dim)",
               }}
             >
-              Freiwillig. Leer lassen ist völlig in Ordnung.
+              {c.optional}
             </span>
           </label>
         )}
@@ -323,7 +322,7 @@ export function CheckInForm({
         {measureWeek && wanted.length > 0 && (
           <div style={{ marginBottom: 18 }}>
             <p style={{ margin: "0 0 4px", fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-              Maßband
+              {c.tape}
             </p>
             <p
               style={{
@@ -333,8 +332,7 @@ export function CheckInForm({
                 lineHeight: 1.5,
               }}
             >
-              Alle {fields.measureEveryWeeks} Wochen. Miss so, wie es darunter
-              steht — immer gleich, sonst ist der Verlauf nur Zufall.
+              {c.tapeHint(fields.measureEveryWeeks)}
             </p>
 
             <div style={{ display: "grid", gap: 14 }}>
@@ -348,7 +346,7 @@ export function CheckInForm({
                       marginBottom: 2,
                     }}
                   >
-                    {MEASURE_INFO[key].label}
+                    {t.labels.measure[key].label}
                   </span>
                   <span
                     style={{
@@ -359,7 +357,7 @@ export function CheckInForm({
                       lineHeight: 1.45,
                     }}
                   >
-                    {MEASURE_INFO[key].how}
+                    {t.labels.measure[key].how}
                   </span>
                   <span
                     style={{ display: "flex", alignItems: "center", gap: 8 }}
@@ -374,7 +372,7 @@ export function CheckInForm({
                           [key]: e.target.value,
                         }))
                       }
-                      placeholder="z. B. 106,5"
+                      placeholder={c.cmPlaceholder}
                       style={{ maxWidth: 140 }}
                     />
                     <span style={{ fontSize: "var(--pt-fs-lg)", color: "var(--g-dim)" }}>
@@ -397,14 +395,14 @@ export function CheckInForm({
                 marginBottom: 8,
               }}
             >
-              Was soll dein Coach wissen?
+              {c.noteLabel}
             </span>
             <textarea
               className="gym-textarea"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={5}
-              placeholder="Knie zwickt beim Squat, Woche war stressig, Ernährung lief gut …"
+              placeholder={c.notePlaceholder}
             />
           </label>
         )}
@@ -428,10 +426,10 @@ export function CheckInForm({
           disabled={pending}
         >
           {pending
-            ? "Wird gespeichert …"
+            ? t.common.saving
             : alreadySent
-              ? "Änderung speichern"
-              : "Check-in abschicken"}
+              ? c.saveChange
+              : c.send}
         </button>
       </div>
 

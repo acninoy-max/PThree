@@ -3,17 +3,14 @@ import { fetchActivePlan, fetchExercises, fetchSessions } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel, restLabel, supersetCodes } from "@/app/components";
 import { IconCheck, IconClock } from "@/app/icons";
-import {
-  WEEKDAY_SHORT,
-  buildWeek,
-  durationLabel,
-  estimateMinutes,
-  flexibleDays,
-} from "@/app/plan-week";
+import { buildWeek, estimateMinutes, flexibleDays } from "@/app/plan-week";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AthletePlanPage() {
+  const t = getT();
+  const p = t.athlete.plan;
   const db = createServerSupabase();
   const [plan, sessions, exercises] = await Promise.all([
     fetchActivePlan(db),
@@ -28,21 +25,20 @@ export default async function AthletePlanPage() {
   if (!plan || days.length === 0) {
     return (
       <main className="gym-shell" style={{ paddingTop: 26 }}>
-        <p className="gym-label">Dein Plan</p>
+        <p className="gym-label">{p.yourPlan}</p>
         <h1 style={{ margin: "3px 0 20px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
-          Noch kein Plan
+          {p.noPlan}
         </h1>
         <div className="gym-card">
           <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", lineHeight: 1.6 }}>
-            Dein Coach hat noch keinen Trainingsplan hinterlegt. Bis dahin
-            kannst du frei trainieren — deine Einheiten zählen trotzdem.
+            {p.noPlanBody}
           </p>
           <Link
             href="/athlete/log"
             className="gym-btn gym-btn--ghost"
             style={{ marginTop: 14 }}
           >
-            Freies Training
+            {p.freeTraining}
           </Link>
         </div>
       </main>
@@ -53,7 +49,7 @@ export default async function AthletePlanPage() {
     <main className="gym-shell" style={{ paddingTop: 26 }}>
       <p className="gym-label">{plan.name}</p>
       <h1 style={{ margin: "3px 0 18px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
-        Deine Woche
+        {p.yourWeek}
       </h1>
 
       {/* Wochenleiste. Erledigt zählt nach Wochentag, nicht nach Plantag —
@@ -70,7 +66,7 @@ export default async function AthletePlanPage() {
               data-planned={planned}
               data-done={done}
             >
-              <span className="gym-weekday__name">{WEEKDAY_SHORT[i]}</span>
+              <span className="gym-weekday__name">{t.time.weekdayShort[i]}</span>
               <span className="gym-weekday__mark" aria-hidden>
                 {done ? (
                   <IconCheck size={15} strokeWidth={2.6} />
@@ -93,12 +89,11 @@ export default async function AthletePlanPage() {
           lineHeight: 1.5,
         }}
       >
-        {
+        {p.sessionsThisWeek(
           week.filter((s) => s.doneDayIds.length > 0 || s.freeSessions > 0)
-            .length
-        }{" "}
-        von {week.filter((s) => s.days.length > 0).length || days.length}{" "}
-        Einheiten diese Woche
+            .length,
+          week.filter((s) => s.days.length > 0).length || days.length,
+        )}
       </p>
 
       {/* Alle Trainingstage als lesbare Liste. */}
@@ -134,7 +129,7 @@ export default async function AthletePlanPage() {
                     }}
                   >
                     <IconCheck size={13} strokeWidth={2.6} />
-                    diese Woche
+                    {p.thisWeek}
                   </span>
                 )}
               </div>
@@ -151,11 +146,11 @@ export default async function AthletePlanPage() {
               >
                 <span>
                   {day.weekdays.length === 0
-                    ? "ohne festen Tag"
-                    : day.weekdays.map((w) => WEEKDAY_SHORT[w - 1]).join(" + ")}
+                    ? t.common.noFixedDay
+                    : day.weekdays.map((w) => t.time.weekdayShort[w - 1]).join(" + ")}
                 </span>
                 <span>·</span>
-                <span>{day.isGuided ? "mit Trainer" : "allein"}</span>
+                <span>{day.isGuided ? t.common.guided : t.common.alone}</span>
                 <span>·</span>
                 <span
                   style={{
@@ -165,7 +160,7 @@ export default async function AthletePlanPage() {
                   }}
                 >
                   <IconClock size={13} />
-                  {durationLabel(minutes)}
+                  {t.time.duration(minutes)}
                 </span>
               </p>
 
@@ -200,10 +195,10 @@ export default async function AthletePlanPage() {
                             lineHeight: 1.45,
                           }}
                         >
-                          {muscleLabel(slot.muscleGroup)}
-                          {slot.tempo ? ` · Tempo ${slot.tempo}` : ""}
+                          {muscleLabel(t, slot.muscleGroup)}
+                          {slot.tempo ? ` · ${t.common.tempo} ${slot.tempo}` : ""}
                           {slot.restSeconds !== null
-                            ? ` · Pause ${restLabel(slot.restSeconds)}`
+                            ? ` · ${t.common.rest} ${restLabel(slot.restSeconds)}`
                             : ""}
                         </p>
                       </div>
@@ -229,7 +224,7 @@ export default async function AthletePlanPage() {
                 className="gym-btn"
                 style={{ marginTop: 14, textDecoration: "none" }}
               >
-                {day.title} starten
+                {t.athlete.home.startDay(day.title)}
               </Link>
             </div>
           );
@@ -245,8 +240,7 @@ export default async function AthletePlanPage() {
             lineHeight: 1.5,
           }}
         >
-          Tage ohne festen Wochentag machst du, wann es passt — sie tauchen in
-          der Leiste oben nicht auf.
+          {p.flexibleHint}
         </p>
       )}
     </main>

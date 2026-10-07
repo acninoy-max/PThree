@@ -7,9 +7,10 @@ import { createClient } from "@/lib/supabase-browser";
 import { IconPlus, IconX } from "@/app/icons";
 import { Spinner } from "@/app/spinner";
 import { toast } from "@/app/toast";
-import { dateMedium } from "@/app/format";
-import { POSES, poseLabel, type Pose, type WeightPoint } from "./compare";
-import { photoFileName, shrinkImage } from "./shrink";
+import { useLocale, useT } from "@/app/i18n/client";
+import { CONSENT } from "@/app/i18n/einwilligung";
+import { POSES, type Pose, type WeightPoint } from "./compare";
+import { BildFehler, photoFileName, shrinkImage } from "./shrink";
 import { PhotoCompare } from "@/app/photo-compare";
 import {
   deletePhotoAction,
@@ -17,11 +18,6 @@ import {
   revokePhotoConsentAction,
   savePhotoAction,
 } from "./actions";
-import {
-  CONSENT_POINTS,
-  CONSENT_SUMMARY,
-  CONSENT_TITLE,
-} from "./consent-text";
 
 /** Heute als YYYY-MM-DD, in der Zeitzone des Geräts. */
 function heute(): string {
@@ -95,17 +91,19 @@ function ConsentGate({
   error: string | null;
   onGrant: () => void;
 }) {
+  const t = useT();
+  const text = CONSENT[useLocale()];
   return (
     <>
       <p className="gym-label" style={{ marginTop: 14 }}>
-        Fotos
+        {t.athlete.photos.area}
       </p>
       <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-        {CONSENT_TITLE}
+        {text.title}
       </h1>
 
       <div className="gym-card" style={{ display: "grid", gap: 16 }}>
-        {CONSENT_POINTS.map((p) => (
+        {text.points.map((p) => (
           <div key={p.frage}>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", fontWeight: 700 }}>
               {p.frage}
@@ -132,7 +130,7 @@ function ConsentGate({
           fontWeight: 600,
         }}
       >
-        {CONSENT_SUMMARY}
+        {text.summary}
       </p>
 
       {error && (
@@ -147,7 +145,11 @@ function ConsentGate({
         onClick={onGrant}
         disabled={pending}
       >
-        {pending ? <Spinner size={15} label="Moment" /> : "Einverstanden"}
+        {pending ? (
+          <Spinner size={15} label={t.athlete.photos.moment} />
+        ) : (
+          t.athlete.photos.agree
+        )}
       </button>
 
       <p
@@ -158,8 +160,7 @@ function ConsentGate({
           color: "var(--g-dim)",
         }}
       >
-        Wenn du nicht einverstanden bist, ändert sich nichts — der Rest der
-        App funktioniert genauso.
+        {t.athlete.photos.noChange}
       </p>
     </>
   );
@@ -178,6 +179,8 @@ function Gallery({
   weights: WeightPoint[];
   onChanged: () => void;
 }) {
+  const t = useT();
+  const f = t.athlete.photos;
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,7 +209,7 @@ function Gallery({
         });
 
       if (hochFehler) {
-        setError(`Hochladen fehlgeschlagen: ${hochFehler.message}`);
+        setError(f.uploadFailed(hochFehler.message));
         return;
       }
 
@@ -222,10 +225,16 @@ function Gallery({
         setError(res.error);
         return;
       }
-      toast("Bild gespeichert");
+      toast(f.saved);
       onChanged();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler.");
+      setError(
+        e instanceof BildFehler
+          ? f.shrink[e.grund]
+          : e instanceof Error
+            ? e.message
+            : f.unknownError,
+      );
     } finally {
       setUploading(false);
       if (dateiFeld.current) dateiFeld.current.value = "";
@@ -238,7 +247,7 @@ function Gallery({
       const res = await deletePhotoAction(id);
       if (!res.ok) setError(res.error);
       else {
-        toast("Bild gelöscht");
+        toast(f.deleted);
         onChanged();
       }
     });
@@ -259,21 +268,19 @@ function Gallery({
   return (
     <>
       <p className="gym-label" style={{ marginTop: 14 }}>
-        Fotos
+        {f.area}
       </p>
       <h1 style={{ margin: "3px 0 4px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-        {photos.length === 0
-          ? "Noch keine Bilder"
-          : `${photos.length} ${photos.length === 1 ? "Bild" : "Bilder"}`}
+        {f.count(photos.length)}
       </h1>
       <p style={{ margin: "0 0 18px", fontSize: "var(--pt-fs-base)", color: "var(--g-dim)" }}>
-        Nur du und dein Trainer sehen sie.
+        {f.onlyYou}
       </p>
 
       {/* ---------- Aufnehmen ---------- */}
       <div className="gym-card" style={{ marginBottom: 18 }}>
         <p style={{ margin: "0 0 12px", fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-          Neues Bild
+          {f.newPhoto}
         </p>
 
         {/* Drei kurze Wörter nebeneinander — passt auch auf 320px. */}
@@ -287,7 +294,7 @@ function Gallery({
               aria-pressed={pose === p.key}
               onClick={() => setPose(p.key)}
             >
-              {p.label}
+              {t.labels.pose[p.key]}
             </button>
           ))}
         </div>
@@ -300,7 +307,7 @@ function Gallery({
             justifyItems: "start",
           }}
         >
-          <span className="gym-label">Aufgenommen am</span>
+          <span className="gym-label">{f.takenOn}</span>
           <input
             className="pt-datefield"
             type="date"
@@ -330,10 +337,10 @@ function Gallery({
           onClick={() => dateiFeld.current?.click()}
         >
           {uploading ? (
-            <Spinner size={15} label="Lädt hoch" />
+            <Spinner size={15} label={f.uploading} />
           ) : (
             <>
-              <IconPlus size={16} /> {poseLabel(pose)} aufnehmen
+              <IconPlus size={16} /> {f.capture(t.labels.pose[pose])}
             </>
           )}
         </button>
@@ -346,8 +353,7 @@ function Gallery({
             color: "var(--g-dim)",
           }}
         >
-          Das Bild wird auf deinem Gerät verkleinert, bevor es hochgeht.
-          Aufnahmeort und Gerätedaten bleiben dabei hier.
+          {f.shrinkHint}
         </p>
       </div>
 
@@ -372,7 +378,7 @@ function Gallery({
               fontWeight: 600,
             }}
           >
-            Vorher — Nachher
+            {t.athlete.progress.beforeAfter}
           </p>
           <PhotoCompare photos={photos} weights={weights} gross />
         </div>
@@ -382,7 +388,7 @@ function Gallery({
       {photos.length > 0 && (
         <>
           <p className="gym-label" style={{ marginBottom: 10 }}>
-            Alle Bilder
+            {f.allPhotos}
           </p>
           <div className="gym-grid" style={{ marginBottom: 22 }}>
             {photos.map((p) => (
@@ -393,20 +399,20 @@ function Gallery({
                   // würde sie zwischenspeichern und danach ins Leere
                   // greifen.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={p.url} alt={`${poseLabel(p.pose)}`} loading="lazy" />
+                  <img src={p.url} alt={t.labels.pose[p.pose]} loading="lazy" />
                 ) : (
-                  <div className="cmp__fehlt">nicht ladbar</div>
+                  <div className="cmp__fehlt">{t.compare.notLoadable}</div>
                 )}
                 <figcaption>
-                  <span>{dateMedium(new Date(p.takenOn))}</span>
+                  <span>{t.fmt.dateMedium(new Date(p.takenOn))}</span>
                   <span style={{ color: "var(--g-dim)" }}>
-                    {poseLabel(p.pose)}
+                    {t.labels.pose[p.pose]}
                   </span>
                   <button
                     type="button"
                     onClick={() => loeschen(p.id)}
                     disabled={pending}
-                    aria-label="Bild löschen"
+                    aria-label={f.deletePhoto}
                   >
                     <IconX size={14} />
                   </button>
@@ -420,7 +426,7 @@ function Gallery({
       {/* ---------- Widerruf ---------- */}
       <div className="gym-card" style={{ marginBottom: 22 }}>
         <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", fontWeight: 600 }}>
-          Einwilligung zurücknehmen
+          {f.revokeTitle}
         </p>
         <p
           style={{
@@ -430,10 +436,10 @@ function Gallery({
             color: "var(--g-dim)",
           }}
         >
-          {grantedAt && `Erteilt am ${dateMedium(new Date(grantedAt))}. `}
-          Dabei werden <strong>alle</strong> deine Bilder gelöscht — nicht
-          ausgeblendet, sondern gelöscht. Das lässt sich nicht rückgängig
-          machen.
+          {grantedAt && f.grantedOn(t.fmt.dateMedium(new Date(grantedAt)))}
+          {f.revokeBefore}
+          <strong>{f.revokeAll}</strong>
+          {f.revokeAfter}
         </p>
 
         {revoking ? (
@@ -445,11 +451,9 @@ function Gallery({
               disabled={pending}
             >
               {pending ? (
-                <Spinner size={15} label="Löscht" />
+                <Spinner size={15} label={f.deleting} />
               ) : (
-                `Ja, ${photos.length} ${
-                  photos.length === 1 ? "Bild" : "Bilder"
-                } löschen`
+                f.confirmDelete(photos.length)
               )}
             </button>
             <button
@@ -458,7 +462,7 @@ function Gallery({
               onClick={() => setRevoking(false)}
               disabled={pending}
             >
-              Abbrechen
+              {t.common.cancel}
             </button>
           </div>
         ) : (
@@ -467,7 +471,7 @@ function Gallery({
             className="gym-btn gym-btn--ghost"
             onClick={() => setRevoking(true)}
           >
-            Zurücknehmen
+            {f.revoke}
           </button>
         )}
       </div>

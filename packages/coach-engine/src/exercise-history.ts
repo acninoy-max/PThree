@@ -216,8 +216,9 @@ export interface ExerciseChange {
   percent: number | null;
   /** Der aktuelle Wert im gewählten Modus. */
   latest: number;
-  /** "kg" oder "Wdh." — hängt an der Übung, nicht am Modus. */
-  unit: string;
+  /** Kilogramm oder Wiederholungen — hängt an der Übung, nicht am
+   *  Modus. Beschriftet wird in der App. */
+  unit: "kg" | "reps";
 }
 
 /**
@@ -236,7 +237,7 @@ export function exerciseChange(
   const letzterPunkt = rein[rein.length - 1];
   if (!letzterPunkt) return null;
 
-  const unit = letzterPunkt.isRepsOnly ? "Wdh." : "kg";
+  const unit = letzterPunkt.isRepsOnly ? "reps" : "kg";
   const latest = exerciseValue(letzterPunkt, metric);
 
   if (rein.length < 2) {

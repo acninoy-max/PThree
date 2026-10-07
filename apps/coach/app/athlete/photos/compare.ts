@@ -12,10 +12,11 @@
 
 export type Pose = "front" | "side" | "back";
 
-export const POSES: { key: Pose; label: string }[] = [
-  { key: "front", label: "Vorne" },
-  { key: "side", label: "Seite" },
-  { key: "back", label: "Hinten" },
+/** Feste Reihenfolge der Ansichten. Beschriftet: `t.labels.pose`. */
+export const POSES: { key: Pose }[] = [
+  { key: "front" },
+  { key: "side" },
+  { key: "back" },
 ];
 
 export interface PhotoLike {
@@ -31,10 +32,6 @@ export interface WeightPoint {
   kg: number;
 }
 
-export function poseLabel(pose: Pose): string {
-  return POSES.find((p) => p.key === pose)?.label ?? pose;
-}
-
 /** Tag aus YYYY-MM-DD, als lokale Mitternacht. */
 function tag(iso: string): Date {
   const [j, m, t] = iso.slice(0, 10).split("-").map(Number);
@@ -45,7 +42,7 @@ function tag(iso: string): Date {
  * Ganze Wochen zwischen zwei Tagen.
  *
  * Abgerundet: „nach 3 Wochen" ist nach 20 Tagen eine Übertreibung.
- * Unter sieben Tagen wird in Tagen gezählt — siehe `spanLabel`.
+ * Unter sieben Tagen wird in Tagen gezählt — siehe `t.time.span`.
  */
 export function weeksBetween(von: string, bis: string): number {
   const tage = Math.round(
@@ -61,14 +58,6 @@ export function daysBetween(von: string, bis: string): number {
   );
 }
 
-/** „12 Wochen" / „5 Tage" / „heute" */
-export function spanLabel(von: string, bis: string): string {
-  const tage = daysBetween(von, bis);
-  if (tage === 0) return "derselbe Tag";
-  if (tage < 7) return `${tage} ${tage === 1 ? "Tag" : "Tage"}`;
-  const wochen = Math.floor(tage / 7);
-  return `${wochen} ${wochen === 1 ? "Woche" : "Wochen"}`;
-}
 
 /**
  * Das Gewicht, das einem Tag am nächsten liegt.
@@ -120,8 +109,8 @@ export function availablePoses(photos: readonly PhotoLike[]): Pose[] {
 export interface Comparison<T> {
   before: T;
   after: T;
-  /** „12 Wochen" */
-  span: string;
+  /** Tage zwischen den Aufnahmen. Als „12 Wochen" über `t.time.span`. */
+  spanDays: number;
   /** Gewichtsunterschied in kg, oder null ohne passende Check-ins. */
   weightDelta: number | null;
 }
@@ -160,7 +149,7 @@ export function buildComparison<T extends PhotoLike>(
   return {
     before,
     after,
-    span: spanLabel(before.takenOn, after.takenOn),
+    spanDays: daysBetween(before.takenOn, after.takenOn),
     // Nur wenn BEIDE Seiten ein Gewicht haben. Eine Differenz gegen
     // eine fehlende Zahl ist keine Differenz.
     weightDelta:

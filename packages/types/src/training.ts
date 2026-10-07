@@ -67,19 +67,6 @@ export const MUSCLE_GROUPS: readonly MuscleGroup[] = [
   "core",
 ] as const;
 
-export const MUSCLE_GROUP_LABEL: Record<MuscleGroup, string> = {
-  chest: "Brust",
-  back: "Rücken",
-  shoulders: "Schultern",
-  biceps: "Bizeps",
-  triceps: "Trizeps",
-  quads: "Quadrizeps",
-  hamstrings: "Beinbeuger",
-  calves: "Waden",
-  glutes: "Gesäß",
-  core: "Rumpf",
-};
-
 /** Reihenfolge innerhalb einer Einheit: erst schwer, dann dynamisch, dann Detail. */
 export type TrainingBlock = "compound" | "functional" | "isolation" | "core";
 

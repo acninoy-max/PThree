@@ -7,10 +7,12 @@ import {
 import { createServerSupabase } from "@/lib/supabase-server";
 import { KeinKlientenkonto } from "../kein-konto";
 import { PhotosClient } from "./photos-client";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function PhotosPage() {
+  const t = getT();
   const db = createServerSupabase();
   const {
     data: { user },
@@ -24,7 +26,10 @@ export default async function PhotosPage() {
 
   if (!me) {
     return (
-      <KeinKlientenkonto loginEmail={user?.email ?? null} bereich="Fotos" />
+      <KeinKlientenkonto
+        loginEmail={user?.email ?? null}
+        bereich={t.athlete.photos.area}
+      />
     );
   }
 
@@ -54,7 +59,7 @@ export default async function PhotosPage() {
         href="/athlete/progress"
         style={{ fontSize: "var(--pt-fs-base)", color: "var(--g-dim)" }}
       >
-        ‹ Fortschritt
+        {t.athlete.photos.backToProgress}
       </Link>
 
       <PhotosClient

@@ -6,68 +6,17 @@ import { useEffect, useState, useTransition } from "react";
 import type { ExperienceLevel, Plan } from "@ptfive/types";
 import { IconChevronRight, IconPlus, IconX } from "@/app/icons";
 import { createPlanAction } from "@/app/coach/plans/actions";
-import { dayISO, parseDay, sinceLabel } from "@/app/plan-week";
-import { dateMedium } from "@/app/format";
+import { dayISO, daysSince, parseDay } from "@/app/plan-week";
+import { useT } from "@/app/i18n/client";
 
-/**
- * Startvorlagen — ein Klick füllt die Tagesliste, die danach frei
- * bearbeitbar bleibt. Ein leeres Formular ist die häufigste Ursache
- * dafür, dass ein Plan nie entsteht; eine feste Auswahl wäre aber
- * genauso falsch, weil jeder Trainer seinen eigenen Split fährt.
- */
-const PRESETS: { label: string; hint: string; days: string[] }[] = [
-  {
-    label: "Ganzkörper 2×",
-    hint: "Einstieg, zwei Einheiten pro Woche",
-    days: ["Tag A — Ganzkörper", "Tag B — Ganzkörper"],
-  },
-  {
-    label: "Ober / Unter",
-    hint: "Klassisch, drei bis vier Einheiten",
-    days: ["Tag A — Oberkörper", "Tag B — Unterkörper"],
-  },
-  {
-    label: "Push / Pull",
-    hint: "Zwei Tage, drücken und ziehen getrennt",
-    days: ["Tag A — Drücken", "Tag B — Ziehen"],
-  },
-  {
-    label: "Push / Pull / Beine",
-    hint: "Fortgeschritten, drei bis sechs Einheiten",
-    days: ["Tag A — Drücken", "Tag B — Ziehen", "Tag C — Beine"],
-  },
-  {
-    label: "Arnold-Split",
-    hint: "Brust und Rücken, Schulter und Arme, Beine",
-    days: [
-      "Tag A — Brust & Rücken",
-      "Tag B — Schultern & Arme",
-      "Tag C — Beine",
-    ],
-  },
-  {
-    label: "5er-Split",
-    hint: "Eine Muskelgruppe pro Tag, hohes Volumen",
-    days: [
-      "Tag A — Brust",
-      "Tag B — Rücken",
-      "Tag C — Beine",
-      "Tag D — Schultern",
-      "Tag E — Arme",
-    ],
-  },
-  {
-    label: "Leer",
-    hint: "Eigenen Split von Grund auf bauen",
-    days: ["Tag A"],
-  },
-];
-
-const LEVELS: { value: ExperienceLevel; label: string }[] = [
-  { value: "beginner", label: "Einsteiger" },
-  { value: "intermediate", label: "Fortgeschritten" },
-  { value: "pro", label: "Profi" },
-];
+/*
+  Startvorlagen — ein Klick füllt die Tagesliste, die danach frei
+  bearbeitbar bleibt. Ein leeres Formular ist die häufigste Ursache
+  dafür, dass ein Plan nie entsteht; eine feste Auswahl wäre aber
+  genauso falsch, weil jeder Trainer seinen eigenen Split fährt.
+  Die Vorlagen stehen im Wörterbuch (t.coach.clientPlan.presets).
+*/
+const LEVELS: readonly ExperienceLevel[] = ["beginner", "intermediate", "pro"];
 
 /**
  * Vorbelegung des Startdatums: heute, nach der Uhr des Trainers.
@@ -92,6 +41,9 @@ function NewPlan({
   justCreated: boolean;
   onClose: () => void;
 }) {
+  const t = useT();
+  const P = t.coach.clientPlan;
+  const PRESETS = P.presets;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [preset, setPreset] = useState(1);
@@ -114,7 +66,7 @@ function NewPlan({
   function addDay() {
     // Nächster freier Buchstabe als Vorschlag: Tag A, Tag B, …
     const letter = String.fromCharCode(65 + days.length);
-    setDays((prev) => [...prev, `Tag ${letter}`]);
+    setDays((prev) => [...prev, P.dayName(letter)]);
   }
 
   function removeDay(i: number) {
@@ -127,7 +79,7 @@ function NewPlan({
     e.preventDefault();
     setError(null);
     if (filled.length === 0) {
-      setError("Mindestens ein Trainingstag ist nötig.");
+      setError(P.needOneDay);
       return;
     }
     startTransition(async () => {
@@ -151,7 +103,7 @@ function NewPlan({
       className="pt-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Trainingsplan anlegen"
+      aria-label={P.create}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -166,13 +118,13 @@ function NewPlan({
           }}
         >
           <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-            Trainingsplan anlegen
+            {P.create}
           </h2>
           <button
             type="button"
             className="pt-iconbtn"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             <IconX size={17} />
           </button>
@@ -189,8 +141,7 @@ function NewPlan({
               lineHeight: 1.45,
             }}
           >
-            Klient angelegt. Als Nächstes der Plan — oder später über die
-            Klientenseite.
+            {P.justCreated}
           </p>
         )}
 
@@ -200,7 +151,7 @@ function NewPlan({
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Vorlage
+              {P.template}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {PRESETS.map((p, i) => (
@@ -224,8 +175,7 @@ function NewPlan({
                 lineHeight: 1.45,
               }}
             >
-              {PRESETS[preset]!.hint}. Füllt nur die Liste unten — die kannst du
-              danach frei ändern.
+              {P.templateHint(PRESETS[preset]!.hint)}
             </p>
           </div>
 
@@ -234,7 +184,7 @@ function NewPlan({
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Trainingstage
+              {P.trainingDays}
             </span>
             <div style={{ display: "grid", gap: 6 }}>
               {days.map((d, i) => (
@@ -242,15 +192,15 @@ function NewPlan({
                   <input
                     value={d}
                     onChange={(e) => setDay(i, e.target.value)}
-                    placeholder={`Tag ${String.fromCharCode(65 + i)}`}
+                    placeholder={P.dayName(String.fromCharCode(65 + i))}
                   />
                   <button
                     type="button"
                     className="pt-iconbtn"
                     onClick={() => removeDay(i)}
                     disabled={days.length === 1}
-                    aria-label={`Tag ${i + 1} entfernen`}
-                    title="Tag entfernen"
+                    aria-label={P.removeDay(i + 1)}
+                    title={P.removeDayTitle}
                     style={{ flex: "none" }}
                   >
                     <IconX size={15} />
@@ -275,7 +225,7 @@ function NewPlan({
               }}
             >
               <IconPlus size={14} />
-              Tag hinzufügen
+              {P.addDay}
             </button>
             <p
               style={{
@@ -285,13 +235,12 @@ function NewPlan({
                 lineHeight: 1.45,
               }}
             >
-              Die Übungen füllst du danach im Editor. Tage lassen sich dort
-              jederzeit ergänzen und umbenennen.
+              {P.editorHint}
             </p>
           </div>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Name</span>
+            <span className="pt-label">{P.name}</span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -301,7 +250,7 @@ function NewPlan({
 
           <div className="pt-cols">
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Start</span>
+              <span className="pt-label">{P.start}</span>
               <input
                 type="date"
                 value={startsOn}
@@ -310,7 +259,7 @@ function NewPlan({
               />
             </label>
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Niveau</span>
+              <span className="pt-label">{P.level}</span>
               <select
                 value={planLevel}
                 onChange={(e) =>
@@ -318,8 +267,8 @@ function NewPlan({
                 }
               >
                 {LEVELS.map((l) => (
-                  <option key={l.value} value={l.value}>
-                    {l.label}
+                  <option key={l} value={l}>
+                    {t.labels.level[l]}
                   </option>
                 ))}
               </select>
@@ -333,7 +282,7 @@ function NewPlan({
           )}
 
           <button type="submit" className="pt-btn" disabled={pending}>
-            {pending ? "Wird angelegt …" : "Anlegen und Slots füllen"}
+            {pending ? P.creating : P.createAndFill}
           </button>
           {justCreated && (
             <button
@@ -341,7 +290,7 @@ function NewPlan({
               className="pt-btn pt-btn--ghost"
               onClick={onClose}
             >
-              Später
+              {t.common.later}
             </button>
           )}
         </div>
@@ -364,6 +313,8 @@ export function ClientPlan({
   /** Klient gerade angelegt, noch ohne Plan: Dialog gleich öffnen. */
   startWithPlan?: boolean;
 }) {
+  const t = useT();
+  const P = t.coach.clientPlan;
   const [creating, setCreating] = useState(false);
 
   /*
@@ -408,14 +359,14 @@ export function ClientPlan({
           }}
         >
           <p className="pt-label" style={{ margin: 0 }}>
-            Trainingsplan
+            {P.plan}
           </p>
           {active && (
             <button
               type="button"
               className="pt-iconbtn"
-              title="Neuen Plan anlegen"
-              aria-label="Neuen Plan anlegen"
+              title={P.newPlan}
+              aria-label={P.newPlan}
               onClick={() => setCreating(true)}
             >
               <IconPlus size={16} />
@@ -449,11 +400,12 @@ export function ClientPlan({
                 color: "var(--pt-text-dim)",
               }}
             >
-              ab {dateMedium(parseDay(active.startsOn))}
-              {today && ` · ${sinceLabel(active.startsOn, today)}`} ·{" "}
-              {active.days.length}{" "}
-              {active.days.length === 1 ? "Trainingstag" : "Trainingstage"} ·{" "}
-              {slotCount} Slots
+              {P.summary(
+                t.fmt.dateMedium(parseDay(active.startsOn)),
+                today ? t.time.since(daysSince(active.startsOn, today)) : null,
+                active.days.length,
+                slotCount,
+              )}
             </p>
 
             {/*
@@ -471,8 +423,7 @@ export function ClientPlan({
                   opacity: 0.85,
                 }}
               >
-                Angelegt am {dateMedium(parseDay(createdDay))} — Startdatum im
-                Plan änderbar.
+                {P.createdOn(t.fmt.dateMedium(parseDay(createdDay)))}
               </p>
             )}
 
@@ -485,8 +436,7 @@ export function ClientPlan({
                   lineHeight: 1.45,
                 }}
               >
-                Noch keine Slots — der Plan erscheint dem Athleten erst, wenn
-                mindestens einer gefüllt ist.
+                {P.noSlots}
               </p>
             )}
 
@@ -506,7 +456,7 @@ export function ClientPlan({
                     color: "var(--pt-text-dim)",
                   }}
                 >
-                  Frühere Pläne
+                  {P.earlierPlans}
                 </p>
                 {older.map((p) => (
                   <Link
@@ -523,7 +473,7 @@ export function ClientPlan({
                   >
                     <span>{p.name}</span>
                     <span style={{ whiteSpace: "nowrap" }}>
-                      {dateMedium(parseDay(p.startsOn))}
+                      {t.fmt.dateMedium(parseDay(p.startsOn))}
                     </span>
                   </Link>
                 ))}
@@ -540,8 +490,7 @@ export function ClientPlan({
                 lineHeight: 1.5,
               }}
             >
-              Noch kein Plan. Ohne Plan trainiert der Athlet frei — die
-              Musterhistorie läuft trotzdem.
+              {P.noPlan}
             </p>
             <button
               type="button"
@@ -550,7 +499,7 @@ export function ClientPlan({
               style={{ justifyContent: "center" }}
             >
               <IconPlus size={16} />
-              Plan anlegen
+              {P.createPlan}
             </button>
           </>
         )}

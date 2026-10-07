@@ -12,7 +12,8 @@ import {
 import { Spinner } from "@/app/spinner";
 import { toast } from "@/app/toast";
 import { setClientViewSectionsAction } from "@/app/coach/plans/actions";
-import { SECTIONS, SECTION_KEYS, type SectionKey } from "./sections";
+import { SECTION_KEYS, type SectionKey } from "./sections";
+import { useT } from "@/app/i18n/client";
 
 /**
  * Das Zahnrad oben rechts in der Klientenakte.
@@ -43,6 +44,8 @@ export function ViewSettings({
   /** Welche davon ausgeblendet sind. */
   hidden: SectionKey[];
 }) {
+  const t = useT();
+  const V = t.coach.viewSettings;
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -91,7 +94,7 @@ export function ViewSettings({
     // Zustand, sondern ein Versehen — und es wäre von aussen nicht mehr
     // zu erkennen, dass da ein Klient ist.
     if (aus.size === entwurf.length) {
-      setError("Mindestens ein Abschnitt muss sichtbar bleiben.");
+      setError(V.needOne);
       return;
     }
 
@@ -104,7 +107,7 @@ export function ViewSettings({
         setError(res.error);
         return;
       }
-      toast("Ansicht übernommen");
+      toast(V.applied);
       router.refresh();
       setOpen(false);
     });
@@ -129,10 +132,10 @@ export function ViewSettings({
         type="button"
         className="pt-btn pt-btn--ghost pt-viewbtn"
         onClick={oeffnen}
-        title="Welche Abschnitte die Akte zeigt und in welcher Reihenfolge"
+        title={V.buttonTitle}
       >
         <IconGear size={16} />
-        Ansicht
+        {V.button}
       </button>
 
       {open && (
@@ -140,7 +143,7 @@ export function ViewSettings({
           className="pt-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Klientenakte einrichten"
+          aria-label={V.dialogAria}
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
@@ -156,13 +159,13 @@ export function ViewSettings({
               }}
             >
               <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-                Akte einrichten
+                {V.title}
               </h2>
               <button
                 type="button"
                 className="pt-iconbtn"
                 onClick={() => setOpen(false)}
-                aria-label="Schließen"
+                aria-label={t.common.close}
               >
                 <IconX size={17} />
               </button>
@@ -176,10 +179,7 @@ export function ViewSettings({
                 lineHeight: 1.5,
               }}
             >
-              Was du hier einstellst, gilt für alle deine Klienten. Plan,
-              Termine und Verwaltung bleiben immer stehen — ohne sie könntest
-              du nicht arbeiten. {sichtbar} von {entwurf.length} Abschnitten
-              sichtbar.
+              {V.intro(sichtbar, entwurf.length)}
             </p>
 
             <div
@@ -191,7 +191,7 @@ export function ViewSettings({
               }}
             >
               {entwurf.map((key, i) => {
-                const def = SECTIONS.find((s) => s.key === key);
+                const def = t.coach.sections[key];
                 const an = !aus.has(key);
                 return (
                   <div key={key} className="pt-sortrow" data-off={!an}>
@@ -206,7 +206,7 @@ export function ViewSettings({
                       </span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: "block", fontWeight: 600 }}>
-                          {def?.label ?? key}
+                          {def.label}
                         </span>
                         <span
                           style={{
@@ -217,7 +217,7 @@ export function ViewSettings({
                             lineHeight: 1.35,
                           }}
                         >
-                          {an ? (def?.hint ?? "") : "Ausgeblendet"}
+                          {an ? def.hint : V.hidden}
                         </span>
                       </span>
                     </button>
@@ -227,7 +227,7 @@ export function ViewSettings({
                         type="button"
                         onClick={() => schieben(i, -1)}
                         disabled={i === 0}
-                        aria-label={`${def?.label ?? key} nach oben`}
+                        aria-label={V.up(def.label)}
                       >
                         <IconArrowUp size={15} />
                       </button>
@@ -235,7 +235,7 @@ export function ViewSettings({
                         type="button"
                         onClick={() => schieben(i, 1)}
                         disabled={i === entwurf.length - 1}
-                        aria-label={`${def?.label ?? key} nach unten`}
+                        aria-label={V.down(def.label)}
                       >
                         <IconArrowDown size={15} />
                       </button>
@@ -264,7 +264,11 @@ export function ViewSettings({
                 onClick={speichern}
                 disabled={pending}
               >
-                {pending ? <Spinner size={14} label="Speichert" /> : "Übernehmen"}
+                {pending ? (
+                  <Spinner size={14} label={t.athlete.progress.picker.saving} />
+                ) : (
+                  V.apply
+                )}
               </button>
               <button
                 type="button"
@@ -272,7 +276,7 @@ export function ViewSettings({
                 onClick={zuruecksetzen}
                 disabled={pending}
               >
-                Standard wiederherstellen
+                {V.reset}
               </button>
             </div>
           </div>

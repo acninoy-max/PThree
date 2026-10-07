@@ -2,17 +2,16 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { deltaLabel, exerciseChange } from "@ptfive/coach-engine";
+import { exerciseChange } from "@ptfive/coach-engine";
 import { IconCheck, IconPlus, IconX } from "@/app/icons";
 import { Spinner } from "@/app/spinner";
 import { toast } from "@/app/toast";
 import { MetricChart } from "@/app/metric-chart";
 import { setCoachProgressSelectionAction } from "@/app/coach/plans/actions";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 import {
   METRICS,
   exerciseSeries,
-  metricHint,
   type ExerciseMetric,
 } from "@/app/exercise-series";
 
@@ -76,6 +75,9 @@ export function ClientProgress({
   all: CoachPickerExercise[];
   selected: string[];
 }) {
+  const t = useT();
+  const G = t.coach.progress;
+  const K = t.athlete.progress.picker;
   const router = useRouter();
   const [picking, setPicking] = useState(false);
   const [pick, setPick] = useState<string[]>(selected);
@@ -95,7 +97,7 @@ export function ClientProgress({
     setPick((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
       if (prev.length >= MAX) {
-        setError(`Mehr als ${MAX} Kurven kann man nicht mehr lesen.`);
+        setError(K.tooMany(MAX));
         return prev;
       }
       return [...prev, id];
@@ -110,7 +112,7 @@ export function ClientProgress({
         setError(res.error);
         return;
       }
-      toast("Übungen übernommen");
+      toast(G.applied);
       router.refresh();
       setPicking(false);
     });
@@ -128,7 +130,7 @@ export function ClientProgress({
         }}
       >
         <p className="pt-label" style={{ margin: 0 }}>
-          Fortschritt pro Übung
+          {G.title}
         </p>
         {all.length > 0 && (
           <button
@@ -149,7 +151,7 @@ export function ClientProgress({
             }}
           >
             <IconPlus size={13} />
-            Übungen wählen
+            {G.choose}
           </button>
         )}
       </div>
@@ -157,9 +159,7 @@ export function ClientProgress({
       {curves.length === 0 ? (
         <div className="pt-card">
           <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
-            {all.length === 0
-              ? `${clientName} hat noch nichts geloggt.`
-              : "Keine Übung gewählt — tipp oben auf „Übungen wählen“."}
+            {all.length === 0 ? G.nothingLogged(clientName) : G.noneChosen}
           </p>
         </div>
       ) : (
@@ -170,25 +170,25 @@ export function ClientProgress({
           <div
             style={{ display: "flex", gap: 6, marginBottom: 10 }}
             role="group"
-            aria-label="Was die Kurve zeigt"
+            aria-label={t.athlete.progress.curveShows}
           >
             {METRICS.map((m) => (
               <button
-                key={m.key}
+                key={m}
                 type="button"
                 className="mc-range"
-                data-active={metric === m.key}
-                aria-pressed={metric === m.key}
-                onClick={() => setMetric(m.key)}
+                data-active={metric === m}
+                aria-pressed={metric === m}
+                onClick={() => setMetric(m)}
               >
-                {m.label}
+                {t.chart.metrics[m]}
               </button>
             ))}
           </div>
 
           <MetricChart
-            series={exerciseSeries(curves, metric, COLORS)}
-            emptyHint="Noch keine Einheiten für diese Übungen."
+            series={exerciseSeries(t, curves, metric, COLORS)}
+            emptyHint={t.athlete.progress.noSessionsForThese}
           />
 
           <p
@@ -199,7 +199,7 @@ export function ClientProgress({
               lineHeight: 1.45,
             }}
           >
-            {metricHint(metric)}
+            {t.chart.metricHint[metric]}
           </p>
 
           <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
@@ -231,7 +231,7 @@ export function ClientProgress({
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {deltaLabel(change.delta, change.unit)}
+                        {t.fmt.signed(change.delta)} {t.engine.units[change.unit]}
                         <span
                           style={{
                             fontWeight: 500,
@@ -253,12 +253,13 @@ export function ClientProgress({
                       lineHeight: 1.45,
                     }}
                   >
-                    {c.points.length}{" "}
-                    {c.points.length === 1 ? "Einheit" : "Einheiten"} · zuletzt{" "}
-                    {dateMedium(new Date(letzter.performedAt))}
-                    {letzter.isRepsOnly && " · in Wiederholungen"}
+                    {G.curveMeta(
+                      c.points.length,
+                      t.fmt.dateMedium(new Date(letzter.performedAt)),
+                    )}
+                    {letzter.isRepsOnly && G.inReps}
                     {c.verworfen > 0 &&
-                      ` · ${c.verworfen} ältere auf anderer Skala`}
+                      G.otherScale(c.verworfen)}
                   </p>
                 </div>
               );
@@ -272,7 +273,7 @@ export function ClientProgress({
           className="pt-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Übungen für den Fortschritt wählen"
+          aria-label={K.aria}
           onClick={(e) => {
             if (e.target === e.currentTarget) setPicking(false);
           }}
@@ -288,13 +289,13 @@ export function ClientProgress({
               }}
             >
               <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-                Übungen von {clientName}
+                {G.pickerTitle(clientName)}
               </h2>
               <button
                 type="button"
                 className="pt-iconbtn"
                 onClick={() => setPicking(false)}
-                aria-label="Schließen"
+                aria-label={t.common.close}
               >
                 <IconX size={17} />
               </button>
@@ -308,17 +309,15 @@ export function ClientProgress({
                 lineHeight: 1.5,
               }}
             >
-              Alles, was {clientName} je getrackt hat. Deine Auswahl gilt nur
-              für dich — die Fortschrittsseite deines Klienten bleibt, wie sie
-              ist. {pick.length} von höchstens {MAX}.
+              {G.pickerIntro(clientName, pick.length, MAX)}
             </p>
 
             {all.length > 8 && (
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Suchen"
-                aria-label="Übung suchen"
+                placeholder={K.search}
+                aria-label={K.searchAria}
                 style={{ marginBottom: 10 }}
               />
             )}
@@ -339,7 +338,7 @@ export function ClientProgress({
                     color: "var(--pt-text-dim)",
                   }}
                 >
-                  Nichts gefunden.
+                  {K.nothingFound}
                 </p>
               )}
               {shown.map((e) => {
@@ -368,9 +367,11 @@ export function ClientProgress({
                           marginTop: 1,
                         }}
                       >
-                        {e.muscleLabel} · {e.sets}{" "}
-                        {e.sets === 1 ? "Satz" : "Sätze"} · zuletzt{" "}
-                        {dateMedium(new Date(e.lastPerformedAt))}
+                        {K.meta(
+                          e.muscleLabel,
+                          e.sets,
+                          t.fmt.dateMedium(new Date(e.lastPerformedAt)),
+                        )}
                       </span>
                     </span>
                   </button>
@@ -398,9 +399,9 @@ export function ClientProgress({
                 disabled={pending}
               >
                 {pending ? (
-                  <Spinner size={14} label="Speichert" />
+                  <Spinner size={14} label={K.saving} />
                 ) : (
-                  "Übernehmen"
+                  K.apply
                 )}
               </button>
               <button
@@ -409,7 +410,7 @@ export function ClientProgress({
                 onClick={() => setPicking(false)}
                 disabled={pending}
               >
-                Abbrechen
+                {t.common.cancel}
               </button>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { AVATAR_BUCKET } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getT } from "@/app/i18n/server";
 
 export type ProfileResult =
   | { ok: true; hinweis?: string }
@@ -44,19 +45,18 @@ export async function saveProfileAction(input: {
   email: string;
 }): Promise<ProfileResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   const name = input.fullName.trim();
   if (name.length < 2) {
-    return { ok: false, error: "Bitte trag deinen Namen ein." };
+    return { ok: false, error: t.athlete.profile.errors.nameMissing };
   }
 
   const email = input.email.trim().toLowerCase();
   if (email !== "" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return { ok: false, error: "Diese E-Mail-Adresse sieht nicht gültig aus." };
+    return { ok: false, error: t.athlete.profile.errors.emailInvalid };
   }
 
   const { error } = await db
@@ -70,7 +70,7 @@ export async function saveProfileAction(input: {
 
   if (error) {
     if (/birth_date_plausibel/.test(error.message)) {
-      return { ok: false, error: "Das Geburtsdatum kann nicht stimmen." };
+      return { ok: false, error: t.athlete.profile.errors.birthDateImplausible };
     }
     return { ok: false, error: error.message };
   }
@@ -91,11 +91,8 @@ export async function saveProfileAction(input: {
   if (email !== "" && email !== (user.email ?? "").toLowerCase()) {
     const { error: authFehler } = await db.auth.updateUser({ email });
     hinweis = authFehler
-      ? "Gespeichert. Deine Anmeldeadresse konnte nicht umgestellt werden — " +
-        "melde dich bei deinem Trainer."
-      : `Gespeichert. An ${email} ist eine Bestätigungsmail unterwegs. ` +
-        "Bis du den Link anklickst, meldest du dich weiter mit deiner alten " +
-        "Adresse an.";
+      ? t.athlete.profile.errors.loginNotChanged
+      : t.athlete.profile.errors.confirmSent(email);
   }
 
   revalidatePath("/athlete/profile");
@@ -108,12 +105,11 @@ export async function saveAvatarAction(
   storagePath: string,
 ): Promise<ProfileResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
   if (!storagePath.startsWith(`${client.id}/`)) {
-    return { ok: false, error: "Ungültiger Speicherort." };
+    return { ok: false, error: t.fehler.action.invalidPath };
   }
 
   const alt = client.avatar_path as string | null;
@@ -143,10 +139,9 @@ export async function saveAvatarAction(
 /** Profilbild entfernen — Datei und Verweis. */
 export async function removeAvatarAction(): Promise<ProfileResult> {
   const { db, user, client } = await eigenerKlient();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
-  if (!client) {
-    return { ok: false, error: "Kein Klientenkonto zu diesem Zugang." };
-  }
+  const t = getT();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+  if (!client) return { ok: false, error: t.fehler.action.noClient };
 
   const alt = client.avatar_path as string | null;
   if (!alt) return { ok: true };

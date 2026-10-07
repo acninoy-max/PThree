@@ -283,15 +283,5 @@ export function markBefore(
   return mark;
 }
 
-/**
- * Kurzer Satz fuer die Oberflaeche.
- *
- * Nuechtern und ohne Ausrufezeichen — dieselbe Haltung wie beim
- * Volumenvergleich. Die App liefert die Zahl, die Bewertung gehoert dem
- * Trainer. Und wer nach vier Wochen Pause zurueckkommt, soll sich nicht
- * angeschrien fuehlen.
- */
-export function bestLabel(b: BeatsBest): string {
-  if (b.isFirst) return "Erste Leistung in dieser Übung";
-  return `Neue Bestleistung · +${b.percent} %`;
-}
+// Die Saetze zu BeatsBest stehen in der App (i18n/*/engine.ts): Die
+// Engine rechnet, die Oberflaeche spricht — in zwei Sprachen.

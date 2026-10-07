@@ -1,4 +1,5 @@
 import type { CheckInFields, CheckInRecord } from "@ptfive/db";
+import type { Dict } from "@/app/i18n";
 
 export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh";
 
@@ -11,47 +12,18 @@ export const MEASURE_KEYS: readonly MeasureKey[] = [
 ] as const;
 
 /**
- * Zu jedem Maß eine Anleitung in einem Satz.
- *
- * Das ist nicht Deko: Taille am Bauchnabel oder an der schmalsten
- * Stelle unterscheidet sich um drei bis fünf Zentimeter. Misst der
- * Athlet jede Woche anders, ist der „Fortschritt" nur Rauschen —
- * dann wäre die ganze Erhebung wertlos.
+ * Spalte und Farbe je Maß. Name und Messanleitung stehen im Wörterbuch
+ * (`t.labels.measure`) — die Anleitung ist dort, wo sie übersetzt wird.
  */
 export const MEASURE_INFO: Record<
   MeasureKey,
-  { label: string; how: string; field: keyof CheckInRecord; color: string }
+  { field: keyof CheckInRecord; color: string }
 > = {
-  shoulders: {
-    label: "Schultern",
-    how: "Um die breiteste Stelle, Arme locker hängen lassen.",
-    field: "shouldersCm",
-    color: "#0f766e",
-  },
-  chest: {
-    label: "Brust",
-    how: "Auf Brustwarzenhöhe, am Ende einer normalen Ausatmung.",
-    field: "chestCm",
-    color: "#7c3aed",
-  },
-  waist: {
-    label: "Taille",
-    how: "Auf Höhe des Bauchnabels, nicht einziehen.",
-    field: "waistCm",
-    color: "#1d4ed8",
-  },
-  arm: {
-    label: "Oberarm",
-    how: "Rechter Arm, angespannt, an der dicksten Stelle.",
-    field: "armCm",
-    color: "#854d0e",
-  },
-  thigh: {
-    label: "Oberschenkel",
-    how: "Rechtes Bein, eine Handbreit unter dem Schritt.",
-    field: "thighCm",
-    color: "#3b6d11",
-  },
+  shoulders: { field: "shouldersCm", color: "#0f766e" },
+  chest: { field: "chestCm", color: "#7c3aed" },
+  waist: { field: "waistCm", color: "#1d4ed8" },
+  arm: { field: "armCm", color: "#854d0e" },
+  thigh: { field: "thighCm", color: "#3b6d11" },
 };
 
 /** Gewicht ist keine Maßband-Größe, gehört aber in dieselbe Kurve. */
@@ -62,6 +34,7 @@ export const WEIGHT_COLOR = "#c42d1a";
  * Leere Reihen fallen weg — ein Chip ohne Daten wäre nur Frust.
  */
 export function buildSeries(
+  t: Dict,
   history: readonly CheckInRecord[],
 ): {
   key: string;
@@ -74,7 +47,7 @@ export function buildSeries(
 
   const weight = {
     key: "weight",
-    label: "Gewicht",
+    label: t.labels.weight,
     unit: "kg",
     color: WEIGHT_COLOR,
     points: sorted
@@ -86,7 +59,7 @@ export function buildSeries(
     const info = MEASURE_INFO[k];
     return {
       key: k,
-      label: info.label,
+      label: t.labels.measure[k].label,
       unit: "cm",
       color: info.color,
       points: sorted

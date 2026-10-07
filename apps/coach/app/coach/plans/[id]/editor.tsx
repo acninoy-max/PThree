@@ -14,13 +14,7 @@ import {
   IconX,
 } from "@/app/icons";
 import { muscleLabel, restLabel, supersetCodes } from "@/app/components";
-import {
-  WEEKDAY_LONG,
-  WEEKDAY_SHORT,
-  durationLabel,
-  estimateMinutes,
-  parseDay,
-} from "@/app/plan-week";
+import { estimateMinutes, parseDay } from "@/app/plan-week";
 import {
   addPlanDayAction,
   deletePlanAction,
@@ -32,10 +26,10 @@ import {
   setPlanDayWeekdaysAction,
   updatePlanAction,
 } from "../actions";
-import { BLOCK_LABEL, SlotForm, type ExercisePick } from "./slot-form";
+import { SlotForm, type ExercisePick } from "./slot-form";
 import { Spinner } from "@/app/spinner";
 import type { SimpleResult } from "../actions";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 
 /** Welches Formular gerade offen ist. */
 type Editing =
@@ -68,6 +62,8 @@ function SlotRow({
   busyKey: string | null;
   setBusy: (key: string, fn: () => Promise<SimpleResult>) => void;
 }) {
+  const t = useT();
+  const E = t.coach.editor;
   return (
     <div className="pt-slot">
       {code && <span className="pt-code">{code}</span>}
@@ -88,23 +84,23 @@ function SlotRow({
           <span style={{ fontSize: "var(--pt-fs-md)", fontWeight: 600 }}>
             {exerciseName ?? slot.label}
           </span>
-          <span className="pt-chip">{BLOCK_LABEL[slot.block]}</span>
-          {!exerciseName && <span className="pt-chip">Übung frei</span>}
+          <span className="pt-chip">{t.labels.block[slot.block]}</span>
+          {!exerciseName && <span className="pt-chip">{E.exerciseFree}</span>}
         </div>
         <p style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
           {slot.targetSets} × {slot.targetRepsMin}
           {slot.targetRepsMin !== slot.targetRepsMax &&
             `–${slot.targetRepsMax}`}{" "}
-          Wdh. · {muscleLabel(slot.muscleGroup)}
+          {E.reps} · {muscleLabel(t, slot.muscleGroup)}
           {/* Eine abweichende Bezeichnung ist eine Entscheidung des
               Trainers und darf nicht verschwinden, nur weil oben jetzt
               die Übung steht. */}
           {exerciseName && slot.label !== exerciseName
             ? ` · „${slot.label}"`
             : ""}
-          {slot.tempo ? ` · Tempo ${slot.tempo}` : ""}
+          {slot.tempo ? ` · ${t.common.tempo} ${slot.tempo}` : ""}
           {slot.restSeconds !== null
-            ? ` · Pause ${restLabel(slot.restSeconds)}`
+            ? ` · ${t.common.rest} ${restLabel(slot.restSeconds)}`
             : ""}
         </p>
         {slot.note && (
@@ -126,8 +122,8 @@ function SlotRow({
       <div className="pt-slot__actions">
         <button
           type="button"
-          title="Nach oben"
-          aria-label="Slot nach oben"
+          title={E.up}
+          aria-label={E.upAria}
           disabled={busy || first}
           onClick={() =>
             setBusy(`move-${slot.id}-${"up"}`, () =>
@@ -144,8 +140,8 @@ function SlotRow({
         </button>
         <button
           type="button"
-          title="Nach unten"
-          aria-label="Slot nach unten"
+          title={E.down}
+          aria-label={E.downAria}
           disabled={busy || last}
           onClick={() =>
             setBusy(`move-${slot.id}-${"down"}`, () =>
@@ -162,16 +158,16 @@ function SlotRow({
         </button>
         <button
           type="button"
-          title="Bearbeiten"
+          title={E.edit}
           onClick={onEdit}
           disabled={busy}
         >
-          Bearb.
+          {E.editShort}
         </button>
         <button
           type="button"
-          title="Löschen"
-          aria-label="Slot löschen"
+          title={E.delete}
+          aria-label={E.deleteSlot}
           disabled={busy}
           onClick={() =>
             setBusy(`del-slot-${slot.id}`, () =>
@@ -213,6 +209,8 @@ function DayCard({
   busyKey: string | null;
   setBusy: (key: string, fn: () => Promise<SimpleResult>) => void;
 }) {
+  const t = useT();
+  const E = t.coach.editor;
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(day.title);
   const codes = supersetCodes(day.slots);
@@ -268,8 +266,8 @@ function DayCard({
             <button
               type="button"
               className="pt-iconbtn"
-              title="Speichern"
-              aria-label="Namen speichern"
+              title={t.common.save}
+              aria-label={E.saveName}
               disabled={busy || title.trim() === ""}
               onClick={saveTitle}
               style={{ flex: "none", color: "var(--pt-action)" }}
@@ -283,8 +281,8 @@ function DayCard({
             <button
               type="button"
               className="pt-iconbtn"
-              title="Verwerfen"
-              aria-label="Umbenennen abbrechen"
+              title={E.discard}
+              aria-label={E.cancelRename}
               onClick={() => {
                 setTitle(day.title);
                 stopRename();
@@ -298,7 +296,7 @@ function DayCard({
           <button
             type="button"
             onClick={startRename}
-            title="Umbenennen"
+            title={E.rename}
             style={{
               background: "none",
               border: "none",
@@ -316,8 +314,8 @@ function DayCard({
         <button
           type="button"
           className="pt-iconbtn"
-          title="Tag löschen"
-          aria-label={`Tag ${day.title} löschen`}
+          title={E.deleteDay}
+          aria-label={E.deleteDayAria(day.title)}
           disabled={busy}
           onClick={() =>
             setBusy(`del-day-${day.id}`, () =>
@@ -342,10 +340,10 @@ function DayCard({
           className="pt-label"
           style={{ display: "block", marginBottom: 6 }}
         >
-          Wochentage
+          {E.weekdays}
         </span>
         <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          {WEEKDAY_SHORT.map((label, i) => {
+          {t.time.weekdayShort.map((label, i) => {
             const n = i + 1;
             const active = day.weekdays.includes(n);
             return (
@@ -355,7 +353,7 @@ function DayCard({
                 className="pt-toggle pt-toggle--day"
                 data-active={active}
                 aria-pressed={active}
-                aria-label={`${WEEKDAY_LONG[i]}${active ? " entfernen" : " hinzufügen"}`}
+                aria-label={E.weekdayToggle(t.time.weekdayLong[i]!, active)}
                 disabled={busy}
                 onClick={() =>
                   // Nochmal antippen nimmt den Tag wieder heraus.
@@ -393,7 +391,7 @@ function DayCard({
             {busyKey === `weekday-${day.id}-frei` ? (
               <Spinner size={13} />
             ) : (
-              "frei"
+              E.free
             )}
           </button>
         </div>
@@ -408,11 +406,9 @@ function DayCard({
           }}
         >
           {day.weekdays.length === 0
-            ? "Ohne festen Tag — der Athlet trainiert, wann es passt."
-            : `${day.weekdays.map((w) => WEEKDAY_LONG[w - 1]).join(", ")}` +
-              (day.weekdays.length > 1
-                ? ` · ${day.weekdays.length}× pro Woche`
-                : "")}
+            ? E.noFixedDay
+            : `${day.weekdays.map((w) => t.time.weekdayLong[w - 1]).join(", ")}` +
+              (day.weekdays.length > 1 ? E.timesPerWeek(day.weekdays.length) : "")}
         </p>
       </div>
 
@@ -434,7 +430,7 @@ function DayCard({
           {busyKey === `guided-${day.id}-false` ? (
             <Spinner size={13} />
           ) : (
-            "Allein"
+            E.alone
           )}
         </button>
         <button
@@ -452,7 +448,7 @@ function DayCard({
           {busyKey === `guided-${day.id}-true` ? (
             <Spinner size={13} />
           ) : (
-            "Mit Trainer"
+            E.withCoach
           )}
         </button>
       </div>
@@ -470,15 +466,14 @@ function DayCard({
         >
           <IconClock size={13} />
           {/* Exakt die Zahl, die der Athlet in seiner App sieht. */}
-          ca. {durationLabel(estimateMinutes(day.slots))} · {day.slots.length}{" "}
-          {day.slots.length === 1 ? "Übung" : "Übungen"}
+          {t.time.approx} {t.time.duration(estimateMinutes(day.slots))} ·{" "}
+          {E.exercises(day.slots.length)}
         </p>
       )}
 
       {day.slots.length === 0 ? (
         <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
-          Noch kein Slot. Ein Slot ist eine Muskelgruppe — die Übung darin ist
-          austauschbar, ohne dass die Historie abreißt.
+          {E.noSlot}
         </p>
       ) : (
         <div style={{ display: "grid", gap: 6 }}>
@@ -512,7 +507,7 @@ function DayCard({
         style={{ justifyContent: "center" }}
       >
         <IconPlus size={15} />
-        Slot
+        {E.slot}
       </button>
     </div>
   );
@@ -527,6 +522,8 @@ export function PlanEditor({
   clientName: string;
   exercises: ExercisePick[];
 }) {
+  const t = useT();
+  const E = t.coach.editor;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [editing, setEditing] = useState<Editing>(null);
@@ -574,7 +571,7 @@ export function PlanEditor({
         setError(
           e instanceof Error
             ? e.message
-            : "Unerwarteter Fehler beim Speichern.",
+            : E.unexpected,
         );
       } finally {
         setBusyKey(null);
@@ -605,11 +602,11 @@ export function PlanEditor({
       >
         <div>
           <p className="pt-label" style={{ margin: 0 }}>
-            Trainingsplan
+            {E.plan}
             {plan.isActive ? (
-              <span style={{ color: "#3b6d11" }}> · aktiv</span>
+              <span style={{ color: "#3b6d11" }}>{E.active}</span>
             ) : (
-              <span> · stillgelegt</span>
+              <span>{E.inactive}</span>
             )}
           </p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
@@ -622,8 +619,11 @@ export function PlanEditor({
               color: "var(--pt-text-dim)",
             }}
           >
-            ab {dateMedium(parseDay(plan.startsOn))} · {plan.days.length}{" "}
-            {plan.days.length === 1 ? "Tag" : "Tage"} · {slotCount} Slots
+            {E.summary(
+              t.fmt.dateMedium(parseDay(plan.startsOn)),
+              plan.days.length,
+              slotCount,
+            )}
           </p>
         </div>
 
@@ -649,10 +649,10 @@ export function PlanEditor({
               {busyKey === "activate" ? (
                 <>
                   <Spinner size={15} />
-                  Wird aktiviert …
+                  {E.activating}
                 </>
               ) : (
-                "Aktivieren"
+                E.activate
               )}
             </button>
           )}
@@ -662,7 +662,7 @@ export function PlanEditor({
             disabled={pending}
             onClick={() => setConfirmDelete(true)}
           >
-            Plan löschen
+            {E.deletePlan}
           </button>
         </div>
       </div>
@@ -690,7 +690,7 @@ export function PlanEditor({
                 color: "inherit",
               }}
             >
-              Ausblenden
+              {E.hide}
             </button>
           </span>
         </div>
@@ -712,8 +712,7 @@ export function PlanEditor({
             <IconAlert size={17} />
           </span>
           <p style={{ margin: 0, fontSize: "var(--pt-fs-base)" }}>
-            Der Plan hat noch keine Slots — in der Athleten-App erscheint er
-            deshalb noch nicht.
+            {E.noSlotsWarning}
           </p>
         </div>
       )}
@@ -749,7 +748,7 @@ export function PlanEditor({
               <input
                 value={newDay}
                 autoFocus
-                placeholder="z. B. Tag A — Oberkörper"
+                placeholder={E.dayPlaceholder}
                 onChange={(e) => setNewDay(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
@@ -773,10 +772,10 @@ export function PlanEditor({
                   {busyKey === "add-day" ? (
                     <>
                       <Spinner size={15} />
-                      Wird angelegt …
+                      {E.creating}
                     </>
                   ) : (
-                    "Anlegen"
+                    E.create
                   )}
                 </button>
                 <button
@@ -787,7 +786,7 @@ export function PlanEditor({
                     setNewDay("");
                   }}
                 >
-                  Abbrechen
+                  {t.common.cancel}
                 </button>
               </div>
             </div>
@@ -799,7 +798,7 @@ export function PlanEditor({
               style={{ justifyContent: "center" }}
             >
               <IconPlus size={15} />
-              Trainingstag
+              {E.trainingDay}
             </button>
           )}
         </div>
@@ -813,22 +812,22 @@ export function PlanEditor({
           {busyKey !== null ? (
             <>
               <Spinner size={15} />
-              Wird gespeichert …
+              {E.saving}
             </>
           ) : error !== null ? (
             <span
               style={{ color: "var(--pt-action)", display: "flex", gap: 6 }}
             >
               <IconAlert size={15} />
-              Nicht gespeichert
+              {E.notSaved}
             </span>
           ) : savedAt !== null ? (
             <span style={{ color: "#2f5a0e", display: "flex", gap: 6 }}>
               <IconCheck size={15} strokeWidth={2.6} />
-              Alle Änderungen gespeichert
+              {E.allSaved}
             </span>
           ) : (
-            "Noch nichts geändert"
+            E.nothingChanged
           )}
         </span>
 
@@ -838,15 +837,13 @@ export function PlanEditor({
           disabled={busyKey !== null || openRenames.size > 0}
           title={
             openRenames.size > 0
-              ? "Es steht noch ein Tagesname offen — erst speichern oder verwerfen."
+              ? E.nameOpenTitle
               : undefined
           }
           onClick={() => router.push(`/coach/clients/${plan.clientId}`)}
         >
           <IconCheck size={17} strokeWidth={2.4} />
-          {openRenames.size > 0
-            ? "Erst Tagesnamen speichern"
-            : `Fertig — zurück zu ${clientName}`}
+          {openRenames.size > 0 ? E.saveNameFirst : E.done(clientName)}
         </button>
       </div>
 
@@ -869,14 +866,14 @@ export function PlanEditor({
           className="pt-overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="Plan löschen"
+          aria-label={E.deletePlan}
           onClick={(e) => {
             if (e.target === e.currentTarget) setConfirmDelete(false);
           }}
         >
           <div className="pt-sheet">
             <h2 style={{ margin: "0 0 8px", fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-              Plan löschen?
+              {E.deleteQuestion}
             </h2>
             <p
               style={{
@@ -886,9 +883,7 @@ export function PlanEditor({
                 color: "var(--pt-text-dim)",
               }}
             >
-              „{plan.name}" mit allen Tagen und Slots wird entfernt. Bereits
-              geloggte Einheiten bleiben erhalten — sie verlieren nur den Bezug
-              zu diesem Plan.
+              {E.deleteExplain(plan.name)}
             </p>
             <div style={{ display: "flex", gap: 8 }}>
               <button
@@ -897,19 +892,27 @@ export function PlanEditor({
                 disabled={pending}
                 onClick={() =>
                   startTransition(async () => {
-                    await deletePlanAction(plan.id);
+                    // Erst prüfen, dann weiterleiten. Vorher ging es auch
+                    // bei einem Fehler zurück zur Akte — und der Plan
+                    // stand dort weiter, ohne ein Wort dazu.
+                    const res = await deletePlanAction(plan.id);
+                    if (!res.ok) {
+                      setConfirmDelete(false);
+                      setError(res.error);
+                      return;
+                    }
                     router.push(`/coach/clients/${plan.clientId}`);
                   })
                 }
               >
-                Endgültig löschen
+                {E.deleteFinal}
               </button>
               <button
                 type="button"
                 className="pt-btn pt-btn--ghost"
                 onClick={() => setConfirmDelete(false)}
               >
-                Abbrechen
+                {t.common.cancel}
               </button>
             </div>
           </div>

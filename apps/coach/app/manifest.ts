@@ -16,8 +16,14 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "PTHREE",
     short_name: "PTHREE",
-    description: "Trainingsplanung und Fortschritt für Personal Trainer",
-    lang: "de",
+    /*
+      Englisch, fest. Das Manifest wird einmal beim Ablegen auf den
+      Homescreen gelesen und nicht je Anfrage — eine Sprachwahl per
+      Cookie käme hier nie an. Englisch ist der Standard der App
+      (NL-Launch); der Text erscheint ohnehin fast nirgends.
+    */
+    description: "Training plans and progress for personal trainers",
+    lang: "en",
     dir: "ltr",
 
     /**

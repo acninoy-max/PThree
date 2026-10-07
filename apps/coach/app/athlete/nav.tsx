@@ -9,6 +9,8 @@ import {
   IconDumbbell,
   IconTrend,
 } from "@/app/icons";
+import { useT } from "@/app/i18n/client";
+import type { Dict } from "@/app/i18n";
 
 /**
  * Die Leiste unten.
@@ -25,35 +27,36 @@ import {
  */
 const LINKS: {
   href: string;
-  label: string;
+  label: keyof Dict["nav"];
   Icon: typeof IconCalendar;
   also?: string[];
 }[] = [
-  { href: "/athlete", label: "Heute", Icon: IconCalendar },
+  { href: "/athlete", label: "today", Icon: IconCalendar },
   {
     href: "/athlete/plan",
-    label: "Plan",
+    label: "plan",
     Icon: IconDumbbell,
     also: ["/athlete/log"],
   },
-  { href: "/athlete/checkin", label: "Check-in", Icon: IconCheckIn },
+  { href: "/athlete/checkin", label: "checkin", Icon: IconCheckIn },
   {
     href: "/athlete/progress",
-    label: "Fortschritt",
+    label: "progress",
     Icon: IconTrend,
     // Die Fotos hängen am Fortschritt — dort steht der Vergleich, und
     // die Unterseite ist nur zum Verwalten. Ohne diese Zeile wäre
     // während des Hochladens kein Punkt hervorgehoben.
     also: ["/athlete/photos"],
   },
-  { href: "/athlete/profile", label: "Profil", Icon: IconClients },
+  { href: "/athlete/profile", label: "profile", Icon: IconClients },
 ];
 
 export function GymNav() {
+  const t = useT();
   const path = usePathname();
 
   return (
-    <nav className="gym-nav" aria-label="Hauptnavigation">
+    <nav className="gym-nav" aria-label={t.nav.main}>
       {LINKS.map(({ href, label, Icon, also }) => {
         const active =
           href === "/athlete"
@@ -73,7 +76,7 @@ export function GymNav() {
             <span className="gym-nav__icon">
               <Icon size={21} filled={active} strokeWidth={active ? 2 : 1.8} />
             </span>
-            <span>{label}</span>
+            <span>{t.nav[label]}</span>
           </Link>
         );
       })}

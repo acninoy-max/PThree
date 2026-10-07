@@ -4,15 +4,11 @@ import type { LoggedSet, Session } from "@ptfive/types";
 import {
   compareToPrevious,
   dayVolumeHistory,
-  deltaLabel,
   sessionVolume,
   volumeByDay,
-  volumeChangeLabel,
-  volumeLabel,
 } from "./volume";
 import {
   beatsBest,
-  bestLabel,
   effectiveLoad,
   estimateOneRepMax,
   hasLoad,
@@ -247,49 +243,6 @@ describe("compareToPrevious", () => {
   });
 });
 
-describe("Beschriftung", () => {
-  const sessions = [
-    session("a", "2026-09-01T10:00:00Z", "d1", [set(100, 8)]),
-    session("b", "2026-09-08T10:00:00Z", "d1", [set(100, 10)]),
-  ];
-
-  it("benennt die Steigerung nuechtern, ohne Lob", () => {
-    const t = volumeChangeLabel(compareToPrevious(sessions, "b")!);
-    assert.equal(t, "25 % mehr als letztes Mal (+200 kg)");
-  });
-
-  it("benennt den Rueckgang genauso nuechtern", () => {
-    const s = [
-      ...sessions,
-      session("c", "2026-09-15T10:00:00Z", "d1", [set(50, 10)]),
-    ];
-    const t = volumeChangeLabel(compareToPrevious(s, "c")!);
-    assert.ok(t.startsWith("50 % weniger"), t);
-    assert.ok(!/schlecht|schwach|leider/i.test(t), "keine Bewertung");
-  });
-
-  it("sagt beim ersten Mal, dass es das erste Mal ist", () => {
-    const t = volumeChangeLabel(compareToPrevious(sessions, "a")!);
-    assert.ok(t.includes("Erstes Mal"), t);
-  });
-
-  it("erkennt Gleichstand", () => {
-    const s = [
-      session("p", "2026-09-01T10:00:00Z", "d5", [set(100, 10)]),
-      session("q", "2026-09-08T10:00:00Z", "d5", [set(100, 10)]),
-    ];
-    assert.equal(
-      volumeChangeLabel(compareToPrevious(s, "q")!),
-      "Genauso viel wie letztes Mal.",
-    );
-  });
-
-  it("schreibt Zahlen deutsch", () => {
-    assert.equal(volumeLabel(12400), "12.400 kg");
-    assert.equal(volumeLabel(950.4), "950 kg");
-  });
-});
-
 describe("wirksame Last", () => {
   it("Klimmzug: Koerpergewicht ist die Last", () => {
     assert.equal(effectiveLoad(set(0, 8, true, 85)), 85);
@@ -326,60 +279,6 @@ describe("wirksame Last", () => {
   it("negatives Zusatzgewicht zieht die Last nicht herunter", () => {
     // Falscheingabe soll nicht zu einer Last unter dem Koerpergewicht fuehren.
     assert.equal(effectiveLoad(set(-10, 8, true, 85)), 85);
-  });
-});
-
-describe("deltaLabel", () => {
-  it("der Fall aus dem Meeting", () => {
-    assert.equal(deltaLabel(-15, "kg"), "−15 kg");
-  });
-
-  it("Zunahme bekommt ein Plus", () => {
-    assert.equal(deltaLabel(2.5, "kg"), "+2,5 kg");
-  });
-
-  it("das Minus ist U+2212, nicht der Bindestrich", () => {
-    // Der Unterschied ist auf dem Bildschirm klein und in der Zeile
-    // gross: Der Bindestrich sitzt zu hoch und liest sich als Trennung.
-    assert.equal(deltaLabel(-3, "cm").charCodeAt(0), 0x2212);
-    assert.ok(!deltaLabel(-3, "cm").includes("-"));
-  });
-
-  it("keine leere Nachkommastelle", () => {
-    assert.equal(deltaLabel(2.0, "kg"), "+2 kg");
-    assert.equal(deltaLabel(-4.0, "cm"), "−4 cm");
-  });
-
-  it("eine Nachkommastelle, wo sie etwas sagt", () => {
-    assert.equal(deltaLabel(-1.5, "kg"), "−1,5 kg");
-    assert.equal(deltaLabel(0.7, "kg"), "+0,7 kg");
-  });
-
-  it("ab 100 ohne Nachkomma, mit Tausenderpunkt", () => {
-    assert.equal(deltaLabel(2440.6, "kg"), "+2.441 kg");
-    assert.equal(deltaLabel(-1200, "kg"), "−1.200 kg");
-  });
-
-  it("Rundung auf null heisst null — kein negatives Nichts", () => {
-    // Haette man vor dem Runden geprueft, stuende hier "−0 kg".
-    assert.equal(deltaLabel(-0.04, "kg"), "±0 kg");
-    assert.equal(deltaLabel(0, "kg"), "±0 kg");
-    assert.equal(deltaLabel(0.04, "kg"), "±0 kg");
-  });
-
-  it("bewertet nicht", () => {
-    // Dieselbe Zahl, zwei Bedeutungen: auf der Waage ein Erfolg, beim
-    // Bankdruecken das Gegenteil. Der Text darf das nicht entscheiden.
-    const waage = deltaLabel(-15, "kg");
-    const bank = deltaLabel(-15, "kg");
-    assert.equal(waage, bank);
-    for (const wort of ["gut", "besser", "schlechter", "super", "!"]) {
-      assert.ok(!waage.includes(wort));
-    }
-  });
-
-  it("Wiederholungen als Einheit", () => {
-    assert.equal(deltaLabel(3, "Wdh."), "+3 Wdh.");
   });
 });
 
@@ -432,7 +331,6 @@ describe("beatsBest — der Moment im Training", () => {
     const b = beatsBest(versuch(80, 5), null)!;
     assert.equal(b.isFirst, true);
     assert.equal(b.percent, null);
-    assert.equal(bestLabel(b), "Erste Leistung in dieser Übung");
   });
 
   it("leerer Satz sagt nichts", () => {
@@ -454,14 +352,6 @@ describe("beatsBest — der Moment im Training", () => {
     assert.equal(b.percent, 20);
   });
 
-  it("der Text bewertet nicht", () => {
-    const b = beatsBest(versuch(110, 8), marke(126.67))!;
-    const text = bestLabel(b);
-    assert.ok(!text.includes("!"));
-    for (const wort of ["super", "stark", "geil", "Wahnsinn"]) {
-      assert.ok(!text.toLowerCase().includes(wort.toLowerCase()));
-    }
-  });
 });
 
 describe("markBefore — die Saetze darueber zaehlen mit", () => {
@@ -486,7 +376,8 @@ describe("markBefore — die Saetze darueber zaehlen mit", () => {
   ) =>
     saetze.map((s, i) => {
       const b = beatsBest(s, markBefore(h, saetze.slice(0, i), s));
-      return b ? bestLabel(b) : null;
+      // Wie die Zeile es zeigt, ohne Sprache: "erste" oder "+N %".
+      return b ? (b.isFirst ? "erste" : `+${b.percent} %`) : null;
     });
 
   it("erste Einheit: nur der erste Satz ist die erste Leistung", () => {
@@ -498,23 +389,20 @@ describe("markBefore — die Saetze darueber zaehlen mit", () => {
       versuch(60, 9),
       versuch(60, 8),
     ]);
-    assert.deepEqual(z, ["Erste Leistung in dieser Übung", null, null, null]);
+    assert.deepEqual(z, ["erste", null, null, null]);
   });
 
   it("erste Einheit: ein schwererer Satz bekommt seinen Hinweis", () => {
     // 60 x 10 = 80 ; 70 x 10 = 93,33 -> +17 %
     const z = zeilen(null, [versuch(60, 10), versuch(70, 10)]);
-    assert.deepEqual(z, [
-      "Erste Leistung in dieser Übung",
-      "Neue Bestleistung · +17 %",
-    ]);
+    assert.deepEqual(z, ["erste", "+17 %"]);
   });
 
   it("mit Historie: dieselbe Bestleistung nicht in jeder Zeile", () => {
     // 110 x 8 schlaegt die alte Marke um 10 %. Ein zweiter Satz
     // 110 x 8 ist keine weitere Bestleistung — die steht schon oben.
     const z = zeilen(historie(126.67), [versuch(110, 8), versuch(110, 8)]);
-    assert.deepEqual(z, ["Neue Bestleistung · +10 %", null]);
+    assert.deepEqual(z, ["+10 %", null]);
   });
 
   it("schwaechere Saetze darueber senken die Marke nicht", () => {

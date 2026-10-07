@@ -6,7 +6,8 @@
  * Metriken weil sonst zu voll. Und auch selber Reihenfolge festlegen
  * können."
  *
- * Diese Liste ist die Wahrheit über Reihenfolge und Beschriftung. Die
+ * Diese Liste ist die Wahrheit über die Reihenfolge (Beschriftung im
+ * Wörterbuch). Die
  * Datenbank speichert nur Abweichungen davon — wer nie etwas einstellt,
  * bekommt genau diese Anordnung, und wer vor einem halben Jahr etwas
  * eingestellt hat, bekommt später hinzugekommene Abschnitte trotzdem zu
@@ -18,47 +19,16 @@
  * Wochen die richtige Einstellung getroffen hat.
  */
 
+/** Beschriftung und Erklärung: t.coach.sections. */
 export const SECTIONS = [
-  {
-    key: "goal",
-    label: "Ziele & Notizen",
-    hint: "Was du dir zu diesem Klienten notiert hast",
-  },
-  {
-    key: "insights",
-    label: "Coach-Hinweise",
-    hint: "Plateaus, Pausen, Fortschritte — automatisch erkannt",
-  },
-  {
-    key: "checkins",
-    label: "Check-ins",
-    hint: "Die letzten Meldungen, mit Antwortmöglichkeit",
-  },
-  {
-    key: "progress",
-    label: "Fortschritt pro Übung",
-    hint: "Deine eigene Übungsauswahl, Bestleistung oder Volumen",
-  },
-  {
-    key: "body",
-    label: "Körperwerte",
-    hint: "Gewicht und Maße aus den Check-ins",
-  },
-  {
-    key: "photos",
-    label: "Fotos",
-    hint: "Vorher und Nachher — nur wenn der Klient zugestimmt hat",
-  },
-  {
-    key: "volume",
-    label: "Volumen je Trainingstag",
-    hint: "Läuft der Oberkörpertag oder tritt er auf der Stelle",
-  },
-  {
-    key: "sessions",
-    label: "Letzte Einheiten",
-    hint: "Die letzten sechs Trainings, Satz für Satz",
-  },
+  { key: "goal" },
+  { key: "insights" },
+  { key: "checkins" },
+  { key: "progress" },
+  { key: "body" },
+  { key: "photos" },
+  { key: "volume" },
+  { key: "sessions" },
 ] as const;
 
 export type SectionKey = (typeof SECTIONS)[number]["key"];
@@ -115,9 +85,4 @@ export function resolveSections(stored: readonly StoredSection[]): {
       isVisible: true,
     })),
   ];
-}
-
-/** Beschriftung zu einem Schlüssel. */
-export function sectionLabel(key: SectionKey): string {
-  return SECTIONS.find((s) => s.key === key)?.label ?? key;
 }

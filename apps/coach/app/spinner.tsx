@@ -1,3 +1,7 @@
+"use client";
+
+import { useT } from "@/app/i18n/client";
+
 /**
  * Ladekreis.
  *
@@ -7,11 +11,12 @@
  */
 export function Spinner({
   size = 14,
-  label = "Wird gespeichert",
+  label,
 }: {
   size?: number;
   label?: string;
 }) {
+  const t = useT();
   return (
     <svg
       width={size}
@@ -19,7 +24,7 @@ export function Spinner({
       viewBox="0 0 24 24"
       fill="none"
       role="status"
-      aria-label={label}
+      aria-label={label ?? t.common.savingShort}
       className="pt-spin"
       style={{ flex: "none" }}
     >

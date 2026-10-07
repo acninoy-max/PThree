@@ -9,11 +9,13 @@ import { buildCoachFeed, type ClientWithSessions } from "@ptfive/coach-engine";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { Avatar, EmptyState, InsightCard, StatCard } from "@/app/components";
-import { weekdayDateTime } from "@/app/format";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function FeedPage() {
+  const t = getT();
+  const F = t.coach.feed;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -50,10 +52,10 @@ export default async function FeedPage() {
       <main className="pt-shell">
         <div style={{ marginBottom: 20 }}>
           <p className="pt-label" style={{ margin: 0 }}>
-            Coach-Feed
+            {F.kicker}
           </p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-            Heute für dich
+            {F.title}
           </h1>
         </div>
 
@@ -65,10 +67,10 @@ export default async function FeedPage() {
             marginBottom: 28,
           }}
         >
-          <StatCard label="Aktive Klienten" value={activeClients} />
-          <StatCard label="Dringend" value={urgent} />
-          <StatCard label="Termine (7 Tage)" value={appointments.length} />
-          <StatCard label="Offene Check-ins" value={checkIns.length} />
+          <StatCard label={F.activeClients} value={activeClients} />
+          <StatCard label={F.urgent} value={urgent} />
+          <StatCard label={F.appointments7} value={appointments.length} />
+          <StatCard label={F.openCheckins} value={checkIns.length} />
         </div>
 
         {/* Klasse statt Inline-Style: Ein `style`-Attribut schlägt jede
@@ -79,19 +81,15 @@ export default async function FeedPage() {
         <div className="pt-split">
           <section>
             <p className="pt-label" style={{ marginBottom: 10 }}>
-              Was die Engine sieht
+              {F.engineSees}
             </p>
             {feed.length === 0 ? (
               <EmptyState
-                title="Noch nichts zu melden"
-                body={
-                  clients.length === 0
-                    ? "Es sind noch keine Klienten angelegt. Mit Demo-Daten siehst du sofort, wie der Feed arbeitet."
-                    : "Alle Klienten laufen sauber — keine Plateaus, niemand inaktiv."
-                }
+                title={F.nothing}
+                body={clients.length === 0 ? F.noClients : F.allGood}
                 hint={
                   clients.length === 0
-                    ? "select seed_demo_data('deine@mail.de');"
+                    ? F.seedHint
                     : undefined
                 }
               />
@@ -99,8 +97,9 @@ export default async function FeedPage() {
               feed.map((insight) => (
                 <InsightCard
                   key={insight.id}
+                  t={t}
                   insight={insight}
-                  clientName={byClient.get(insight.clientId) ?? "Unbekannt"}
+                  clientName={byClient.get(insight.clientId) ?? F.unknown}
                 />
               ))
             )}
@@ -109,7 +108,7 @@ export default async function FeedPage() {
           <aside style={{ display: "grid", gap: 20 }}>
             <div>
               <p className="pt-label" style={{ marginBottom: 10 }}>
-                Nächste Termine
+                {F.nextAppointments}
               </p>
               {appointments.length === 0 ? (
                 <div className="pt-card">
@@ -120,7 +119,7 @@ export default async function FeedPage() {
                       color: "var(--pt-text-dim)",
                     }}
                   >
-                    Diese Woche nichts geplant.
+                    {F.nothingThisWeek}
                   </p>
                 </div>
               ) : (
@@ -138,7 +137,7 @@ export default async function FeedPage() {
                         <p
                           style={{ margin: 0, fontSize: "var(--pt-fs-base)", fontWeight: 500 }}
                         >
-                          {byClient.get(a.clientId) ?? "Unbekannt"}
+                          {byClient.get(a.clientId) ?? F.unknown}
                         </p>
                         <p
                           style={{
@@ -147,8 +146,8 @@ export default async function FeedPage() {
                             color: "var(--pt-text-dim)",
                           }}
                         >
-                          {weekdayDateTime(new Date(a.startsAt))} ·{" "}
-                          {a.durationMinutes} Min
+                          {t.fmt.weekdayDateTime(new Date(a.startsAt))} ·{" "}
+                          {a.durationMinutes} {F.minutesShort}
                         </p>
                       </div>
                     </div>
@@ -159,7 +158,7 @@ export default async function FeedPage() {
 
             <div>
               <p className="pt-label" style={{ marginBottom: 10 }}>
-                Offene Check-ins
+                {F.openCheckins}
               </p>
               {checkIns.length === 0 ? (
                 <div className="pt-card">
@@ -170,7 +169,7 @@ export default async function FeedPage() {
                       color: "var(--pt-text-dim)",
                     }}
                   >
-                    Alles beantwortet.
+                    {F.allAnswered}
                   </p>
                 </div>
               ) : (
@@ -200,7 +199,7 @@ export default async function FeedPage() {
                         <p
                           style={{ margin: 0, fontSize: "var(--pt-fs-base)", fontWeight: 500 }}
                         >
-                          {byClient.get(c.clientId) ?? "Unbekannt"}
+                          {byClient.get(c.clientId) ?? F.unknown}
                         </p>
                       </div>
                       {c.clientNote && (
@@ -225,9 +224,7 @@ export default async function FeedPage() {
                       color: "var(--pt-action)",
                     }}
                   >
-                    {checkIns.length > 4
-                      ? `Alle ${checkIns.length} beantworten →`
-                      : "Jetzt beantworten →"}
+                    {checkIns.length > 4 ? F.answerAll(checkIns.length) : F.answerNow}
                   </p>
                 </Link>
               )}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { fetchClients, fetchPlans } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
+import { getT } from "@/app/i18n/server";
 import { Avatar } from "@/app/components";
 import { IconChevronRight } from "@/app/icons";
 
@@ -15,6 +16,8 @@ export const dynamic = "force-dynamic";
  * Nachlesen da, das hier zum Tippen zwischen zwei Sätzen.
  */
 export default async function TrackPage() {
+  const t = getT();
+  const P = t.coach.trackPick;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -41,9 +44,9 @@ export default async function TrackPage() {
     <>
       <Nav coachName={profile?.full_name ?? "Coach"} />
       <main className="pt-shell" style={{ paddingTop: 22 }}>
-        <p className="pt-label">Training tracken</p>
+        <p className="pt-label">{P.kicker}</p>
         <h1 style={{ margin: "4px 0 6px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-          Für wen?
+          {P.title}
         </h1>
         <p
           style={{
@@ -54,15 +57,15 @@ export default async function TrackPage() {
             maxWidth: 520,
           }}
         >
-          Du trägst die Sätze ein, während ihr trainiert. Die Einheit wird als{" "}
-          <strong>von dir erfasst</strong> gespeichert — dein Klient sieht sie
-          in seiner App.
+          {P.introBefore}
+          <strong>{P.introStrong}</strong>
+          {P.introAfter}
         </p>
 
         {clients.length === 0 ? (
           <div className="pt-card">
             <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--pt-text-dim)" }}>
-              Noch keine aktiven Klienten.
+              {P.noClients}
             </p>
           </div>
         ) : (
@@ -98,8 +101,8 @@ export default async function TrackPage() {
                         }}
                       >
                         {tage.length > 0
-                          ? `${plan!.name} · ${tage.length} ${tage.length === 1 ? "Tag" : "Tage"}`
-                          : "Kein Plan — freies Training"}
+                          ? P.planDays(plan!.name, tage.length)
+                          : P.noPlan}
                       </span>
                     </span>
                   </span>

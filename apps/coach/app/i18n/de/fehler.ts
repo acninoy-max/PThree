@@ -20,6 +20,24 @@ export const fehler = {
     signedInAs: "Du bist angemeldet als",
     hint: "Wenn dein Trainer dich unter einer anderen Adresse eingeladen hat, meld dich hier ab und öffne den Einladungslink noch einmal.",
   },
+  /** Was Server Actions zurückmelden. */
+  action: {
+    notSignedIn: "Nicht angemeldet.",
+    noClient: "Kein Klientenkonto zu diesem Zugang.",
+    invalidPath: "Ungültiger Speicherort.",
+    photoNotFound: "Bild nicht gefunden.",
+    noExercise: "Keine Übung erfasst.",
+    noClientProfile: "Kein Klientenprofil gefunden.",
+    saveFailed: "Speichern fehlgeschlagen.",
+    exerciseNotSaved: "Übung konnte nicht gespeichert werden.",
+    weightImplausible: "Das Gewicht sieht nicht plausibel aus.",
+    cmImplausible: (was: string, wert: string) =>
+      `${was}: ${wert} cm sieht nicht plausibel aus.`,
+    maxEight: "Höchstens acht Übungen auf einmal.",
+    defaultSessionTitle: "Training",
+    photosNotDeleted:
+      "Die Bilder konnten nicht gelöscht werden — der Widerruf wurde deshalb nicht eingetragen. Bitte noch einmal versuchen.",
+  },
   db: {
     notSignedIn: "Nicht angemeldet.",
     coachAccount:

@@ -13,7 +13,6 @@ import {
   exerciseHistory,
   loggedExercises,
   volumeByDay,
-  volumeLabel,
 } from "@ptfive/coach-engine";
 import Link from "next/link";
 import { createServerSupabase } from "@/lib/supabase-server";
@@ -22,7 +21,7 @@ import { muscleLabel } from "@/app/components";
 import { MetricChart } from "@/app/metric-chart";
 import { PhotoCompare } from "@/app/photo-compare";
 import { ProgressExercises } from "./progress-exercises";
-import { dateMedium } from "@/app/format";
+import { getT } from "@/app/i18n/server";
 import {
   MEASURE_INFO,
   MEASURE_KEYS,
@@ -41,6 +40,8 @@ export const dynamic = "force-dynamic";
 const DAY_COLORS = ["#c42d1a", "#1d4ed8", "#3b6d11", "#8a5a00", "#6b21a8"];
 
 export default async function ProgressPage() {
+  const t = getT();
+  const p = t.athlete.progress;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -74,8 +75,8 @@ export default async function ProgressPage() {
     const ex = exercises.get(e.exerciseId);
     return {
       id: e.exerciseId,
-      name: ex?.name ?? "Übung",
-      muscleLabel: ex ? muscleLabel(ex.muscleGroup) : "—",
+      name: ex?.name ?? p.fallbackExercise,
+      muscleLabel: ex ? muscleLabel(t, ex.muscleGroup) : "—",
       sets: e.sets,
       sessions: e.sessions,
       lastPerformedAt: e.lastPerformedAt,
@@ -97,7 +98,7 @@ export default async function ProgressPage() {
       const rein = comparableExercisePoints(punkte);
       return {
         id,
-        name: exercises.get(id)?.name ?? "Übung",
+        name: exercises.get(id)?.name ?? p.fallbackExercise,
         points: rein,
         // Die Veränderung wird hier NICHT mehr vorgerechnet: Sie hängt
         // am Umschalter Bestleistung/Volumen, und den bedient der
@@ -123,9 +124,9 @@ export default async function ProgressPage() {
       points,
     }))
     .filter((d) => d.points.length >= 2)
-    .sort((a, b) => a.title.localeCompare(b.title, "de"));
+    .sort((a, b) => a.title.localeCompare(b.title, t.locale));
 
-  const series = buildSeries(checkIns);
+  const series = buildSeries(t, checkIns);
 
   // Messwerte nach Datum, neueste zuerst — die Zahlen zum Diagramm.
   const measurementRows = [...checkIns]
@@ -164,12 +165,12 @@ export default async function ProgressPage() {
 
   return (
     <main className="gym-shell" style={{ paddingTop: 26 }}>
-      <p className="gym-label">Dein Fortschritt</p>
+      <p className="gym-label">{p.title}</p>
       <h1 style={{ margin: "3px 0 6px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
-        {sessions.length} Einheiten
+        {p.sessions(sessions.length)}
       </h1>
       <p style={{ margin: "0 0 18px", fontSize: "var(--pt-fs-md)", color: "var(--g-dim)" }}>
-        {totalSets} Sätze insgesamt
+        {p.setsTotal(totalSets)}
       </p>
 
       {/*
@@ -207,10 +208,10 @@ export default async function ProgressPage() {
                 fontWeight: 600,
               }}
             >
-              Vorher — Nachher
+              {p.beforeAfter}
             </p>
             <Link href="/athlete/photos" style={{ fontSize: "var(--pt-fs-base)" }}>
-              Alle Fotos
+              {p.allPhotos}
             </Link>
           </div>
 
@@ -236,7 +237,7 @@ export default async function ProgressPage() {
                 fontWeight: 600,
               }}
             >
-              Fotos
+              {p.photos}
             </span>
             <span
               style={{
@@ -247,9 +248,7 @@ export default async function ProgressPage() {
                 lineHeight: 1.45,
               }}
             >
-              {photoConsent
-                ? "Lad dein erstes Bild hoch — ab dem zweiten siehst du hier den Vergleich."
-                : "Vorher und Nachher nebeneinander. Nur du und dein Trainer sehen sie."}
+              {photoConsent ? p.firstPhoto : p.photoInvite}
             </span>
           </span>
           <IconChevronRight size={18} />
@@ -269,7 +268,7 @@ export default async function ProgressPage() {
       {dayVolumes.length > 0 && (
         <div className="gym-card" style={{ marginBottom: 22 }}>
           <p className="gym-label" style={{ marginBottom: 12 }}>
-            Volumen je Trainingstag
+            {p.volumePerDay}
           </p>
 
           <MetricChart
@@ -283,7 +282,7 @@ export default async function ProgressPage() {
                 value: Math.round(p.volumeKg),
               })),
             }))}
-            emptyHint="Noch kein Trainingstag zweimal gemacht."
+            emptyHint={p.noDayTwice}
           />
 
           <div style={{ marginTop: 18, display: "grid", gap: 14 }}>
@@ -316,7 +315,7 @@ export default async function ProgressPage() {
                         fontVariantNumeric: "tabular-nums",
                       }}
                     >
-                      {volumeLabel(letzte.volumeKg)}
+                      {t.engine.volume(letzte.volumeKg)}
                     </span>
                   </div>
                   <p
@@ -327,18 +326,12 @@ export default async function ProgressPage() {
                       lineHeight: 1.45,
                     }}
                   >
-                    {prozent === null
-                      ? `${d.points.length} Einheiten erfasst`
-                      : prozent === 0
-                        ? `Wie beim letzten Mal · ${d.points.length} Einheiten`
-                        : `${Math.abs(prozent)} % ${
-                            prozent > 0 ? "mehr" : "weniger"
-                          } als beim letzten Mal · ${d.points.length} Einheiten`}
+                    {p.dayChange(prozent, d.points.length)}
                     {/* Körpergewichtssätze zählen nicht ins Kilogramm-
                         Volumen. Das gehört dazugesagt, sonst wundert sich
                         der Athlet über eine Zahl, die zu niedrig wirkt. */}
                     {letzte.bodyweightSets > 0 &&
-                      ` · dazu ${letzte.bodyweightSets} Sätze mit Körpergewicht (${letzte.bodyweightReps} Wdh.)`}
+                      p.bodyweightSets(letzte.bodyweightSets, letzte.bodyweightReps)}
                   </p>
                 </div>
               );
@@ -350,13 +343,13 @@ export default async function ProgressPage() {
       {series.length > 0 && (
         <div className="gym-card" style={{ marginBottom: 22 }}>
           <p className="gym-label" style={{ marginBottom: 12 }}>
-            Körperwerte
+            {p.bodyValues}
           </p>
-          <MetricChart series={series} emptyHint="Noch keine Werte gemeldet." />
+          <MetricChart series={series} emptyHint={p.noValues} />
 
           <div style={{ marginTop: 18 }}>
             <p className="gym-label" style={{ marginBottom: 8 }}>
-              Gemeldet
+              {p.reported}
             </p>
             {measurementRows.map((c) => (
               <div
@@ -374,7 +367,7 @@ export default async function ProgressPage() {
                     fontWeight: 600,
                   }}
                 >
-                  {dateMedium(new Date(`${c.weekOf}T00:00:00`))}
+                  {t.fmt.dateMedium(new Date(`${c.weekOf}T00:00:00`))}
                 </p>
                 <div
                   style={{
@@ -386,10 +379,8 @@ export default async function ProgressPage() {
                 >
                   {c.weightKg !== null && (
                     <span>
-                      Gewicht{" "}
-                      <strong>
-                        {c.weightKg.toFixed(1).replace(".", ",")} kg
-                      </strong>
+                      {t.labels.weight}{" "}
+                      <strong>{t.fmt.decimal(c.weightKg, 1)} kg</strong>
                     </span>
                   )}
                   {MEASURE_KEYS.map((k) => {
@@ -397,8 +388,8 @@ export default async function ProgressPage() {
                     if (v === null) return null;
                     return (
                       <span key={k}>
-                        {MEASURE_INFO[k].label}{" "}
-                        <strong>{v.toFixed(1).replace(".", ",")} cm</strong>
+                        {t.labels.measure[k].label}{" "}
+                        <strong>{t.fmt.decimal(v, 1)} cm</strong>
                       </span>
                     );
                   })}

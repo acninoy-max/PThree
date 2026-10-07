@@ -7,10 +7,14 @@ import {
   daysBetween,
   defaultComparison,
   nearestWeight,
-  spanLabel,
   weeksBetween,
   type PhotoLike,
 } from "./compare";
+import { de } from "../../i18n/de";
+import { en } from "../../i18n/en";
+
+const spanLabel = (von: string, bis: string) =>
+  de.time.span(daysBetween(von, bis));
 
 const foto = (id: string, takenOn: string, pose: PhotoLike["pose"]) => ({
   id,
@@ -46,6 +50,13 @@ describe("Zeitspannen", () => {
   it("Einzahl bei einer Woche", () => {
     assert.equal(spanLabel("2026-01-01", "2026-01-08"), "1 Woche");
     assert.equal(spanLabel("2026-01-01", "2026-01-15"), "2 Wochen");
+  });
+
+  it("dieselben Regeln auf Englisch", () => {
+    assert.equal(en.time.span(0), "same day");
+    assert.equal(en.time.span(1), "1 day");
+    assert.equal(en.time.span(7), "1 week");
+    assert.equal(en.time.span(84), "12 weeks");
   });
 });
 
@@ -98,7 +109,7 @@ describe("defaultComparison", () => {
 
   it("nennt die Spanne und die Gewichtsdifferenz", () => {
     const v = defaultComparison(fotos, "front", gewichte)!;
-    assert.equal(v.span, "12 Wochen");
+    assert.equal(de.time.span(v.spanDays), "12 Wochen");
     assert.equal(v.weightDelta, -6.5);
   });
 
@@ -120,7 +131,7 @@ describe("defaultComparison", () => {
 
   it("ohne Gewichte ueberhaupt bleibt der Vergleich nutzbar", () => {
     const v = defaultComparison(fotos, "front")!;
-    assert.equal(v.span, "12 Wochen");
+    assert.equal(de.time.span(v.spanDays), "12 Wochen");
     assert.equal(v.weightDelta, null);
   });
 });
@@ -166,6 +177,6 @@ describe("buildComparison", () => {
       foto("neu", "2026-04-05", "front"),
       foto("alt", "2026-01-05", "front"),
     );
-    assert.equal(v.span, "12 Wochen");
+    assert.equal(de.time.span(v.spanDays), "12 Wochen");
   });
 });

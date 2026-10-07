@@ -13,13 +13,15 @@ import {
   muscleSummary,
   patternForGroup,
 } from "@/app/components";
-import { BLOCK_LABEL } from "@/app/coach/plans/[id]/slot-form";
+import { useT } from "@/app/i18n/client";
 import {
   createExerciseAction,
   deleteExerciseAction,
 } from "@/app/coach/plans/actions";
 
 function NewExercise({ onClose }: { onClose: () => void }) {
+  const t = useT();
+  const B = t.coach.library;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [name, setName] = useState("");
@@ -61,7 +63,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
       className="pt-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Übung anlegen"
+      aria-label={B.createAria}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -76,13 +78,13 @@ function NewExercise({ onClose }: { onClose: () => void }) {
           }}
         >
           <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-            Eigene Übung anlegen
+            {B.createTitle}
           </h2>
           <button
             type="button"
             className="pt-iconbtn"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             <IconX size={17} />
           </button>
@@ -90,12 +92,12 @@ function NewExercise({ onClose }: { onClose: () => void }) {
 
         <div style={{ display: "grid", gap: 16 }}>
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Name</span>
+            <span className="pt-label">{B.name}</span>
             <input
               value={name}
               autoFocus
               onChange={(e) => setName(e.target.value)}
-              placeholder="z. B. Landmine Row"
+              placeholder={B.namePlaceholder}
               required
             />
           </label>
@@ -105,7 +107,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Muskelgruppe
+              {B.muscleGroup}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {MUSCLE_CHOICES.map((g) => (
@@ -122,7 +124,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
                     if (g === "core") setBlock("core");
                   }}
                 >
-                  {muscleLabel(g)}
+                  {muscleLabel(t, g)}
                 </button>
               ))}
             </div>
@@ -135,7 +137,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
                   lineHeight: 1.45,
                 }}
               >
-                Rumpfarbeit wird geloggt, läuft aber ohne Kraftkurve.
+                {B.coreNoCurve}
               </p>
             )}
           </div>
@@ -148,7 +150,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Auch zu finden unter (optional)
+              {B.alsoFound}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {MUSCLE_CHOICES.filter((g) => g !== group).map((g) => {
@@ -166,7 +168,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
                       )
                     }
                   >
-                    {muscleLabel(g)}
+                    {muscleLabel(t, g)}
                   </button>
                 );
               })}
@@ -180,10 +182,8 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               }}
             >
               {secondary.length === 0
-                ? "Nur unter der Hauptgruppe zu finden."
-                : `Erscheint zusätzlich unter ${secondary
-                    .map((g) => muscleLabel(g))
-                    .join(", ")}.`}
+                ? B.onlyMain
+                : B.alsoUnder(secondary.map((g) => muscleLabel(t, g)).join(", "))}
             </p>
           </div>
 
@@ -192,7 +192,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               className="pt-label"
               style={{ display: "block", marginBottom: 7 }}
             >
-              Block
+              {B.block}
             </span>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {BLOCK_ORDER.map((b) => (
@@ -203,7 +203,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
                   data-active={block === b}
                   onClick={() => setBlock(b)}
                 >
-                  {BLOCK_LABEL[b]}
+                  {t.labels.block[b]}
                 </button>
               ))}
             </div>
@@ -223,16 +223,16 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               onChange={(e) => setBodyweight(e.target.checked)}
               style={{ width: "auto" }}
             />
-            Körpergewichtsübung
+            {B.bodyweight}
           </label>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Ansage beim Loggen</span>
+            <span className="pt-label">{B.cue}</span>
             <textarea
               value={cue}
               onChange={(e) => setCue(e.target.value)}
               rows={2}
-              placeholder="z. B. Ellenbogen eng am Körper führen"
+              placeholder={B.cuePlaceholder}
               style={{
                 resize: "vertical",
                 fontFamily: "inherit",
@@ -240,7 +240,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
               }}
             />
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              Erscheint dem Athleten in der App unter der Übung.
+              {B.cueHint}
             </span>
           </label>
 
@@ -251,7 +251,7 @@ function NewExercise({ onClose }: { onClose: () => void }) {
           )}
 
           <button type="submit" className="pt-btn" disabled={pending}>
-            {pending ? "Wird angelegt …" : "Anlegen"}
+            {pending ? B.creating : B.create}
           </button>
         </div>
       </form>
@@ -260,6 +260,8 @@ function NewExercise({ onClose }: { onClose: () => void }) {
 }
 
 export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
+  const t = useT();
+  const B = t.coach.library;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [creating, setCreating] = useState(false);
@@ -299,11 +301,11 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
             }}
           >
             <span style={{ fontSize: "var(--pt-fs-md)", fontWeight: 600 }}>{e.name}</span>
-            <span className="pt-chip">{BLOCK_LABEL[e.block]}</span>
-            {e.isBodyweight && <span className="pt-chip">Körpergewicht</span>}
+            <span className="pt-chip">{t.labels.block[e.block]}</span>
+            {e.isBodyweight && <span className="pt-chip">{B.bodyweightChip}</span>}
           </div>
           <p style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-            {muscleSummary(e)}
+            {muscleSummary(t, e)}
             {e.cue ? ` · ${e.cue}` : ""}
           </p>
         </div>
@@ -312,8 +314,8 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
           <div className="pt-slot__actions">
             <button
               type="button"
-              title="Löschen"
-              aria-label={`${e.name} löschen`}
+              title={B.delete}
+              aria-label={B.deleteAria(e.name)}
               disabled={pending}
               onClick={() => remove(e.id)}
             >
@@ -339,10 +341,10 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
       >
         <div>
           <p className="pt-label" style={{ margin: 0 }}>
-            Übungen
+            {B.kicker}
           </p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-            {exercises.length} in deiner Bibliothek
+            {B.count(exercises.length)}
           </h1>
         </div>
         <button
@@ -351,7 +353,7 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
           onClick={() => setCreating(true)}
         >
           <IconPlus size={17} />
-          Eigene Übung
+          {B.own}
         </button>
       </div>
 
@@ -367,7 +369,7 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Suchen …"
+          placeholder={B.search}
           style={{ maxWidth: 240 }}
         />
         <button
@@ -376,7 +378,7 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
           data-active={filter === "all"}
           onClick={() => setFilter("all")}
         >
-          Alle
+          {B.all}
         </button>
         {MUSCLE_CHOICES.map((g) => (
           <button
@@ -387,7 +389,7 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
             aria-pressed={filter === g}
             onClick={() => setFilter(g)}
           >
-            {muscleLabel(g)}
+            {muscleLabel(t, g)}
           </button>
         ))}
       </div>
@@ -396,7 +398,7 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
         {own.length > 0 && (
           <>
             <p className="pt-label" style={{ marginBottom: 8 }}>
-              Deine Übungen
+              {B.yours}
             </p>
             <div style={{ display: "grid", gap: 6, marginBottom: 24 }}>
               {own.map((e) => (
@@ -407,14 +409,14 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
         )}
 
         <p className="pt-label" style={{ marginBottom: 8 }}>
-          Bibliothek
+          {B.library}
         </p>
         {global.length === 0 ? (
           <div className="pt-card">
             <p
               style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
             >
-              Keine Übung passt zu Suche und Filter.
+              {B.noMatch}
             </p>
           </div>
         ) : (

@@ -7,14 +7,7 @@ import { IconCheck, IconClock, IconPlus, IconX } from "@/app/icons";
 import { setAppointmentStatusAction } from "@/app/actions";
 import { NewAppointment } from "@/app/coach/schedule/form";
 import type { ClientOption } from "@/app/coach/schedule/board";
-import { weekdayDateTime } from "@/app/format";
-
-const LOCATION: Record<Appointment["location"], string> = {
-  gym: "Studio",
-  park: "Park",
-  home: "Zuhause",
-  online: "Online",
-};
+import { useT } from "@/app/i18n/client";
 
 /** Termine eines einzelnen Klienten — anlegen und Status nachtragen. */
 export function ClientAppointments({
@@ -26,6 +19,8 @@ export function ClientAppointments({
   upcoming: Appointment[];
   unresolved: Appointment[];
 }) {
+  const t = useT();
+  const T = t.coach.clientAppointments;
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -48,14 +43,14 @@ export function ClientAppointments({
         }}
       >
         <p className="pt-label" style={{ margin: 0 }}>
-          Termine
+          {T.title}
         </p>
         <button
           type="button"
           className="pt-iconbtn"
           onClick={() => setCreating(true)}
-          aria-label="Termin anlegen"
-          title="Termin anlegen"
+          aria-label={T.create}
+          title={T.create}
         >
           <IconPlus size={17} />
         </button>
@@ -66,7 +61,7 @@ export function ClientAppointments({
           {unresolved.map((a) => (
             <div key={a.id}>
               <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-action)" }}>
-                {weekdayDateTime(new Date(a.startsAt))} — Status offen
+                {T.statusOpen(t.fmt.weekdayDateTime(new Date(a.startsAt)))}
               </p>
               <div style={{ display: "flex", gap: 6, marginTop: 5 }}>
                 <button
@@ -75,7 +70,7 @@ export function ClientAppointments({
                   disabled={pending}
                   onClick={() => setStatus(a.id, "completed")}
                 >
-                  <IconCheck size={13} /> Stattgefunden
+                  <IconCheck size={13} /> {t.labels.apptStatus.completed}
                 </button>
                 <button
                   type="button"
@@ -83,7 +78,7 @@ export function ClientAppointments({
                   disabled={pending}
                   onClick={() => setStatus(a.id, "no_show")}
                 >
-                  <IconX size={13} /> No-Show
+                  <IconX size={13} /> {t.labels.apptStatus.no_show}
                 </button>
               </div>
             </div>
@@ -93,7 +88,7 @@ export function ClientAppointments({
 
       {upcoming.length === 0 ? (
         <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
-          Nichts geplant.
+          {T.nothing}
         </p>
       ) : (
         <div style={{ display: "grid", gap: 9 }}>
@@ -107,7 +102,7 @@ export function ClientAppointments({
               </span>
               <div style={{ minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", fontWeight: 500 }}>
-                  {weekdayDateTime(new Date(a.startsAt))}
+                  {t.fmt.weekdayDateTime(new Date(a.startsAt))}
                 </p>
                 <p
                   style={{
@@ -116,7 +111,7 @@ export function ClientAppointments({
                     color: "var(--pt-text-dim)",
                   }}
                 >
-                  {a.durationMinutes} Min · {LOCATION[a.location]}
+                  {a.durationMinutes} {T.minutesShort} · {t.labels.location[a.location]}
                   {a.locationNote ? ` · ${a.locationNote}` : ""}
                 </p>
               </div>
@@ -124,7 +119,7 @@ export function ClientAppointments({
           ))}
           {upcoming.length > 5 && (
             <p style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              und {upcoming.length - 5} weitere
+              {T.more(upcoming.length - 5)}
             </p>
           )}
         </div>

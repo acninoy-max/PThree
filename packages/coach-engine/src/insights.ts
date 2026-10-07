@@ -25,12 +25,22 @@ export interface Insight {
   severity: InsightSeverity;
   clientId: string;
   pattern: MovementPattern | null;
-  title: string;
-  body: string;
-  /** Konkreter nächster Schritt für den Coach. */
-  action: string | null;
+  /**
+   * Die Zahlen, aus denen die Oberfläche ihre Sätze baut — Titel, Text
+   * und nächster Schritt stehen im Wörterbuch der App (`t.engine.insight`).
+   * Die Engine rechnet und spricht keine Sprache.
+   */
+  facts: InsightFacts;
   detectedAt: string;
 }
+
+export type InsightFacts =
+  /** So viele Einheiten ohne Zuwachs. */
+  | { kind: "plateau"; window: number }
+  /** Tage seit der letzten Einheit; null = noch nie geloggt. */
+  | { kind: "inactive"; daysSince: number | null }
+  /** Zuwachs gegenüber der vorigen Einheit, in ganzen Prozent. */
+  | { kind: "progress"; growthPercent: number };
 
 export interface EngineConfig {
   /** Wie viele Einheiten ohne Zuwachs als Plateau gelten. */
@@ -48,14 +58,6 @@ export const DEFAULT_CONFIG: EngineConfig = {
   plateauThreshold: 0.015,
   inactivityDays: 6,
   progressThreshold: 0.02,
-};
-
-const PATTERN_LABEL: Record<MovementPattern, string> = {
-  push: "Oberkörper drücken",
-  pull: "Oberkörper ziehen",
-  squat: "Unterkörper drücken",
-  hinge: "Hüftbeuge",
-  overhead: "Über Kopf drücken",
 };
 
 function daysBetween(from: Date, to: Date): number {
@@ -93,10 +95,7 @@ export function detectPlateaus(
       severity: "flag",
       clientId: client.id,
       pattern,
-      title: `${PATTERN_LABEL[pattern]} steht seit ${config.plateauWindow} Einheiten`,
-      body: `${client.fullName} macht in diesem Muster keinen messbaren Fortschritt mehr. Normal — jetzt einen Hebel wählen.`,
-      action:
-        "Volumen erhöhen, Intensitätstechnik einsetzen, Übungsvariation wählen oder Equipment wechseln. Muster beibehalten, Winkel ändern.",
+      facts: { kind: "plateau", window: config.plateauWindow },
       detectedAt: now.toISOString(),
     });
   }
@@ -130,13 +129,7 @@ export function detectInactivity(
     severity: "nudge",
     clientId: client.id,
     pattern: null,
-    title: last
-      ? `Seit ${since} Tagen kein Training geloggt`
-      : "Noch kein Training geloggt",
-    body: last
-      ? `Letzte Einheit von ${client.fullName} liegt ${since} Tage zurück.`
-      : `${client.fullName} hat seit dem Start noch nichts geloggt.`,
-    action: "Kurze Nachricht schicken und den nächsten Termin bestätigen.",
+    facts: { kind: "inactive", daysSince: last ? since : null },
     detectedAt: now.toISOString(),
   };
 }
@@ -167,9 +160,7 @@ export function detectProgress(
       severity: "info",
       clientId: client.id,
       pattern,
-      title: `${PATTERN_LABEL[pattern]}: plus ${Math.round(growth * 100)} Prozent`,
-      body: `${client.fullName} hat sich gegenüber der letzten Einheit gesteigert.`,
-      action: null,
+      facts: { kind: "progress", growthPercent: Math.round(growth * 100) },
       detectedAt: now.toISOString(),
     });
   }

@@ -46,14 +46,23 @@ cat > "$ZIEL/tsconfig.json" <<JSON
     "skipLibCheck": true,
     "esModuleInterop": true,
     "outDir": "$ZIEL/out",
-    "rootDir": "$HIER/app",
-    "typeRoots": ["$WURZEL/node_modules/@types"]
+    "rootDir": "$WURZEL",
+    "typeRoots": ["$WURZEL/node_modules/@types"],
+    // Die Wörterbücher importieren Typen aus Engine und Typenpaket.
+    // Zur Laufzeit fallen diese Importe weg (import type), zum
+    // Übersetzen müssen sie auflösbar sein.
+    "baseUrl": "$WURZEL",
+    "paths": {
+      "@ptfive/types": ["packages/types/src/index.ts"],
+      "@ptfive/coach-engine": ["packages/coach-engine/src/index.ts"]
+    }
   },
   "files": [
     "$HIER/app/format.ts",
     "$HIER/app/format.test.ts",
     "$HIER/app/i18n/locale.ts",
     "$HIER/app/i18n/locale.test.ts",
+    "$HIER/app/i18n/texte.test.ts",
     "$HIER/app/plan-week.ts",
     "$HIER/app/athlete/log/rest.ts",
     "$HIER/app/coach/clients/[id]/sections.ts",

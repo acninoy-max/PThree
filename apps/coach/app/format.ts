@@ -126,8 +126,47 @@ export interface Formats {
   dayLongAt(i: number): string;
   /** „1.234" · „1,234" */
   integer(n: number): string;
-  /** „82,5" · „82.5" */
+  /** „82,5" · „82.5" — feste Stellenzahl, Standard eine. */
   decimal(n: number, digits?: number): string;
+  /**
+   * „82,5" · „80" — so viele Stellen wie nötig, höchstens zwei. Für
+   * Gewichte und Maße: „80,0 kg" sähe nach Messgerät aus, nicht nach
+   * Eingabe.
+   */
+  num(n: number): string;
+  /**
+   * Veränderung mit Vorzeichen: „−15", „+2,5", „±0".
+   *
+   * Aus dem Meeting 16.09: „Bei dem Gewichtsverlust muss irgendwo
+   * gehighlighted werden, z. B. −15 kg." Drei Entscheidungen:
+   *
+   * 1. Das Minus ist U+2212, nicht der Bindestrich. Auf einer
+   *    Ziffernzeile sitzt der Bindestrich zu hoch und zu kurz.
+   * 2. Eine Nachkommastelle nur, wo sie etwas sagt. Ab 100 aufwärts —
+   *    Volumen bewegt sich in Tausendern — ist sie Rauschen.
+   * 3. Kein Wort, keine Bewertung. −15 kg auf der Waage ist ein Erfolg,
+   *    beim Bankdrücken das Gegenteil; die Funktion weiß nicht, was
+   *    gemessen wird. Die Einheit hängt der Aufrufer an.
+   */
+  signed(delta: number): string;
+}
+
+function signedMit(delta: number, tausend: string, dezimal: string): string {
+  const grob = Math.abs(delta) >= 100;
+  const gerundet = grob ? Math.round(delta) : Math.round(delta * 10) / 10;
+  // Nach dem Runden, nicht davor: −0,04 ist keine Veränderung, und
+  // „−0" wäre schlicht falsch.
+  if (gerundet === 0) return "±0";
+  const betrag = Math.abs(gerundet);
+  // „2,0 kg" schreibt niemand — also so viele Stellen wie nötig.
+  const zahlText = zahl(betrag, grob || betrag % 1 === 0 ? 0 : 1, tausend, dezimal);
+  return `${gerundet > 0 ? "+" : "\u2212"}${zahlText}`;
+}
+
+/** Nachkommastellen, die eine Zahl wirklich braucht (0 bis 2). */
+function stellen(n: number): number {
+  const r = Math.round(n * 100);
+  return r % 100 === 0 ? 0 : r % 10 === 0 ? 1 : 2;
 }
 
 function deFormats(): Formats {
@@ -153,6 +192,8 @@ function deFormats(): Formats {
     dayLongAt: (i) => n.dayLong[i]!,
     integer: (x) => zahl(Math.round(x), 0, ".", ","),
     decimal: (x, digits = 1) => zahl(x, digits, ".", ","),
+    num: (x) => zahl(x, stellen(x), ".", ","),
+    signed: (x) => signedMit(x, ".", ","),
   };
 }
 
@@ -179,6 +220,8 @@ function enFormats(): Formats {
     dayLongAt: (i) => n.dayLong[i]!,
     integer: (x) => zahl(Math.round(x), 0, ",", "."),
     decimal: (x, digits = 1) => zahl(x, digits, ",", "."),
+    num: (x) => zahl(x, stellen(x), ",", "."),
+    signed: (x) => signedMit(x, ",", "."),
   };
 }
 
@@ -188,23 +231,3 @@ const CACHE: Record<Locale, Formats> = { de: deFormats(), en: enFormats() };
 export function formats(locale: Locale): Formats {
   return CACHE[locale];
 }
-
-// ---------- Übergang ----------
-//
-// Die alten, rein deutschen Einzelfunktionen. Sie bleiben, bis jede
-// Aufrufstelle auf `t.fmt` umgestellt ist, und verschwinden dann —
-// check-texte.mjs meldet jeden Import von hier außerhalb von i18n/.
-const de = CACHE.de;
-export const dateMedium = de.dateMedium;
-export const dayMonthLong = de.dayMonthLong;
-export const dayMonthShort = de.dayMonthShort;
-export const dayMonthNumeric = de.dayMonthNumeric;
-export const time = de.time;
-export const weekdayTime = de.weekdayTime;
-export const weekdayDate = de.weekdayDate;
-export const weekdayDateTime = de.weekdayDateTime;
-export const weekdayShort = de.weekdayShort;
-export const monthYear = de.monthYear;
-export const weekdayTimeLong = de.weekdayTimeLong;
-export const weekdayDayMonthLong = de.weekdayDayMonthLong;
-export const dayMonthLongNoYear = de.dayMonthLong;

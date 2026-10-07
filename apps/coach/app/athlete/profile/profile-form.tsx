@@ -7,9 +7,14 @@ import { createClient } from "@/lib/supabase-browser";
 import { IconLogout, IconPlus } from "@/app/icons";
 import { Spinner } from "@/app/spinner";
 import { toast } from "@/app/toast";
-import { dateMedium } from "@/app/format";
 import { initials } from "@/app/components";
-import { photoFileName, shrinkImage } from "@/app/athlete/photos/shrink";
+import {
+  BildFehler,
+  photoFileName,
+  shrinkImage,
+} from "@/app/athlete/photos/shrink";
+import { useT } from "@/app/i18n/client";
+import { Sprachwahl } from "@/app/i18n/sprachwahl";
 import {
   removeAvatarAction,
   saveAvatarAction,
@@ -38,6 +43,8 @@ export function ProfileForm({
   loginEmail: string | null;
   startedOn: string | null;
 }) {
+  const t = useT();
+  const p = t.athlete.profile;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
@@ -67,7 +74,7 @@ export function ProfileForm({
         return;
       }
       if (res.hinweis) setHinweis(res.hinweis);
-      else toast("Profil gespeichert");
+      else toast(p.saved);
       router.refresh();
     });
   }
@@ -87,7 +94,7 @@ export function ProfileForm({
           upsert: false,
         });
       if (hochFehler) {
-        setError(`Hochladen fehlgeschlagen: ${hochFehler.message}`);
+        setError(t.athlete.photos.uploadFailed(hochFehler.message));
         return;
       }
 
@@ -96,10 +103,16 @@ export function ProfileForm({
         setError(res.error);
         return;
       }
-      toast("Bild gespeichert");
+      toast(p.photoSaved);
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unbekannter Fehler.");
+      setError(
+        e instanceof BildFehler
+          ? t.athlete.photos.shrink[e.grund]
+          : e instanceof Error
+            ? e.message
+            : t.athlete.photos.unknownError,
+      );
     } finally {
       setUploading(false);
       if (dateiFeld.current) dateiFeld.current.value = "";
@@ -112,7 +125,7 @@ export function ProfileForm({
       const res = await removeAvatarAction();
       if (!res.ok) setError(res.error);
       else {
-        toast("Bild entfernt");
+        toast(p.photoRemoved);
         router.refresh();
       }
     });
@@ -125,7 +138,7 @@ export function ProfileForm({
 
   return (
     <>
-      <p className="gym-label">Profil</p>
+      <p className="gym-label">{p.area}</p>
       <h1
         style={{
           margin: "3px 0 18px",
@@ -133,7 +146,7 @@ export function ProfileForm({
           fontWeight: 700,
         }}
       >
-        Deine Daten
+        {p.title}
       </h1>
 
       {/* ---------- Bild ---------- */}
@@ -176,10 +189,10 @@ export function ProfileForm({
             onClick={() => dateiFeld.current?.click()}
           >
             {uploading ? (
-              <Spinner size={15} label="Lädt hoch" />
+              <Spinner size={15} label={t.athlete.photos.uploading} />
             ) : (
               <>
-                <IconPlus size={15} /> {hasAvatar ? "Anderes Bild" : "Bild wählen"}
+                <IconPlus size={15} /> {hasAvatar ? p.otherPhoto : p.choosePhoto}
               </>
             )}
           </button>
@@ -190,7 +203,7 @@ export function ProfileForm({
               disabled={pending || uploading}
               onClick={bildEntfernen}
             >
-              Entfernen
+              {p.remove}
             </button>
           )}
         </div>
@@ -199,7 +212,7 @@ export function ProfileForm({
       {/* ---------- Stammdaten ---------- */}
       <div className="gym-card" style={{ display: "grid", gap: 14 }}>
         <label style={{ display: "grid", gap: 6 }}>
-          <span className="gym-label">Name</span>
+          <span className="gym-label">{p.name}</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -208,7 +221,7 @@ export function ProfileForm({
         </label>
 
         <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
-          <span className="gym-label">Geburtsdatum</span>
+          <span className="gym-label">{p.birthDate}</span>
           <input
             className="pt-datefield"
             type="date"
@@ -219,13 +232,13 @@ export function ProfileForm({
         </label>
 
         <label style={{ display: "grid", gap: 6 }}>
-          <span className="gym-label">E-Mail</span>
+          <span className="gym-label">{p.email}</span>
           <input
             type="email"
             value={mail}
             onChange={(e) => setMail(e.target.value)}
             autoComplete="email"
-            placeholder="du@example.com"
+            placeholder={p.emailPlaceholder}
           />
           {/*
             Der Satz, der eine Fehlersuche spart.
@@ -242,9 +255,7 @@ export function ProfileForm({
               lineHeight: 1.5,
             }}
           >
-            {loginEmail
-              ? `Anmelden tust du dich mit ${loginEmail}. Änderst du die Adresse hier, schicken wir dir einen Bestätigungslink — erst danach gilt die neue.`
-              : "Hierhin schreibt dir dein Trainer."}
+            {loginEmail ? p.loginHint(loginEmail) : p.contactHint}
           </span>
         </label>
 
@@ -284,11 +295,11 @@ export function ProfileForm({
           disabled={pending || !geaendert}
         >
           {pending ? (
-            <Spinner size={15} label="Speichert" />
+            <Spinner size={15} label={t.common.saving} />
           ) : geaendert ? (
-            "Speichern"
+            p.save
           ) : (
-            "Gespeichert"
+            p.savedState
           )}
         </button>
       </div>
@@ -302,10 +313,18 @@ export function ProfileForm({
           lineHeight: 1.55,
         }}
       >
-        {startedOn && `Dabei seit ${dateMedium(new Date(startedOn))}. `}
-        Level, Ziele und deinen Trainingsplan pflegt dein Trainer — die
-        siehst du, aber änderst sie nicht hier.
+        {startedOn && p.since(t.fmt.dateMedium(new Date(startedOn)))}
+        {p.coachMaintains}
       </p>
+
+      {/* Sprache — hier und nicht in der Leiste: man stellt sie einmal
+          ein. Dieselbe Wahl wie auf der Anmeldeseite (Cookie). */}
+      <div className="gym-card" style={{ marginTop: 16 }}>
+        <p className="gym-label" style={{ marginBottom: 10 }}>
+          {t.language.label}
+        </p>
+        <Sprachwahl />
+      </div>
 
       {/* ---------- Abmelden ----------
           Stand vorher als fünfter Punkt in der Leiste unten, neben
@@ -319,7 +338,7 @@ export function ProfileForm({
         style={{ marginTop: 22 }}
         onClick={abmelden}
       >
-        <IconLogout size={16} /> Abmelden
+        <IconLogout size={16} /> {t.common.signOut}
       </button>
     </>
   );

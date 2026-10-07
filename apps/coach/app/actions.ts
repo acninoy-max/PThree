@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getT } from "@/app/i18n/server";
+import { dbFehler, dbHinweis } from "@/app/i18n/db-fehler";
 
 /**
  * Schreibende Vorgänge.
@@ -19,6 +21,7 @@ export async function createClientAction(
   _prev: ActionResult | null,
   form: FormData,
 ): Promise<ActionResult> {
+  const t = getT();
   const fullName = String(form.get("fullName") ?? "").trim();
   const email = String(form.get("email") ?? "").trim();
   const level = String(form.get("level") ?? "beginner");
@@ -27,14 +30,14 @@ export async function createClientAction(
   const goal = String(form.get("goal") ?? "").trim();
 
   if (fullName.length < 2) {
-    return { ok: false, error: "Bitte einen Namen eingeben." };
+    return { ok: false, error: t.coach.actions.nameMissing };
   }
 
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   // organisation_id vom Coach übernehmen — sonst fehlt die Kette später
   // in den QA-Auswertungen.
@@ -62,7 +65,7 @@ export async function createClientAction(
   // Ohne zurückgelesene Zeile wissen wir nicht, wohin — und ob überhaupt
   // etwas angelegt wurde. Lieber sagen als auf eine leere Seite leiten.
   if (!angelegt) {
-    return { ok: false, error: "Der Klient wurde nicht angelegt." };
+    return { ok: false, error: t.coach.actions.clientNotCreated };
   }
 
   revalidatePath("/coach/clients");
@@ -77,6 +80,7 @@ export async function updateClientAction(
   clientId: string,
   form: FormData,
 ): Promise<ActionResult> {
+  const t = getT();
   const db = createServerSupabase();
 
   const patch: Record<string, unknown> = {};
@@ -122,6 +126,7 @@ export async function updateClientAction(
 export async function deleteClientAction(
   clientId: string,
 ): Promise<ActionResult> {
+  const t = getT();
   const db = createServerSupabase();
 
   const { error } = await db.from("clients").delete().eq("id", clientId);
@@ -159,15 +164,16 @@ export interface AppointmentInput {
 export async function createAppointmentAction(
   input: AppointmentInput,
 ): Promise<ActionResult> {
+  const t = getT();
   const db = createServerSupabase();
   const {
     data: { user },
   } = await db.auth.getUser();
-  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
   const start = new Date(input.startsAtLocal);
   if (Number.isNaN(start.getTime())) {
-    return { ok: false, error: "Ungültiger Zeitpunkt." };
+    return { ok: false, error: t.coach.actions.invalidTime };
   }
 
   const { data: client } = await db
@@ -197,7 +203,7 @@ export async function createAppointmentAction(
   }
 
   if (starts.length === 0) {
-    return { ok: false, error: "Keine Termine im gewählten Zeitraum." };
+    return { ok: false, error: t.coach.actions.noAppointmentsInRange };
   }
 
   const rows = starts
@@ -228,6 +234,7 @@ export async function setAppointmentStatusAction(
   appointmentId: string,
   status: "scheduled" | "completed" | "rescheduled" | "cancelled" | "no_show",
 ): Promise<ActionResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { error } = await db
     .from("appointments")
@@ -243,6 +250,7 @@ export async function setAppointmentStatusAction(
 export async function deleteAppointmentAction(
   appointmentId: string,
 ): Promise<ActionResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { error } = await db
     .from("appointments")
@@ -267,8 +275,9 @@ export async function replyToCheckInAction(
   checkInId: string,
   reply: string,
 ): Promise<ActionResult> {
+  const t = getT();
   const text = reply.trim();
-  if (text === "") return { ok: false, error: "Die Antwort ist leer." };
+  if (text === "") return { ok: false, error: t.coach.actions.replyEmpty };
 
   const db = createServerSupabase();
   const { error } = await db
@@ -304,10 +313,11 @@ export async function updateCheckInConfigAction(
     measureEveryWeeks: number;
   },
 ): Promise<ActionResult> {
+  const t = getT();
   if (fields.measureEveryWeeks < 1 || fields.measureEveryWeeks > 26) {
     return {
       ok: false,
-      error: "Der Rhythmus muss zwischen 1 und 26 Wochen liegen.",
+      error: t.coach.actions.rhythmRange,
     };
   }
 
@@ -343,6 +353,7 @@ export type InviteResult =
 export async function createInviteAction(
   clientId: string,
 ): Promise<InviteResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { data, error } = await db.rpc("create_client_invite", {
     target_client: clientId,
@@ -380,13 +391,14 @@ export type UnlinkResult =
 export async function unlinkClientAction(
   clientId: string,
 ): Promise<UnlinkResult> {
+  const t = getT();
   const db = createServerSupabase();
   const { data, error } = await db.rpc("unlink_client", {
     target_client: clientId,
   });
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
 
   revalidatePath(`/coach/clients/${clientId}`);
-  return { ok: true, hinweis: data as string };
+  return { ok: true, hinweis: dbHinweis(t, data as string) };
 }

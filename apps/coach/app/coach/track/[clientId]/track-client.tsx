@@ -10,9 +10,7 @@ import type {
 } from "@ptfive/types";
 import {
   beatsBest,
-  bestLabel,
   markBefore,
-  volumeLabel,
   type AttemptSet,
 } from "@ptfive/coach-engine";
 import { IconCheck, IconChevronRight, IconX } from "@/app/icons";
@@ -23,9 +21,9 @@ import {
   restLabel,
   MUSCLE_CHOICES,
 } from "@/app/components";
-import { WEEKDAY_SHORT } from "@/app/plan-week";
+
 import { trackSessionAction, type TrackedSlotInput } from "../actions";
-import { dateMedium } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 import {
   DEFAULT_REST_SECONDS,
   clock,
@@ -150,6 +148,9 @@ export function TrackWorkout({
   lastEfforts: Record<string, TrackLastEffort>;
   bodyWeightKg: number | null;
 }) {
+  const t = useT();
+  const R = t.coach.track;
+  const L = t.athlete.log;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -406,7 +407,8 @@ export function TrackWorkout({
               ...s,
               sets: s.sets.map((set) => ({
                 ...set,
-                weight: last.weightKg === 0 ? "" : String(last.weightKg),
+                // In der Schreibweise der Sprache: „82,5" statt „82.5".
+                weight: last.weightKg === 0 ? "" : t.fmt.num(last.weightKg),
                 reps: set.reps === "" ? String(last.reps) : set.reps,
               })),
             }
@@ -455,7 +457,7 @@ export function TrackWorkout({
       .filter((s) => s.sets.length > 0);
 
     if (payload.length === 0) {
-      setError("Trag mindestens einen Satz mit Wiederholungen ein.");
+      setError(L.needOneSet);
       return;
     }
 
@@ -463,7 +465,9 @@ export function TrackWorkout({
       const res = await trackSessionAction(
         clientId,
         payload,
-        day?.title ?? "Training",
+        // Ohne Plantag setzt die Action den Standardtitel in der Sprache
+        // des Trainers.
+        day?.title ?? "",
         {
           planId: day ? planId : null,
           planDayId: day?.id ?? null,
@@ -503,7 +507,7 @@ export function TrackWorkout({
             <IconCheck size={30} strokeWidth={2.6} />
           </div>
           <h1 style={{ margin: "0 0 6px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-            Gespeichert
+            {R.saved}
           </h1>
           <p
             style={{
@@ -513,10 +517,12 @@ export function TrackWorkout({
               lineHeight: 1.55,
             }}
           >
-            {filledSets} {filledSets === 1 ? "Satz" : "Sätze"} für {clientName},{" "}
-            {volumeLabel(volume)}
-            {elapsed > 0 && `, ${clock(elapsed)} Trainingszeit`}. Die Einheit
-            ist als von dir erfasst gespeichert.
+            {R.savedBody(
+              filledSets,
+              clientName,
+              t.engine.volume(volume),
+              elapsed > 0 ? clock(elapsed) : null,
+            )}
           </p>
           <div style={{ display: "grid", gap: 8, marginTop: 20 }}>
             <Link
@@ -524,14 +530,14 @@ export function TrackWorkout({
               className="pt-btn"
               style={{ textAlign: "center" }}
             >
-              Zur Klientenakte
+              {R.toFile}
             </Link>
             <Link
               href="/coach/track"
               className="pt-btn pt-btn--ghost"
               style={{ textAlign: "center" }}
             >
-              Nächster Klient
+              {R.nextClient}
             </Link>
           </div>
         </div>
@@ -546,7 +552,7 @@ export function TrackWorkout({
         <TrackBar clientName={clientName} clientId={clientId} />
         <main className="pt-shell" style={{ paddingTop: 18, maxWidth: 560 }}>
           <h1 style={{ margin: "0 0 4px", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
-            Was macht ihr heute?
+            {R.whatToday}
           </h1>
           <p
             style={{
@@ -555,7 +561,7 @@ export function TrackWorkout({
               color: "var(--pt-text-dim)",
             }}
           >
-            {planName ? planName : "Kein aktiver Plan"}
+            {planName ? planName : R.noActivePlan}
           </p>
 
           <div style={{ display: "grid", gap: 8 }}>
@@ -571,7 +577,7 @@ export function TrackWorkout({
                     {d.title}
                     {suggested?.id === d.id && (
                       <span className="pt-chip" style={{ marginLeft: 8 }}>
-                        dran
+                        {R.due}
                       </span>
                     )}
                   </span>
@@ -583,10 +589,10 @@ export function TrackWorkout({
                       marginTop: 2,
                     }}
                   >
-                    {d.slots.length} Übungen
+                    {L.exercises(d.slots.length)}
                     {d.weekdays.length > 0 &&
-                      ` · ${d.weekdays.map((w) => WEEKDAY_SHORT[w - 1]).join(" + ")}`}
-                    {d.isGuided && " · mit Trainer"}
+                      ` · ${d.weekdays.map((w) => t.time.weekdayShort[w - 1]).join(" + ")}`}
+                    {d.isGuided && R.withCoach}
                   </span>
                 </span>
                 <IconChevronRight size={17} />
@@ -601,7 +607,7 @@ export function TrackWorkout({
             >
               <span>
                 <span style={{ display: "block", fontWeight: 600 }}>
-                  Freies Training
+                  {L.freeTraining}
                 </span>
                 <span
                   style={{
@@ -611,7 +617,7 @@ export function TrackWorkout({
                     marginTop: 2,
                   }}
                 >
-                  Übungen einzeln zusammenstellen
+                  {R.composeFree}
                 </span>
               </span>
               <IconChevronRight size={17} />
@@ -637,11 +643,11 @@ export function TrackWorkout({
             onClick={() => (group ? setGroup(null) : setPicking(false))}
             style={{ marginBottom: 14, width: "auto", padding: "0 14px" }}
           >
-            ← Zurück
+            {R.back}
           </button>
 
           <h1 style={{ margin: "0 0 14px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-            {group ? muscleLabel(group) : "Welche Muskelgruppe?"}
+            {group ? muscleLabel(t, group) : R.whichGroup}
           </h1>
 
           <div style={{ display: "grid", gap: 8 }}>
@@ -653,7 +659,7 @@ export function TrackWorkout({
                     className="pt-pickrow"
                     onClick={() => setGroup(g)}
                   >
-                    <span style={{ fontWeight: 600 }}>{muscleLabel(g)}</span>
+                    <span style={{ fontWeight: 600 }}>{muscleLabel(t, g)}</span>
                     <IconChevronRight size={17} />
                   </button>
                 ))
@@ -677,10 +683,10 @@ export function TrackWorkout({
                             marginTop: 2,
                           }}
                         >
-                          Best:{" "}
+                          {R.best}:{" "}
                           {bests[e.id]!.isBodyweight
-                            ? `${bests[e.id]!.reps} Wdh.`
-                            : `${bests[e.id]!.weightKg} kg × ${bests[e.id]!.reps}`}
+                            ? t.athlete.home.reps(bests[e.id]!.reps)
+                            : `${t.fmt.num(bests[e.id]!.weightKg)} kg × ${bests[e.id]!.reps}`}
                         </span>
                       )}
                     </span>
@@ -709,7 +715,7 @@ export function TrackWorkout({
         >
           <div style={{ minWidth: 0 }}>
             <h1 style={{ margin: "0 0 2px", fontSize: "var(--pt-fs-xl)", fontWeight: 700 }}>
-              {day ? day.title : "Freies Training"}
+              {day ? day.title : L.freeTraining}
             </h1>
             <p
               style={{
@@ -718,8 +724,7 @@ export function TrackWorkout({
                 color: "var(--pt-text-dim)",
               }}
             >
-              {filledSets} {filledSets === 1 ? "Satz" : "Sätze"} ·{" "}
-              {volumeLabel(volume)}
+              {R.sets(filledSets)} · {t.engine.volume(volume)}
             </p>
           </div>
 
@@ -732,7 +737,7 @@ export function TrackWorkout({
               data-paused={paused}
               role="timer"
               aria-live="off"
-              aria-label="Trainingsdauer"
+              aria-label={R.duration}
             >
               {clock(elapsed)}
             </span>
@@ -740,8 +745,8 @@ export function TrackWorkout({
               type="button"
               className="pt-timerbtn"
               onClick={togglePause}
-              aria-label={paused ? "Uhr fortsetzen" : "Uhr anhalten"}
-              title={paused ? "Fortsetzen" : "Anhalten"}
+              aria-label={paused ? L.resumeClock : L.pauseClock}
+              title={paused ? L.resume : R.pause}
             >
               {paused ? "▶" : "❚❚"}
             </button>
@@ -780,6 +785,7 @@ export function TrackWorkout({
                     }}
                   >
                     {muscleLabel(
+                      t,
                       slot.plan?.muscleGroup ?? slot.exercise.muscleGroup,
                     )}
                     {slot.plan &&
@@ -789,12 +795,12 @@ export function TrackWorkout({
                           : ""
                       }`}
                     {slot.plan?.restSeconds != null &&
-                      ` · Pause ${restLabel(slot.plan.restSeconds)}`}
+                      ` · ${t.common.rest} ${restLabel(slot.plan.restSeconds)}`}
                     {pb &&
-                      ` · Best ${
+                      ` · ${R.best} ${
                         pb.isBodyweight
-                          ? `${pb.reps} Wdh.`
-                          : `${pb.weightKg} kg × ${pb.reps}`
+                          ? t.athlete.home.reps(pb.reps)
+                          : `${t.fmt.num(pb.weightKg)} kg × ${pb.reps}`
                       }`}
                   </p>
                   {body !== null && (
@@ -805,15 +811,14 @@ export function TrackWorkout({
                         color: "var(--pt-text-dim)",
                       }}
                     >
-                      Zählt mit {body} kg Körpergewicht — ins kg-Feld nur den
-                      Zusatz.
+                      {R.bodyLoad(t.fmt.num(body))}
                     </p>
                   )}
                 </div>
                 <button
                   type="button"
                   className="pt-iconbtn"
-                  aria-label={`${slot.exercise.name} entfernen`}
+                  aria-label={R.removeExercise(slot.exercise.name)}
                   onClick={() => removeSlot(slot.key)}
                   style={{ flex: "none" }}
                 >
@@ -828,9 +833,14 @@ export function TrackWorkout({
                   onClick={() => applyLast(slot.key, last)}
                   style={{ marginTop: 10 }}
                 >
-                  Letztes Mal:{" "}
-                  {last.weightKg === 0 ? "KG" : `${last.weightKg} kg`} ×{" "}
-                  {last.reps} ({dateMedium(new Date(last.on))}) — übernehmen
+                  {R.lastTime(
+                    `${
+                      last.weightKg === 0
+                        ? t.coach.file.bwShort
+                        : `${t.fmt.num(last.weightKg)} kg`
+                    } × ${last.reps}`,
+                    t.fmt.dateMedium(new Date(last.on)),
+                  )}
                 </button>
               )}
 
@@ -838,7 +848,7 @@ export function TrackWorkout({
                 <div className="pt-trackhead">
                   <span />
                   <span>{body !== null ? "+ kg" : "kg"}</span>
-                  <span>Wdh.</span>
+                  <span>{t.engine.units.reps}</span>
                   <span>RIR</span>
                   <span />
                 </div>
@@ -868,7 +878,7 @@ export function TrackWorkout({
                       onChange={(e) =>
                         updateCell(slot.key, i, "weight", e.target.value)
                       }
-                      aria-label={`Satz ${i + 1} Gewicht`}
+                      aria-label={R.setWeight(i + 1)}
                     />
                     <input
                       inputMode="numeric"
@@ -877,7 +887,7 @@ export function TrackWorkout({
                         updateCell(slot.key, i, "reps", e.target.value)
                       }
                       onBlur={() => commitSet(slot, i)}
-                      aria-label={`Satz ${i + 1} Wiederholungen`}
+                      aria-label={R.setReps(i + 1)}
                     />
                     <input
                       inputMode="numeric"
@@ -885,13 +895,13 @@ export function TrackWorkout({
                       onChange={(e) =>
                         updateCell(slot.key, i, "rir", e.target.value)
                       }
-                      aria-label={`Satz ${i + 1} RIR`}
+                      aria-label={R.setRir(i + 1)}
                     />
                     <button
                       type="button"
                       className="pt-iconbtn"
                       disabled={slot.sets.length <= 1}
-                      aria-label={`Satz ${i + 1} löschen`}
+                      aria-label={L.deleteSet(i + 1)}
                       onClick={() => removeSet(slot.key, i)}
                     >
                       <IconX size={14} />
@@ -899,7 +909,7 @@ export function TrackWorkout({
 
                     {rekord && (
                       <span className="pt-best" aria-live="polite">
-                        {bestLabel(rekord)}
+                        {t.engine.best(rekord)}
                       </span>
                     )}
                   </div>
@@ -920,7 +930,7 @@ export function TrackWorkout({
                   onClick={() => addSet(slot.key)}
                   style={{ flex: 1, minHeight: 40, fontSize: "var(--pt-fs-base)" }}
                 >
-                  Satz hinzufügen
+                  {L.addSet}
                 </button>
                 {/* Pause von Hand — für alles, was die Automatik nicht
                     trifft: ein Satz ohne Eintrag, ein Aufwärmsatz, oder
@@ -936,7 +946,7 @@ export function TrackWorkout({
                   }
                   style={{ flex: "none", minHeight: 40, fontSize: "var(--pt-fs-base)" }}
                 >
-                  Pause
+                  {L.rest}
                 </button>
               </div>
             </div>
@@ -956,7 +966,7 @@ export function TrackWorkout({
             className="pt-btn pt-btn--ghost"
             onClick={() => setPicking(true)}
           >
-            Übung hinzufügen
+            {L.addExercise}
           </button>
 
           {error && (
@@ -978,9 +988,9 @@ export function TrackWorkout({
             disabled={pending}
           >
             {pending ? (
-              <Spinner size={15} label="Speichert" />
+              <Spinner size={15} label={t.athlete.progress.picker.saving} />
             ) : (
-              `Einheit für ${clientName} speichern`
+              R.saveFor(clientName)
             )}
           </button>
         </div>
@@ -1013,7 +1023,7 @@ export function TrackWorkout({
             <div className="pt-rest__row">
               <div style={{ minWidth: 0 }}>
                 <p className="pt-rest__label">
-                  {restLeft === 0 ? "Pause vorbei" : "Pause"}
+                  {restLeft === 0 ? L.restOver : L.rest}
                 </p>
                 <p className="pt-rest__time">{restClock(restLeft)}</p>
               </div>
@@ -1024,7 +1034,7 @@ export function TrackWorkout({
                   onClick={() =>
                     setRest((r) => (r ? shiftRest(r, -15, Date.now()) : r))
                   }
-                  aria-label="Pause um 15 Sekunden kürzen"
+                  aria-label={L.restShorter}
                 >
                   −15
                 </button>
@@ -1033,19 +1043,17 @@ export function TrackWorkout({
                   onClick={() =>
                     setRest((r) => (r ? shiftRest(r, 15, Date.now()) : r))
                   }
-                  aria-label="Pause um 15 Sekunden verlängern"
+                  aria-label={L.restLonger}
                 >
                   +15
                 </button>
                 <button
                   type="button"
                   onClick={() => setRest(null)}
-                  aria-label={
-                    restLeft === 0 ? "Ausblenden" : "Pause überspringen"
-                  }
+                  aria-label={restLeft === 0 ? L.hide : L.skipRest}
                   data-primary
                 >
-                  {restLeft === 0 ? "Weiter" : "Skip"}
+                  {restLeft === 0 ? L.next : L.skip}
                 </button>
               </div>
             </div>
@@ -1070,12 +1078,14 @@ function TrackBar({
   clientName: string;
   clientId: string;
 }) {
+  const t = useT();
   return (
     <div className="pt-trackbar">
       <span>
-        Du trackst für <strong>{clientName}</strong>
+        {t.coach.track.trackingFor}
+        <strong>{clientName}</strong>
       </span>
-      <Link href={`/coach/clients/${clientId}`}>Abbrechen</Link>
+      <Link href={`/coach/clients/${clientId}`}>{t.common.cancel}</Link>
     </div>
   );
 }

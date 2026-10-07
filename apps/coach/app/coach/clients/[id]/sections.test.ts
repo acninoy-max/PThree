@@ -3,9 +3,10 @@ import assert from "node:assert/strict";
 import {
   SECTION_KEYS,
   resolveSections,
-  sectionLabel,
   type StoredSection,
 } from "./sections";
+import { de } from "../../../i18n/de";
+import { en } from "../../../i18n/en";
 
 const gespeichert = (
   section: string,
@@ -104,10 +105,15 @@ describe("resolveSections", () => {
   });
 });
 
-describe("sectionLabel", () => {
-  it("jeder Schluessel hat eine Beschriftung", () => {
-    for (const key of SECTION_KEYS) {
-      assert.notEqual(sectionLabel(key), key);
+describe("Beschriftung", () => {
+  it("jeder Schluessel hat in beiden Sprachen Name und Erklärung", () => {
+    // Ein neuer Abschnitt ohne Eintrag fiele sonst erst im Browser auf —
+    // tsc fängt fehlende Schlüssel in `en` nur, wenn `de` ihn hat.
+    for (const d of [de, en]) {
+      for (const key of SECTION_KEYS) {
+        assert.ok(d.coach.sections[key]?.label, `${key}: label`);
+        assert.ok(d.coach.sections[key]?.hint, `${key}: hint`);
+      }
     }
   });
 });

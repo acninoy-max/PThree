@@ -18,11 +18,9 @@ import {
   analyseClient,
   comparableExercisePoints,
   defaultExerciseSelection,
-  deltaLabel,
   exerciseHistory,
   loggedExercises,
   volumeByDay,
-  volumeLabel,
 } from "@ptfive/coach-engine";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
@@ -36,7 +34,7 @@ import { ManageClient } from "./manage";
 import { ClientAppointments } from "./appointments";
 import { ClientPlan } from "./plan";
 import { CheckInConfig } from "./checkin-config";
-import { dateMedium } from "@/app/format";
+import { getT } from "@/app/i18n/server";
 import { ViewSettings } from "./view-settings";
 import { ClientPhotos } from "./photos";
 import { resolveSections, type SectionKey } from "./sections";
@@ -78,6 +76,8 @@ export default async function ClientDetailPage({
   params: { id: string };
   searchParams: { neu?: string };
 }) {
+  const t = getT();
+  const A = t.coach.file;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -134,8 +134,8 @@ export default async function ClientDetailPage({
     const ex = exercises.get(e.exerciseId);
     return {
       id: e.exerciseId,
-      name: ex?.name ?? "Übung",
-      muscleLabel: ex ? muscleLabel(ex.muscleGroup) : "—",
+      name: ex?.name ?? t.athlete.progress.fallbackExercise,
+      muscleLabel: ex ? muscleLabel(t, ex.muscleGroup) : "—",
       sets: e.sets,
       lastPerformedAt: e.lastPerformedAt,
     };
@@ -151,7 +151,7 @@ export default async function ClientDetailPage({
       const rein = comparableExercisePoints(punkte);
       return {
         id,
-        name: exercises.get(id)?.name ?? "Übung",
+        name: exercises.get(id)?.name ?? t.athlete.progress.fallbackExercise,
         points: rein,
         // Die Veränderung wird hier NICHT mehr vorgerechnet: Sie hängt
         // am Umschalter Bestleistung/Volumen, und den bedient der
@@ -185,7 +185,7 @@ export default async function ClientDetailPage({
 
   const openCheckIns = checkInItems.filter((c) => !c.coachReply);
   // Dieselben Reihen wie in der Athleten-App — eine Quelle, ein Bild.
-  const bodySeries = buildSeries(checkIns);
+  const bodySeries = buildSeries(t, checkIns);
 
   const upcoming = allUpcoming.filter(
     (a) => a.clientId === client.id && a.status === "scheduled",
@@ -209,7 +209,7 @@ export default async function ClientDetailPage({
       points,
     }))
     .filter((d) => d.points.length >= 2)
-    .sort((a, b) => a.title.localeCompare(b.title, "de"));
+    .sort((a, b) => a.title.localeCompare(b.title, t.locale));
 
   /**
    * Die Akte, in Blöcken.
@@ -227,7 +227,7 @@ export default async function ClientDetailPage({
     goal: client.goal ? (
       <div style={{ marginBottom: 22 }}>
         <p className="pt-label" style={{ marginBottom: 10 }}>
-          Ziele & Notizen
+          {A.goals}
         </p>
         <div className="pt-card">
           {/* Zeilenumbrüche erhalten — der Coach tippt hier Stichpunkte. */}
@@ -248,19 +248,19 @@ export default async function ClientDetailPage({
     insights: (
       <div style={{ marginBottom: 22 }}>
         <p className="pt-label" style={{ marginBottom: 10 }}>
-          Coach-Hinweise
+          {A.hints}
         </p>
         {insights.length === 0 ? (
           <div className="pt-card">
             <p
               style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
             >
-              Nichts zu melden — läuft.
+              {A.nothing}
             </p>
           </div>
         ) : (
           insights.map((i) => (
-            <InsightCard key={i.id} insight={i} clientName={client.fullName} />
+            <InsightCard key={i.id} t={t} insight={i} clientName={client.fullName} />
           ))
         )}
       </div>
@@ -278,18 +278,17 @@ export default async function ClientDetailPage({
           }}
         >
           <p className="pt-label" style={{ margin: 0 }}>
-            Check-ins
+            {A.checkins}
             {openCheckIns.length > 0 && (
               <span style={{ color: "var(--pt-action)" }}>
-                {" "}
-                · {openCheckIns.length} offen
+                {A.open(openCheckIns.length)}
               </span>
             )}
           </p>
           <div style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
             <CheckInConfig clientId={client.id} fields={checkInFields} />
             <Link href="/coach/checkins" style={{ fontSize: "var(--pt-fs-base)" }}>
-              Alle Check-ins
+              {A.allCheckins}
             </Link>
           </div>
         </div>
@@ -299,9 +298,7 @@ export default async function ClientDetailPage({
             <p
               style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
             >
-              {client.profileId === null
-                ? "Noch kein Zugang eingerichtet — ohne App-Konto kann der Klient kein Check-in abschicken."
-                : "Noch kein Check-in abgeschickt."}
+              {client.profileId === null ? A.noAccessNoCheckin : A.noCheckin}
             </p>
           </div>
         ) : (
@@ -338,12 +335,12 @@ export default async function ClientDetailPage({
       bodySeries.length > 0 ? (
         <div style={{ marginBottom: 22 }}>
           <p className="pt-label" style={{ marginBottom: 10 }}>
-            Körperwerte
+            {A.bodyValues}
           </p>
           <div className="pt-card">
             <MetricChart
               series={bodySeries}
-              emptyHint="Noch keine Werte gemeldet."
+              emptyHint={A.noValues}
             />
           </div>
         </div>
@@ -369,7 +366,7 @@ export default async function ClientDetailPage({
       volumenTage.length > 0 ? (
         <div style={{ marginBottom: 22 }}>
           <p className="pt-label" style={{ marginBottom: 10 }}>
-            Volumen je Trainingstag
+            {A.volumePerDay}
           </p>
           <div className="pt-card" style={{ display: "grid", gap: 12 }}>
             {volumenTage.map((d) => {
@@ -402,7 +399,7 @@ export default async function ClientDetailPage({
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {volumeLabel(letzte.volumeKg)}
+                      {t.engine.volume(letzte.volumeKg)}
                       {/* Die Veränderung direkt an der Zahl, nicht erst in
                           der Zeile darunter — das war der Wunsch aus dem
                           Meeting. Ohne Farbe: mehr Volumen ist nicht
@@ -415,7 +412,7 @@ export default async function ClientDetailPage({
                           }}
                         >
                           {" "}
-                          {deltaLabel(delta, "kg")}
+                          {t.fmt.signed(delta)} kg
                         </span>
                       )}
                     </span>
@@ -428,13 +425,9 @@ export default async function ClientDetailPage({
                       lineHeight: 1.45,
                     }}
                   >
-                    {prozent === null
-                      ? `${d.points.length} Einheiten`
-                      : prozent === 0
-                        ? `unverändert · ${d.points.length} Einheiten`
-                        : `${prozent > 0 ? "+" : "−"}${Math.abs(prozent)} % zur vorigen · ${d.points.length} Einheiten`}
+                    {A.dayLine(prozent, d.points.length)}
                     {letzte.bodyweightSets > 0 &&
-                      ` · ${letzte.bodyweightSets} Sätze Körpergewicht`}
+                      A.bodyweightSets(letzte.bodyweightSets)}
                   </p>
                 </div>
               );
@@ -446,14 +439,14 @@ export default async function ClientDetailPage({
     sessions: (
       <div style={{ marginBottom: 22 }}>
         <p className="pt-label" style={{ marginBottom: 10 }}>
-          Letzte Einheiten
+          {A.lastSessions}
         </p>
         {recent.length === 0 ? (
           <div className="pt-card">
             <p
               style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
             >
-              Noch nichts geloggt.
+              {A.nothingLogged}
             </p>
           </div>
         ) : (
@@ -469,11 +462,11 @@ export default async function ClientDetailPage({
                 >
                   <span style={{ fontWeight: 500 }}>{s.title}</span>
                   <span style={{ fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
-                    {dateMedium(new Date(s.performedAt))}
+                    {t.fmt.dateMedium(new Date(s.performedAt))}
                     {/* Zwei verschiedene Aussagen: OB nach Plan trainiert
                         wurde, und WER eingetragen hat. */}
-                    {s.isSelfDirected ? " · ohne Plan" : ""}
-                    {s.recordedBy ? " · von dir erfasst" : ""}
+                    {s.isSelfDirected ? A.withoutPlan : ""}
+                    {s.recordedBy ? A.recordedByYou : ""}
                   </span>
                 </div>
                 {s.slots.map((slot) => (
@@ -491,7 +484,8 @@ export default async function ClientDetailPage({
                         liest die Einheit nach und sucht Namen, keine
                         Kategorien. */}
                     <span style={{ flex: 1, minWidth: 0, fontWeight: 500 }}>
-                      {exercises.get(slot.exerciseId)?.name ?? "Übung"}
+                      {exercises.get(slot.exerciseId)?.name ??
+                        t.athlete.progress.fallbackExercise}
                     </span>
                     <span
                       style={{
@@ -500,14 +494,14 @@ export default async function ClientDetailPage({
                         textAlign: "right",
                       }}
                     >
-                      {muscleLabel(slot.muscleGroup)}
+                      {muscleLabel(t, slot.muscleGroup)}
                     </span>
                     <span style={{ color: "var(--pt-text-dim)" }}>
                       {slot.sets
                         .map((set) =>
                           set.isBodyweight || set.weightKg === 0
-                            ? `${set.reps}×KG`
-                            : `${set.weightKg}×${set.reps}`,
+                            ? `${set.reps}×${A.bwShort}`
+                            : `${t.fmt.num(set.weightKg)}×${set.reps}`,
                         )
                         .join("  ·  ")}
                     </span>
@@ -529,7 +523,7 @@ export default async function ClientDetailPage({
           href="/coach/clients"
           style={{ fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
         >
-          ‹ Alle Klienten
+          {t.coach.clients.allClients}
         </Link>
 
         <div
@@ -552,8 +546,8 @@ export default async function ClientDetailPage({
                 color: "var(--pt-text-dim)",
               }}
             >
-              {client.level} · dabei seit{" "}
-              {dateMedium(parseDay(client.startedOn))}
+              {t.labels.level[client.level]} ·{" "}
+              {A.since(t.fmt.dateMedium(parseDay(client.startedOn)))}
             </p>
           </div>
 

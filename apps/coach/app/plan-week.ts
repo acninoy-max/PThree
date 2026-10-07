@@ -1,24 +1,5 @@
 import type { PlanDay, Session } from "@ptfive/types";
 
-export const WEEKDAY_SHORT = [
-  "Mo",
-  "Di",
-  "Mi",
-  "Do",
-  "Fr",
-  "Sa",
-  "So",
-] as const;
-export const WEEKDAY_LONG = [
-  "Montag",
-  "Dienstag",
-  "Mittwoch",
-  "Donnerstag",
-  "Freitag",
-  "Samstag",
-  "Sonntag",
-] as const;
-
 /**
  * Ein reines Datum („2026-09-04") als lokaler Tag.
  *
@@ -51,24 +32,14 @@ export function dayISO(d: Date): string {
  * eine Zeitumstellung hinweg sind das n·24h ± 1h — deshalb runden statt
  * abschneiden, sonst zählt der Wechsel auf Winterzeit einen Tag zu wenig.
  */
-export function sinceLabel(startsOn: string, today: Date): string {
+export function daysSince(startsOn: string, today: Date): number {
   const ref = new Date(today);
   ref.setHours(0, 0, 0, 0);
-  const days = Math.round(
+  return Math.round(
     (ref.getTime() - parseDay(startsOn).getTime()) / 86_400_000,
   );
-
-  if (days === 0) return "seit heute";
-  if (days === 1) return "seit gestern";
-  if (days === -1) return "ab morgen";
-  if (days < 0) return `startet in ${-days} Tagen`;
-  if (days < 14) return `seit ${days} Tagen`;
-
-  const weeks = Math.floor(days / 7);
-  if (weeks < 9) return `seit ${weeks} Wochen`;
-  const months = Math.round(days / 30.44);
-  return `seit ${months} Monaten`;
 }
+// Der Satz dazu („seit 3 Wochen") steht im Wörterbuch: t.time.since.
 
 /** ISO-Wochentag: 1 = Montag … 7 = Sonntag. */
 export function isoWeekday(d: Date): number {
@@ -104,15 +75,6 @@ export function estimateMinutes(
   return Math.max(5, Math.round(seconds / 60));
 }
 
-/** „unter 1 Std." liest sich besser als „57 Min". */
-export function durationLabel(minutes: number): string {
-  if (minutes === 0) return "—";
-  if (minutes < 60) return `${minutes} Min`;
-  if (minutes < 70) return "gut 1 Std.";
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m === 0 ? `${h} Std.` : `${h}:${String(m).padStart(2, "0")} Std.`;
-}
 
 export interface WeekSlotView {
   /** 1 = Montag … 7 = Sonntag. */
@@ -149,7 +111,7 @@ export function buildWeek(
     return d >= monday && d < sunday;
   });
 
-  return WEEKDAY_SHORT.map((_, i) => {
+  return Array.from({ length: 7 }, (_, i) => {
     const weekday = i + 1;
     const onThisDay = thisWeek.filter(
       (s) => isoWeekday(new Date(s.performedAt)) === weekday,

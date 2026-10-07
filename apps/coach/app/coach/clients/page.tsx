@@ -9,25 +9,13 @@ import { analyseClient } from "@ptfive/coach-engine";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { Avatar, EmptyState } from "@/app/components";
-import { weekdayDateTime } from "@/app/format";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_LABEL = {
-  active: "Aktiv",
-  paused: "Pausiert",
-  archived: "Archiviert",
-} as const;
-
-/** „vor 3 Tagen“ statt eines Datums — schneller zu erfassen. */
-function ago(iso: string): string {
-  const days = Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
-  if (days <= 0) return "heute";
-  if (days === 1) return "gestern";
-  if (days < 7) return `vor ${days} Tagen`;
-  if (days < 14) return "vor 1 Woche";
-  if (days < 60) return `vor ${Math.floor(days / 7)} Wochen`;
-  return `vor ${Math.floor(days / 30)} Monaten`;
+/** Ganze Tage seit einem Zeitpunkt. Der Satz dazu: t.coach.clients.lastTrained. */
+function daysAgo(iso: string): number {
+  return Math.floor((Date.now() - Date.parse(iso)) / 86_400_000);
 }
 
 function Chip({
@@ -62,6 +50,8 @@ function Chip({
 }
 
 export default async function ClientsPage() {
+  const t = getT();
+  const C = t.coach.clients;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -85,7 +75,8 @@ export default async function ClientsPage() {
   const rank = { active: 0, paused: 1, archived: 2 } as const;
   const sorted = [...clients].sort(
     (a, b) =>
-      rank[a.status] - rank[b.status] || a.fullName.localeCompare(b.fullName),
+      rank[a.status] - rank[b.status] ||
+      a.fullName.localeCompare(b.fullName, t.locale),
   );
 
   return (
@@ -103,25 +94,25 @@ export default async function ClientsPage() {
         >
           <div>
             <p className="pt-label" style={{ margin: 0 }}>
-              Betreuung
+              {C.kicker}
             </p>
             <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-              Klienten{" "}
+              {C.title}{" "}
               <span style={{ color: "var(--pt-text-dim)" }}>
                 {clients.length}
               </span>
             </h1>
           </div>
           <Link href="/coach/clients/new" className="pt-btn">
-            Klient anlegen
+            {C.create}
           </Link>
         </div>
 
         {clients.length === 0 ? (
           <EmptyState
-            title="Noch keine Klienten"
-            body="Leg deinen ersten Klienten an — oder spiel Demo-Daten ein, um die App mit echten Verläufen zu sehen."
-            hint="select seed_demo_data('deine@mail.de');"
+            title={C.none}
+            body={C.noneBody}
+            hint={t.coach.feed.seedHint}
           />
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
@@ -165,10 +156,10 @@ export default async function ClientsPage() {
                         {client.fullName}
                       </span>
                       {client.status !== "active" && (
-                        <Chip tone="muted">{STATUS_LABEL[client.status]}</Chip>
+                        <Chip tone="muted">{t.labels.clientStatus[client.status]}</Chip>
                       )}
                       {client.profileId === null && (
-                        <Chip tone="muted">kein App-Zugang</Chip>
+                        <Chip tone="muted">{C.noAppAccess}</Chip>
                       )}
                     </div>
 
@@ -194,19 +185,19 @@ export default async function ClientsPage() {
                                 fontWeight: 500,
                               }}
                             >
-                              {weekdayDateTime(new Date(nextAppt.startsAt))}
+                              {t.fmt.weekdayDateTime(new Date(nextAppt.startsAt))}
                             </strong>
                           </>
                         ) : (
-                          "kein Termin geplant"
+                          C.noAppointment
                         )}
                       </span>
                       <span>
                         {last
-                          ? `zuletzt trainiert ${ago(last.performedAt)}`
-                          : "noch nie trainiert"}
+                          ? C.lastTrained(daysAgo(last.performedAt))
+                          : C.neverTrained}
                       </span>
-                      <span>{own.length} Einheiten</span>
+                      <span>{C.sessions(own.length)}</span>
                     </div>
                   </div>
 
@@ -218,12 +209,10 @@ export default async function ClientsPage() {
                       justifySelf: "end",
                     }}
                   >
-                    {hasCheckIn && <Chip tone="good">Check-in</Chip>}
+                    {hasCheckIn && <Chip tone="good">{C.checkin}</Chip>}
                     {flags.length > 0 && (
                       <Chip tone="alert">
-                        {flags.length === 1
-                          ? "1 Hinweis"
-                          : `${flags.length} Hinweise`}
+                        {C.flags(flags.length)}
                       </Chip>
                     )}
                     <span style={{ color: "var(--pt-text-dim)", fontSize: "var(--pt-fs-xl)" }}>

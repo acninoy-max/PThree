@@ -34,6 +34,19 @@
  * über ein Bildelement laden, nicht über den rohen Datenstrom.
  */
 
+
+/**
+ * Fehler beim Verkleinern, mit Grund statt Satz.
+ *
+ * Der Satz dazu steht im Wörterbuch (`t.athlete.photos.shrink`) — diese
+ * Datei läuft ohne React und kennt die Sprache des Nutzers nicht.
+ */
+export class BildFehler extends Error {
+  constructor(public grund: "process" | "save" | "read") {
+    super(grund);
+  }
+}
+
 export interface ShrunkImage {
   blob: Blob;
   width: number;
@@ -64,7 +77,7 @@ export async function shrinkImage(
     leinwand.height = hoehe;
 
     const stift = leinwand.getContext("2d");
-    if (!stift) throw new Error("Bild konnte nicht verarbeitet werden.");
+    if (!stift) throw new BildFehler("process");
 
     // Glättung auf hoch: Ohne sie franst starkes Verkleinern aus.
     stift.imageSmoothingEnabled = true;
@@ -74,7 +87,7 @@ export async function shrinkImage(
     const blob = await new Promise<Blob | null>((fertig) =>
       leinwand.toBlob(fertig, "image/jpeg", QUALITAET),
     );
-    if (!blob) throw new Error("Bild konnte nicht gespeichert werden.");
+    if (!blob) throw new BildFehler("save");
 
     return { blob, width: breite, height: hoehe };
   } finally {
@@ -89,7 +102,7 @@ function laden(url: string): Promise<HTMLImageElement> {
     const bild = new Image();
     bild.onload = () => fertig(bild);
     bild.onerror = () =>
-      fehler(new Error("Die Datei konnte nicht als Bild gelesen werden."));
+      fehler(new BildFehler("read"));
     bild.src = url;
   });
 }

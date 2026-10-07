@@ -9,6 +9,7 @@ import {
   updateClientAction,
 } from "@/app/actions";
 import type { Client } from "@ptfive/types";
+import { useT } from "@/app/i18n/client";
 
 /**
  * Einladung und Stammdaten.
@@ -23,6 +24,8 @@ export function ManageClient({
   client: Client;
   hasAccount: boolean;
 }) {
+  const t = useT();
+  const M = t.coach.manage;
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
@@ -67,13 +70,13 @@ export function ManageClient({
       {/* Einladung */}
       <div className="pt-card">
         <p className="pt-label" style={{ margin: "0 0 8px" }}>
-          App-Zugang
+          {M.appAccess}
         </p>
 
         {hasAccount ? (
           <div style={{ display: "grid", gap: 10 }}>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "#1d6e56" }}>
-              Konto verknüpft — {client.fullName} kann die App nutzen.
+              {M.linked(client.fullName)}
             </p>
 
             {/* Der Ausweg, wenn sich jemand mit der falschen Adresse
@@ -87,7 +90,7 @@ export function ManageClient({
                 onClick={() => setConfirmUnlink(true)}
                 style={{ justifySelf: "start" }}
               >
-                Zugang trennen …
+                {M.unlink}
               </button>
             ) : (
               <div style={{ display: "grid", gap: 10 }}>
@@ -98,9 +101,7 @@ export function ManageClient({
                     lineHeight: 1.55,
                   }}
                 >
-                  Trennt die Verbindung zum Anmeldekonto. Pläne, Einheiten,
-                  Check-ins und Fotos von {client.fullName} bleiben
-                  vollständig erhalten — danach kannst du neu einladen.
+                  {M.unlinkExplain(client.fullName)}
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
@@ -119,14 +120,14 @@ export function ManageClient({
                       });
                     }}
                   >
-                    {pending ? "Trennt …" : "Trennen"}
+                    {pending ? M.unlinking : M.unlinkConfirm}
                   </button>
                   <button
                     type="button"
                     className="pt-btn pt-btn--ghost"
                     onClick={() => setConfirmUnlink(false)}
                   >
-                    Abbrechen
+                    {t.common.cancel}
                   </button>
                 </div>
               </div>
@@ -166,8 +167,7 @@ export function ManageClient({
                 lineHeight: 1.5,
               }}
             >
-              Noch kein Konto. Erzeuge einen Einladungslink und schick ihn per
-              WhatsApp oder Mail. Der Link gilt 14 Tage.
+              {M.noAccount}
             </p>
 
             {/* Seit 0024 steht die Adresse auf der Einladeseite fest —
@@ -183,9 +183,7 @@ export function ManageClient({
                   lineHeight: 1.5,
                 }}
               >
-                Für {client.fullName} ist keine E-Mail hinterlegt. Trag sie
-                unten bei den Stammdaten ein — dann steht sie in der
-                Einladung fest und kann nicht abweichen.
+                {M.noEmail(client.fullName)}
               </p>
             )}
 
@@ -199,7 +197,7 @@ export function ManageClient({
                 />
                 <div style={{ display: "flex", gap: 8 }}>
                   <button type="button" className="pt-btn" onClick={copy}>
-                    {copied ? "Kopiert" : "Link kopieren"}
+                    {copied ? M.copied : M.copyLink}
                   </button>
                   <button
                     type="button"
@@ -207,7 +205,7 @@ export function ManageClient({
                     onClick={invite}
                     disabled={pending}
                   >
-                    Neu erzeugen
+                    {M.regenerate}
                   </button>
                 </div>
                 <p
@@ -217,7 +215,7 @@ export function ManageClient({
                     color: "var(--pt-text-dim)",
                   }}
                 >
-                  Ein neuer Link macht den alten ungültig.
+                  {M.newInvalidatesOld}
                 </p>
               </div>
             ) : (
@@ -227,7 +225,7 @@ export function ManageClient({
                 onClick={invite}
                 disabled={pending}
               >
-                {pending ? "Moment …" : "Einladungslink erzeugen"}
+                {pending ? M.moment : M.createInvite}
               </button>
             )}
           </>
@@ -241,12 +239,12 @@ export function ManageClient({
         style={{ display: "grid", gap: 14 }}
       >
         <p className="pt-label" style={{ margin: 0 }}>
-          Stammdaten
+          {M.masterData}
         </p>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-            Name
+            {M.name}
           </span>
           <input name="fullName" defaultValue={client.fullName} />
         </label>
@@ -257,7 +255,7 @@ export function ManageClient({
         <div className="pt-cols">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              E-Mail
+              {M.email}
             </span>
             <input
               name="email"
@@ -268,7 +266,7 @@ export function ManageClient({
 
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              Geburtsdatum
+              {M.birthDate}
             </span>
             <input
               name="birthDate"
@@ -280,7 +278,7 @@ export function ManageClient({
 
         <label style={{ display: "grid", gap: 6 }}>
           <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-            Ziele & Notizen
+            {M.goals}
           </span>
           <textarea name="goal" rows={7} defaultValue={client.goal ?? ""} />
         </label>
@@ -288,29 +286,29 @@ export function ManageClient({
         <div className="pt-cols">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              Level
+              {M.level}
             </span>
             <select name="level" defaultValue={client.level}>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="pro">Pro</option>
+              <option value="beginner">{t.labels.level.beginner}</option>
+              <option value="intermediate">{t.labels.level.intermediate}</option>
+              <option value="pro">{t.labels.level.pro}</option>
             </select>
           </label>
 
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-              Status
+              {M.status}
             </span>
             <select name="status" defaultValue={client.status}>
-              <option value="active">Aktiv</option>
-              <option value="paused">Pausiert</option>
-              <option value="archived">Archiviert</option>
+              <option value="active">{t.labels.clientStatus.active}</option>
+              <option value="paused">{t.labels.clientStatus.paused}</option>
+              <option value="archived">{t.labels.clientStatus.archived}</option>
             </select>
           </label>
         </div>
 
         <p style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
-          Pausierte Klienten lösen keine Inaktivitäts-Hinweise mehr aus.
+          {M.pausedHint}
         </p>
 
         {error && (
@@ -325,10 +323,10 @@ export function ManageClient({
             className="pt-btn pt-btn--ghost"
             disabled={pending}
           >
-            {pending ? "Speichert …" : "Speichern"}
+            {pending ? M.saving : M.save}
           </button>
           {saved && (
-            <span style={{ fontSize: "var(--pt-fs-base)", color: "#1d6e56" }}>Gespeichert</span>
+            <span style={{ fontSize: "var(--pt-fs-base)", color: "#1d6e56" }}>{M.saved}</span>
           )}
         </div>
       </form>
@@ -340,7 +338,7 @@ export function ManageClient({
         style={{ borderTop: "3px solid var(--pt-action)" }}
       >
         <p className="pt-label" style={{ margin: "0 0 8px" }}>
-          Klient löschen
+          {M.deleteTitle}
         </p>
 
         {!confirmDelete ? (
@@ -353,8 +351,7 @@ export function ManageClient({
                 lineHeight: 1.55,
               }}
             >
-              Entfernt {client.fullName} samt Trainingshistorie, Terminen,
-              Check-ins und Notizen. Das lässt sich nicht rückgängig machen.
+              {M.deleteExplain(client.fullName)}
             </p>
             <button
               type="button"
@@ -362,7 +359,7 @@ export function ManageClient({
               onClick={() => setConfirmDelete(true)}
               style={{ color: "var(--pt-action)" }}
             >
-              Löschen …
+              {M.deleteStart}
             </button>
             <p
               style={{
@@ -372,14 +369,13 @@ export function ManageClient({
                 lineHeight: 1.5,
               }}
             >
-              Nur pausieren? Dann oben den Status auf „Pausiert“ setzen — die
-              Daten bleiben erhalten.
+              {M.pauseInstead}
             </p>
           </>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
             <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", lineHeight: 1.55 }}>
-              Zum Bestätigen den Namen eingeben:{" "}
+              {M.confirmName}{" "}
               <strong>{client.fullName}</strong>
             </p>
             <input
@@ -402,7 +398,7 @@ export function ManageClient({
                   });
                 }}
               >
-                {pending ? "Löscht …" : "Endgültig löschen"}
+                {pending ? M.deleting : M.deleteFinal}
               </button>
               <button
                 type="button"
@@ -412,7 +408,7 @@ export function ManageClient({
                   setConfirmText("");
                 }}
               >
-                Abbrechen
+                {t.common.cancel}
               </button>
             </div>
             {error && (

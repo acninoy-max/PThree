@@ -3,10 +3,13 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { EmptyState } from "@/app/components";
 import { CheckInInbox } from "./inbox";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function CheckInsPage() {
+  const t = getT();
+  const I = t.coach.inbox;
   const db = createServerSupabase();
   const {
     data: { user },
@@ -47,7 +50,7 @@ export default async function CheckInsPage() {
     }
     return {
       ...c,
-      clientName: names.get(c.clientId) ?? "Unbekannt",
+      clientName: names.get(c.clientId) ?? t.coach.feed.unknown,
       deltaKg,
     };
   });
@@ -61,19 +64,17 @@ export default async function CheckInsPage() {
       <main className="pt-shell">
         <div style={{ marginBottom: 20 }}>
           <p className="pt-label" style={{ margin: 0 }}>
-            Check-ins
+            {I.title}
           </p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-            {open.length === 0
-              ? "Alles beantwortet"
-              : `${open.length} ${open.length === 1 ? "wartet" : "warten"} auf dich`}
+            {open.length === 0 ? I.allAnswered : I.waiting(open.length)}
           </h1>
         </div>
 
         {items.length === 0 ? (
           <EmptyState
-            title="Noch keine Check-ins"
-            body="Sobald ein Klient sein wöchentliches Check-in abschickt, landet es hier — mit Gewichtsverlauf, Befinden und Notiz."
+            title={I.none}
+            body={I.noneBody}
           />
         ) : (
           <CheckInInbox open={open} answered={answered} />

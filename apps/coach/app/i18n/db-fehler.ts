@@ -31,3 +31,16 @@ export function dbFehler(t: Dict, meldung: string): string {
   }
   return t.fehler.db.unknown(meldung);
 }
+
+/**
+ * Erfolgsmeldungen, die eine Funktion als Text zurückgibt (`returns
+ * text`) — derzeit nur `unlink_client`. Gleiche Regel: unbekannt heißt
+ * roh durchreichen.
+ */
+export function dbHinweis(t: Dict, satz: string): string {
+  if (satz.startsWith("Dieser Klient hat noch keinen Zugang")) {
+    return t.coach.actions.unlinkNone;
+  }
+  if (satz.startsWith("Verknuepfung geloest")) return t.coach.actions.unlinkDone;
+  return satz;
+}

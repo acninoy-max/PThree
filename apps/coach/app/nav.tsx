@@ -13,20 +13,28 @@ import {
   IconLibrary,
   IconLogout,
 } from "@/app/icons";
+import { useT } from "@/app/i18n/client";
+import { Sprachwahl } from "@/app/i18n/sprachwahl";
+import type { Dict } from "@/app/i18n";
 
-const LINKS = [
-  { href: "/coach", label: "Feed", Icon: IconFeed },
-  { href: "/coach/clients", label: "Klienten", Icon: IconClients },
-  { href: "/coach/track", label: "Tracken", Icon: IconDumbbell },
-  { href: "/coach/schedule", label: "Kalender", Icon: IconCalendar },
-  { href: "/coach/checkins", label: "Check-ins", Icon: IconCheckIn },
+const LINKS: {
+  href: string;
+  label: keyof Dict["nav"];
+  Icon: typeof IconFeed;
+}[] = [
+  { href: "/coach", label: "feed", Icon: IconFeed },
+  { href: "/coach/clients", label: "clients", Icon: IconClients },
+  { href: "/coach/track", label: "track", Icon: IconDumbbell },
+  { href: "/coach/schedule", label: "calendar", Icon: IconCalendar },
+  { href: "/coach/checkins", label: "checkins", Icon: IconCheckIn },
   // Eigenes Symbol, nicht noch einmal die Hantel: „Tracken" und
   // „Übungen" trugen dieselbe, und zwei Nachbarn mit demselben
   // Zeichen heben die Unterscheidung auf, für die Zeichen da sind.
-  { href: "/coach/exercises", label: "Übungen", Icon: IconLibrary },
+  { href: "/coach/exercises", label: "exercises", Icon: IconLibrary },
 ];
 
 export function Nav({ coachName }: { coachName: string }) {
+  const t = useT();
   const path = usePathname();
 
   async function signOut() {
@@ -40,7 +48,7 @@ export function Nav({ coachName }: { coachName: string }) {
         <div className="pt-shell pt-header__inner">
           <Link
             href="/coach"
-            aria-label="PTHREE — zur Startseite"
+            aria-label={t.common.toHome}
             style={{ display: "flex", flex: "none" }}
           >
             <Image
@@ -56,7 +64,7 @@ export function Nav({ coachName }: { coachName: string }) {
           {/* Klasse statt Inline-Style: Ein `style`-Attribut schlaegt
               jede Regel aus dem Stylesheet, egal wie spezifisch. Genau
               daran ist das Ausblenden auf dem Handy gescheitert. */}
-          <nav className="pt-headernav" aria-label="Hauptnavigation">
+          <nav className="pt-headernav" aria-label={t.nav.main}>
             {LINKS.map(({ href, label, Icon }) => {
               // "/coach" ist Präfix aller Unterseiten — daher exakter Vergleich.
               const active =
@@ -74,13 +82,14 @@ export function Nav({ coachName }: { coachName: string }) {
                     filled={active}
                     strokeWidth={active ? 2 : 1.8}
                   />
-                  <span>{label}</span>
+                  <span>{t.nav[label]}</span>
                 </Link>
               );
             })}
           </nav>
 
           <div className="pt-header__right">
+            <Sprachwahl kurz />
             <span
               style={{
                 fontSize: "var(--pt-fs-base)",
@@ -94,8 +103,8 @@ export function Nav({ coachName }: { coachName: string }) {
               type="button"
               onClick={signOut}
               className="pt-iconbtn"
-              aria-label="Abmelden"
-              title="Abmelden"
+              aria-label={t.common.signOut}
+              title={t.common.signOut}
             >
               <IconLogout size={18} />
             </button>
@@ -118,7 +127,7 @@ export function Nav({ coachName }: { coachName: string }) {
         dafür gibt es kein Flackern beim Laden und keine Abhängigkeit von
         einer Bildschirmbreite, die der Server nicht kennt.
       */}
-      <nav className="pt-tabbar" aria-label="Hauptnavigation">
+      <nav className="pt-tabbar" aria-label={t.nav.main}>
         {LINKS.map(({ href, label, Icon }) => {
           const active =
             href === "/coach" ? path === "/coach" : path.startsWith(href);
@@ -136,7 +145,7 @@ export function Nav({ coachName }: { coachName: string }) {
                   strokeWidth={active ? 2 : 1.8}
                 />
               </span>
-              <span>{label}</span>
+              <span>{t.nav[label]}</span>
             </Link>
           );
         })}

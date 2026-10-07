@@ -4,16 +4,11 @@ import { useState, useTransition } from "react";
 import { createAppointmentAction } from "@/app/actions";
 import { IconX } from "@/app/icons";
 import type { ClientOption } from "./board";
+import { useT } from "@/app/i18n/client";
 
-const WEEKDAYS = [
-  { n: 1, label: "Mo" },
-  { n: 2, label: "Di" },
-  { n: 3, label: "Mi" },
-  { n: 4, label: "Do" },
-  { n: 5, label: "Fr" },
-  { n: 6, label: "Sa" },
-  { n: 7, label: "So" },
-];
+/** ISO-Wochentage, Montag = 1. Beschriftet über t.time.weekdayShort. */
+const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
+const LOCATIONS = ["gym", "park", "home", "online"] as const;
 
 const DURATIONS = [30, 45, 60, 75, 90];
 
@@ -35,6 +30,8 @@ export function NewAppointment({
   onClose: () => void;
   onDone: () => void;
 }) {
+  const t = useT();
+  const F = t.coach.apptForm;
   const selectable = clients.filter((c) => c.status !== "archived");
 
   const [clientId, setClientId] = useState(
@@ -65,11 +62,11 @@ export function NewAppointment({
     setError(null);
 
     if (!clientId) {
-      setError("Bitte einen Klienten wählen.");
+      setError(F.pickClient);
       return;
     }
     if (repeat && weekdays.length === 0) {
-      setError("Bitte mindestens einen Wochentag wählen.");
+      setError(F.pickWeekday);
       return;
     }
 
@@ -96,7 +93,7 @@ export function NewAppointment({
       className="pt-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label="Termin anlegen"
+      aria-label={F.title}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -111,13 +108,13 @@ export function NewAppointment({
           }}
         >
           <h2 style={{ margin: 0, fontSize: "var(--pt-fs-xl)", fontWeight: 600 }}>
-            Termin anlegen
+            {F.title}
           </h2>
           <button
             type="button"
             className="pt-iconbtn"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={t.common.close}
           >
             <IconX />
           </button>
@@ -125,12 +122,12 @@ export function NewAppointment({
 
         {selectable.length === 0 ? (
           <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--pt-text-dim)" }}>
-            Du hast noch keine aktiven Klienten. Leg erst einen an.
+            {F.noClients}
           </p>
         ) : (
           <div style={{ display: "grid", gap: 16 }}>
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Klient</span>
+              <span className="pt-label">{F.client}</span>
               <select
                 value={clientId}
                 onChange={(e) => setClientId(e.target.value)}
@@ -138,7 +135,7 @@ export function NewAppointment({
                 {selectable.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
-                    {c.status === "paused" ? " (pausiert)" : ""}
+                    {c.status === "paused" ? F.paused : ""}
                   </option>
                 ))}
               </select>
@@ -149,7 +146,7 @@ export function NewAppointment({
                 Handybreite sind nicht bedienbar. */}
             <div className="pt-cols">
               <label style={{ display: "grid", gap: 6 }}>
-                <span className="pt-label">Datum</span>
+                <span className="pt-label">{F.date}</span>
                 <input
                   type="date"
                   value={date}
@@ -158,7 +155,7 @@ export function NewAppointment({
                 />
               </label>
               <label style={{ display: "grid", gap: 6 }}>
-                <span className="pt-label">Uhrzeit</span>
+                <span className="pt-label">{F.time}</span>
                 <input
                   type="time"
                   value={time}
@@ -173,7 +170,7 @@ export function NewAppointment({
                 className="pt-label"
                 style={{ display: "block", marginBottom: 7 }}
               >
-                Dauer
+                {F.duration}
               </span>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {DURATIONS.map((d) => (
@@ -184,7 +181,7 @@ export function NewAppointment({
                     data-active={duration === d}
                     onClick={() => setDuration(d)}
                   >
-                    {d} Min
+                    {F.minutes(d)}
                   </button>
                 ))}
               </div>
@@ -195,17 +192,10 @@ export function NewAppointment({
                 className="pt-label"
                 style={{ display: "block", marginBottom: 7 }}
               >
-                Ort
+                {F.place}
               </span>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {(
-                  [
-                    ["gym", "Studio"],
-                    ["park", "Park"],
-                    ["home", "Zuhause"],
-                    ["online", "Online"],
-                  ] as const
-                ).map(([value, label]) => (
+                {LOCATIONS.map((value) => (
                   <button
                     key={value}
                     type="button"
@@ -213,14 +203,14 @@ export function NewAppointment({
                     data-active={location === value}
                     onClick={() => setLocation(value)}
                   >
-                    {label}
+                    {t.labels.location[value]}
                   </button>
                 ))}
               </div>
               <input
                 value={locationNote}
                 onChange={(e) => setLocationNote(e.target.value)}
-                placeholder="Genauer Ort, optional — z. B. Trainmore Oost"
+                placeholder={F.placePlaceholder}
                 style={{ marginTop: 8 }}
               />
             </div>
@@ -247,14 +237,14 @@ export function NewAppointment({
                   style={{ width: 17, height: 17, minHeight: 0, padding: 0 }}
                 />
                 <span style={{ fontSize: "var(--pt-fs-md)", fontWeight: 500 }}>
-                  Wöchentlich wiederholen
+                  {F.repeat}
                 </span>
               </label>
 
               {repeat && (
                 <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
                   <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                    {WEEKDAYS.map(({ n, label }) => (
+                    {WEEKDAYS.map((n) => (
                       <button
                         key={n}
                         type="button"
@@ -263,20 +253,20 @@ export function NewAppointment({
                         onClick={() => toggleWeekday(n)}
                         aria-pressed={weekdays.includes(n)}
                       >
-                        {label}
+                        {t.time.weekdayShort[n - 1]}
                       </button>
                     ))}
                   </div>
 
                   <label style={{ display: "grid", gap: 6 }}>
-                    <span className="pt-label">Über wie viele Wochen</span>
+                    <span className="pt-label">{F.forWeeks}</span>
                     <select
                       value={weeks}
                       onChange={(e) => setWeeks(Number(e.target.value))}
                     >
                       {[4, 8, 12, 16, 26].map((w) => (
                         <option key={w} value={w}>
-                          {w} Wochen
+                          {F.weeks(w)}
                         </option>
                       ))}
                     </select>
@@ -290,20 +280,19 @@ export function NewAppointment({
                       lineHeight: 1.5,
                     }}
                   >
-                    Legt {count} einzelne Termine an. Jeder lässt sich später
-                    getrennt verschieben oder absagen.
+                    {F.seriesHint(count)}
                   </p>
                 </div>
               )}
             </div>
 
             <label style={{ display: "grid", gap: 6 }}>
-              <span className="pt-label">Notiz</span>
+              <span className="pt-label">{F.note}</span>
               <textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Optional — z. B. Fokus Rücken, Schulter schonen"
+                placeholder={F.notePlaceholder}
               />
             </label>
 
@@ -316,17 +305,17 @@ export function NewAppointment({
             <div style={{ display: "flex", gap: 8 }}>
               <button type="submit" className="pt-btn" disabled={pending}>
                 {pending
-                  ? "Legt an …"
+                  ? F.creating
                   : count > 1
-                    ? `${count} Termine anlegen`
-                    : "Termin anlegen"}
+                    ? F.createMany(count)
+                    : F.createOne}
               </button>
               <button
                 type="button"
                 className="pt-btn pt-btn--ghost"
                 onClick={onClose}
               >
-                Abbrechen
+                {t.common.cancel}
               </button>
             </div>
           </div>

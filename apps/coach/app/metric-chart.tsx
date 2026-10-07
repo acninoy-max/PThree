@@ -1,8 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { deltaLabel } from "@ptfive/coach-engine";
-import { dayMonthNumeric } from "@/app/format";
+import { useT } from "@/app/i18n/client";
 
 export interface SeriesPoint {
   /** YYYY-MM-DD. */
@@ -20,10 +19,10 @@ export interface Series {
 
 export type RangeKey = "1m" | "3m" | "all";
 
-const RANGES: { key: RangeKey; label: string; days: number | null }[] = [
-  { key: "1m", label: "1 Monat", days: 31 },
-  { key: "3m", label: "3 Monate", days: 92 },
-  { key: "all", label: "Alles", days: null },
+const RANGES: { key: RangeKey; days: number | null }[] = [
+  { key: "1m", days: 31 },
+  { key: "3m", days: 92 },
+  { key: "all", days: null },
 ];
 
 const W = 320;
@@ -78,6 +77,7 @@ export function MetricChart({
   series: Series[];
   emptyHint: string;
 }) {
+  const t = useT();
   const withData = useMemo(
     () => series.filter((s) => s.points.length > 0),
     [series],
@@ -151,14 +151,14 @@ export function MetricChart({
           key: s.key,
           // Knapp über dem letzten Punkt, nicht darauf.
           y: Math.min(Math.max(y - 7, PAD.top + 8), PAD.top + innerH),
-          text: deltaLabel(delta, s.unit),
+          text: `${t.fmt.signed(delta)} ${s.unit}`,
           color: s.color,
         },
       ];
     });
 
     return entzerren(roh, 11, PAD.top + innerH);
-  }, [shown, innerH]);
+  }, [shown, innerH, t]);
 
   /** Dieselben Zahlen für die Chips — dort auch bei vielen Reihen. */
   const deltaJeReihe = useMemo(() => {
@@ -167,13 +167,13 @@ export function MetricChart({
       if (s.points.length < 2) continue;
       const delta =
         s.points[s.points.length - 1]!.value - s.points[0]!.value;
-      m.set(s.key, deltaLabel(delta, s.unit));
+      m.set(s.key, `${t.fmt.signed(delta)} ${s.unit}`);
     }
     return m;
-  }, [shown]);
+  }, [shown, t]);
 
   /** Erster Tag im Zeitraum — Bezug für die Zahl, ausgeschrieben. */
-  const seit = times.length > 0 ? dayMonthNumeric(new Date(tMin)) : null;
+  const seit = times.length > 0 ? t.fmt.dayMonthNumeric(new Date(tMin)) : null;
 
   function toggle(key: string) {
     setHidden((prev) => {
@@ -210,7 +210,7 @@ export function MetricChart({
             data-active={range === r.key}
             onClick={() => setRange(r.key)}
           >
-            {r.label}
+            {t.chart.ranges[r.key]}
           </button>
         ))}
       </div>
@@ -219,7 +219,7 @@ export function MetricChart({
         viewBox={`0 0 ${W} ${H}`}
         style={{ width: "100%", height: "auto", display: "block" }}
         role="img"
-        aria-label={`Verlauf von ${shown.map((s) => s.label).join(", ")}`}
+        aria-label={t.chart.aria(shown.map((s) => s.label).join(", "))}
       >
         {/* Zwei Hilfslinien, damit die Fläche nicht leer wirkt. */}
         {[0.25, 0.75].map((f) => (
@@ -321,7 +321,7 @@ export function MetricChart({
               fill="currentColor"
               opacity={0.55}
             >
-              {dayMonthNumeric(new Date(tMin))}
+              {t.fmt.dayMonthNumeric(new Date(tMin))}
             </text>
             <text
               x={W - PAD.right}
@@ -331,7 +331,7 @@ export function MetricChart({
               fill="currentColor"
               opacity={0.55}
             >
-              {dayMonthNumeric(new Date(tMax))}
+              {t.fmt.dayMonthNumeric(new Date(tMax))}
             </text>
           </>
         )}
@@ -364,14 +364,14 @@ export function MetricChart({
               {latest && (
                 <span style={{ fontWeight: 700 }}>
                   {" "}
-                  {latest.value.toFixed(1).replace(".", ",")} {s.unit}
+                  {t.fmt.num(Math.round(latest.value * 10) / 10)} {s.unit}
                 </span>
               )}
               {delta && (
                 <span className="mc-chip__delta">
                   {delta}
                   {seit && (
-                    <span className="mc-chip__since"> seit {seit}</span>
+                    <span className="mc-chip__since"> {t.chart.since} {seit}</span>
                   )}
                 </span>
               )}
