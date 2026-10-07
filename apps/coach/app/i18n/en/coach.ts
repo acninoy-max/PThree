@@ -157,8 +157,6 @@ export const coach: Dict["coach"] = {
     tabs: { track: "Track", checkins: "Check-ins", progress: "Progress" },
     manage: "Details",
     startTraining: "Start training",
-    tabEmpty:
-      "All sections of this tab are hidden. Use “View” at the top right to bring them back.",
   },
   manage: {
     appAccess: "App access",
@@ -223,21 +221,7 @@ export const coach: Dict["coach"] = {
     volume: { label: "Volume per training day", hint: "Is the upper-body day progressing or stuck" },
     sessions: { label: "Recent sessions", hint: "The last six workouts, set by set" },
   },
-  viewSettings: {
-    needOne: "At least one section must stay visible.",
-    applied: "View applied",
-    buttonTitle: "Which sections the client file shows, and in which order",
-    button: "View",
-    dialogAria: "Set up client file",
-    title: "Set up client file",
-    intro: (on, all) =>
-      `What you set here applies to all your clients. Plan, appointments and management always stay — you couldn't work without them. ${on} of ${all} sections visible.`,
-    hidden: "Hidden",
-    up: (name) => `Move ${name} up`,
-    down: (name) => `Move ${name} down`,
-    apply: "Apply",
-    reset: "Restore default",
-  },
+
   clientAppointments: {
     title: "Appointments",
     create: "Add appointment",
@@ -389,10 +373,6 @@ export const coach: Dict["coach"] = {
     slotNotFound: "Slot not found.",
     clientNotFound: "Client not found.",
     notYourClient: "This client isn't yours.",
-    tooManySections: "Too many sections.",
-    noSections: "No sections provided.",
-    migration0019:
-      "The setting can't be saved yet: migration 0019 is missing in the database.",
     noExerciseEntered: "No exercise entered.",
   },
   trackPick: {

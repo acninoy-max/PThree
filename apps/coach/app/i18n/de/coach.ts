@@ -164,8 +164,6 @@ export const coach = {
     tabs: { track: "Tracken", checkins: "Check-ins", progress: "Progress" },
     manage: "Stammdaten",
     startTraining: "Training starten",
-    tabEmpty:
-      "Alle Abschnitte dieses Reiters sind ausgeblendet. Über „Ansicht“ oben rechts holst du sie zurück.",
   },
   manage: {
     appAccess: "App-Zugang",
@@ -230,21 +228,7 @@ export const coach = {
     volume: { label: "Volumen je Trainingstag", hint: "Läuft der Oberkörpertag oder tritt er auf der Stelle" },
     sessions: { label: "Letzte Einheiten", hint: "Die letzten sechs Trainings, Satz für Satz" },
   },
-  viewSettings: {
-    needOne: "Mindestens ein Abschnitt muss sichtbar bleiben.",
-    applied: "Ansicht übernommen",
-    buttonTitle: "Welche Abschnitte die Akte zeigt und in welcher Reihenfolge",
-    button: "Ansicht",
-    dialogAria: "Klientenakte einrichten",
-    title: "Akte einrichten",
-    intro: (an: number, alle: number) =>
-      `Was du hier einstellst, gilt für alle deine Klienten. Plan, Termine und Verwaltung bleiben immer stehen — ohne sie könntest du nicht arbeiten. ${an} von ${alle} Abschnitten sichtbar.`,
-    hidden: "Ausgeblendet",
-    up: (name: string) => `${name} nach oben`,
-    down: (name: string) => `${name} nach unten`,
-    apply: "Übernehmen",
-    reset: "Standard wiederherstellen",
-  },
+
   clientAppointments: {
     title: "Termine",
     create: "Termin anlegen",
@@ -396,10 +380,6 @@ export const coach = {
     slotNotFound: "Slot nicht gefunden.",
     clientNotFound: "Klient nicht gefunden.",
     notYourClient: "Dieser Klient gehört nicht zu dir.",
-    tooManySections: "Zu viele Abschnitte.",
-    noSections: "Keine Abschnitte übergeben.",
-    migration0019:
-      "Die Einstellung kann noch nicht gespeichert werden: In der Datenbank fehlt die Migration 0019.",
     noExerciseEntered: "Keine Übung eingetragen.",
   },
   trackPick: {

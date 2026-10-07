@@ -230,60 +230,6 @@ export function IconMoon({ size = 18, strokeWidth = 1.8 }: IconProps) {
 }
 
 /**
- * Zahnrad — Einstellungen dieser Ansicht.
- *
- * Die erste Fassung zeichnete acht Striche, die vom Kreis nach aussen
- * zeigten. Aaron hat sie im Studio für eine Sonne gehalten, und er hatte
- * recht: Kreis plus Strahlen IST eine Sonne. Ein Zahnrad braucht Zähne,
- * die am Körper kleben und zwischen sich Lücken lassen.
- *
- * Also eine geschlossene Kontur: acht Zähne von je 22,5°, dazwischen
- * Lücken derselben Breite, aussen 9,4 und innen 7,1 als Radius. Die
- * Zahl der Zähne ist bewusst klein — bei 19px würden zwölf zu einem
- * gezackten Ring verschwimmen.
- */
-export function IconGear({ size = 18, strokeWidth = 1.8 }: IconProps) {
-  const ZAEHNE = 8;
-  const AUSSEN = 9.4;
-  const INNEN = 7.1;
-  const schritt = 360 / ZAEHNE;
-  const halb = schritt / 4; // Zahn und Luecke gleich breit
-
-  const punkt = (grad: number, r: number) => {
-    const b = ((grad - 90) * Math.PI) / 180;
-    return `${(12 + Math.cos(b) * r).toFixed(2)} ${(12 + Math.sin(b) * r).toFixed(2)}`;
-  };
-
-  const kontur: string[] = [];
-  for (let i = 0; i < ZAEHNE; i += 1) {
-    const mitte = i * schritt;
-    kontur.push(
-      `${i === 0 ? "M" : "L"}${punkt(mitte - halb, AUSSEN)}`,
-      `L${punkt(mitte + halb, AUSSEN)}`,
-      `L${punkt(mitte + halb, INNEN)}`,
-      `L${punkt(mitte + schritt - halb, INNEN)}`,
-    );
-  }
-
-  return (
-    <svg {...base(size, strokeWidth)}>
-      <path d={`${kontur.join(" ")} Z`} strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3.1" />
-    </svg>
-  );
-}
-
-/** Pfeil nach oben — einen Abschnitt nach vorn schieben. */
-export function IconArrowUp({ size = 18, strokeWidth = 2 }: IconProps) {
-  return (
-    <svg {...base(size, strokeWidth)}>
-      <path d="M12 19V5" />
-      <path d="M6 11l6-6 6 6" />
-    </svg>
-  );
-}
-
-/**
  * Übungsbibliothek — gestapelte Karten.
  *
  * Gibt es, weil „Tracken" und „Übungen" in der Tab-Leiste dieselbe
@@ -305,12 +251,3 @@ export function IconLibrary({ size = 22, strokeWidth = 1.8 }: IconProps) {
   );
 }
 
-/** Pfeil nach unten — einen Abschnitt nach hinten schieben. */
-export function IconArrowDown({ size = 18, strokeWidth = 2 }: IconProps) {
-  return (
-    <svg {...base(size, strokeWidth)}>
-      <path d="M12 5v14" />
-      <path d="M6 13l6 6 6-6" />
-    </svg>
-  );
-}

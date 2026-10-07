@@ -730,79 +730,6 @@ export async function fetchProgressSelection(
   return (data ?? []).map((r) => r.exercise_id as string);
 }
 
-// ---------- Anordnung der Klientenakte ----------
-
-/** Ein Abschnitt der Akte, wie dieser Trainer ihn eingestellt hat. */
-export interface ViewSection {
-  section: string;
-  position: number;
-  isVisible: boolean;
-}
-
-/**
- * Die Anordnung der Klientenakte für einen Trainer.
- *
- * Gilt für ALLE seine Klienten, nicht je Klient — wer die Akte anders
- * liest, liest sie bei jedem Klienten anders. Eine Einstellung je Klient
- * hiesse, sie zwanzigmal zu pflegen.
- *
- * Leere Liste heisst „nie etwas eingestellt": Die Oberfläche zeigt dann
- * ihre Standardanordnung. Abschnitte, die hier fehlen, gelten ebenfalls
- * als sichtbar — so tauchen später hinzugekommene Abschnitte auch bei
- * Trainern auf, die schon einmal etwas eingestellt haben.
- *
- * FEHLT DIE TABELLE, GIBT ES KEINEN FEHLER.
- *
- * Das ist keine Bequemlichkeit, sondern eine Frage der Verhältnis-
- * mäßigkeit. Diese Abfrage holt eine Anzeigevorliebe. Läuft die
- * Migration 0019 noch nicht — beim Ausrollen liegen Code und Schema
- * immer ein paar Minuten auseinander —, dann stürzte vorher die
- * KOMPLETTE Klientenakte ab: kein Plan, keine Check-ins, keine
- * Einheiten, nur eine rote Fehlerseite. Wegen der Reihenfolge von
- * Kacheln.
- *
- * Also: Tabelle nicht da → Standardanordnung, plus eine Warnung im
- * Serverprotokoll. Still verschluckt wird nichts; ein Fehler, den man
- * nirgends sieht, ist schlimmer als einer, der knallt.
- *
- * Alle ANDEREN Fehler fliegen weiter. Eine kaputte Abfrage oder eine
- * verweigerte Zeilensicherheit sind echte Fehler und sollen auffallen.
- */
-export async function fetchViewSections(
-  db: SupabaseClient,
-  viewerId: string,
-): Promise<ViewSection[]> {
-  const { data, error } = await db
-    .from("client_view_sections")
-    .select("section, position, is_visible")
-    .eq("viewer_id", viewerId)
-    .order("position");
-
-  if (error) {
-    // PGRST205 = PostgREST kennt die Tabelle nicht (Schema-Cache),
-    // 42P01 = Postgres kennt sie nicht. Beide heissen: Migration fehlt.
-    const fehltNoch =
-      error.code === "PGRST205" ||
-      error.code === "42P01" ||
-      /schema cache|does not exist/i.test(error.message);
-
-    if (fehltNoch) {
-      console.warn(
-        "[ptthree] Tabelle client_view_sections fehlt — die Klientenakte " +
-          "laeuft in der Standardanordnung. Migration 0019 einspielen.",
-      );
-      return [];
-    }
-    throw new Error(`Anordnung laden fehlgeschlagen: ${error.message}`);
-  }
-
-  return (data ?? []).map((r) => ({
-    section: r.section as string,
-    position: r.position as number,
-    isVisible: r.is_visible as boolean,
-  }));
-}
-
 // ---------- Fortschrittsfotos ----------
 
 export const PHOTO_BUCKET = "progress-photos";
@@ -932,8 +859,7 @@ export async function fetchProgressPhotos(
 /**
  * Fehlt die Tabelle noch?
  *
- * Dieselbe Überlegung wie bei `fetchViewSections`: Beim Ausrollen
- * liegen Code und Schema ein paar Minuten auseinander. Eine
+ * Beim Ausrollen liegen Code und Schema ein paar Minuten auseinander. Eine
  * Fotogalerie, die in dieser Zeit die ganze Seite mitreisst, wäre ein
  * selbstgemachter Ausfall.
  */

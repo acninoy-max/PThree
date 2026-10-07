@@ -10,7 +10,6 @@ import {
   fetchPlans,
   fetchSessions,
   fetchUnresolvedAppointments,
-  fetchViewSections,
   fetchPhotoConsent,
   fetchProgressPhotos,
 } from "@ptfive/db";
@@ -35,13 +34,12 @@ import { ClientAppointments } from "./appointments";
 import { ClientPlan } from "./plan";
 import { CheckInConfig } from "./checkin-config";
 import { getT } from "@/app/i18n/server";
-import { ViewSettings } from "./view-settings";
 import { ClientPhotos } from "./photos";
 import {
   CLIENT_TABS,
+  SECTION_KEYS,
   SECTION_TAB,
   parseView,
-  resolveSections,
   type ClientTab,
   type ClientView,
   type SectionKey,
@@ -108,7 +106,6 @@ export default async function ClientDetailPage({
     checkIns,
     checkInFields,
     gewaehlt,
-    viewSections,
     photoConsent,
   ] = await Promise.all([
     fetchClient(db, params.id),
@@ -123,7 +120,6 @@ export default async function ClientDetailPage({
     // auf die Stellen, an denen er nachsteuern will.
     fetchProgressSelection(db, params.id, user!.id),
     // Wie dieser Trainer seine Akten liest — gilt für alle Klienten.
-    fetchViewSections(db, user!.id),
     // Ohne Einwilligung liefert die Zeilensicherheit ohnehin nichts;
     // der Trainer muss aber wissen, WARUM nichts da ist.
     fetchPhotoConsent(db, params.id),
@@ -231,7 +227,6 @@ export default async function ClientDetailPage({
    * Ein Block darf null sein (kein Ziel hinterlegt, noch kein Volumen).
    * Er verschwindet dann, ohne eine Lücke zu hinterlassen.
    */
-  const anordnung = resolveSections(viewSections);
   const bloecke: Record<SectionKey, ReactNode> = {
     goal: client.goal ? (
       <div style={{ marginBottom: 22 }}>
@@ -522,22 +517,10 @@ export default async function ClientDetailPage({
     Link aus dem Feed kann so direkt auf „Check-ins" zeigen, und
     Zurück im Browser führt zum vorigen Reiter.
   */
-  const sichtbarIm = (tab: ClientTab) =>
-    anordnung.filter((s) => s.isVisible && SECTION_TAB[s.key] === tab);
-
-  const bloeckeIm = (tab: ClientTab) => {
-    const liste = sichtbarIm(tab);
-    if (liste.length === 0) {
-      return (
-        <div className="pt-card">
-          <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}>
-            {A.tabEmpty}
-          </p>
-        </div>
-      );
-    }
-    return liste.map((s) => <Fragment key={s.key}>{bloecke[s.key]}</Fragment>);
-  };
+  const bloeckeIm = (tab: ClientTab) =>
+    SECTION_KEYS.filter((k) => SECTION_TAB[k] === tab).map((k) => (
+      <Fragment key={k}>{bloecke[k]}</Fragment>
+    ));
 
   const tabHref = (v: ClientView) =>
     v === "track" ? `/coach/clients/${client.id}` : `/coach/clients/${client.id}?tab=${v}`;
@@ -576,27 +559,6 @@ export default async function ClientDetailPage({
               {t.labels.level[client.level]} ·{" "}
               {A.since(t.fmt.dateMedium(parseDay(client.startedOn)))}
             </p>
-          </div>
-
-          {/*
-            Rechtsbündig und oben auf Höhe des Namens. `alignSelf:
-            flex-start` statt der Ausrichtung des Containers: Avatar und
-            Namensblock bleiben zueinander mittig, nur die Knöpfe gehen
-            nach oben. Die 2px gleichen die Zeilenhöhe der Überschrift
-            aus.
-          */}
-          <div
-            style={{
-              marginLeft: "auto",
-              flex: "none",
-              alignSelf: "flex-start",
-              marginTop: 2,
-            }}
-          >
-            <ViewSettings
-              order={anordnung.map((s) => s.key)}
-              hidden={anordnung.filter((s) => !s.isVisible).map((s) => s.key)}
-            />
           </div>
         </div>
 

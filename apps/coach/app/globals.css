@@ -1483,100 +1483,6 @@ a.pt-card:active {
   text-align: center;
 }
 
-/* Knopf oben rechts in der Klientenakte: Zahnrad plus „Ansicht".
-   Kleiner als ein Hauptknopf, aber mit Beschriftung — ein reines Symbol
-   wurde im Studio nicht als anklickbar erkannt. */
-.pt-viewbtn {
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 12px;
-  font-size: var(--pt-fs-base);
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* ---------- Zeile im Einrichtungsdialog ----------
-
-   An- und abwählen links, verschieben rechts. Zwei Knöpfe statt
-   Drag-and-drop: Der Trainer bedient das mit einer Hand am Handy,
-   während er neben dem Klienten steht. Ein Ziehziel, das beim Scrollen
-   losgeht, ist dort keine Bedienung. */
-
-.pt-sortrow {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  border: 1px solid var(--pt-border);
-  border-radius: 10px;
-  background: var(--pt-surface);
-  overflow: hidden;
-}
-
-.pt-sortrow[data-off="true"] {
-  background: #faf8f5;
-}
-
-.pt-sortrow__main {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  flex: 1;
-  min-width: 0;
-  min-height: 52px;
-  padding: 9px 10px;
-  border: none;
-  background: none;
-  color: var(--pt-text);
-  text-align: left;
-  font-size: var(--pt-fs-base);
-  line-height: 1.4;
-}
-
-.pt-sortrow__main:hover {
-  background: #f7f5f1;
-}
-
-.pt-sortrow__main .pt-pick__box {
-  margin-top: 2px;
-}
-
-.pt-sortrow[data-off="true"] .pt-sortrow__main > span:last-child {
-  opacity: 0.6;
-}
-
-.pt-sortrow:not([data-off="true"]) .pt-pick__box {
-  background: var(--pt-action);
-  border-color: var(--pt-action);
-}
-
-.pt-sortrow__moves {
-  display: flex;
-  flex: none;
-  border-left: 1px solid var(--pt-border);
-}
-
-.pt-sortrow__moves button {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  border: none;
-  background: none;
-  color: var(--pt-text-dim);
-}
-
-.pt-sortrow__moves button + button {
-  border-left: 1px solid var(--pt-border);
-}
-
-.pt-sortrow__moves button:hover:not(:disabled) {
-  background: #f1efe9;
-  color: var(--pt-text);
-}
-
-.pt-sortrow__moves button:disabled {
-  opacity: 0.25;
-}
-
 /* ---------- Mobile Hülle ----------
 
    Der Coach-Bereich ist auf Laptop gebaut. Auf dem Handy war er bisher
@@ -2007,13 +1913,10 @@ summary {
 .pt-toggle:active,
 .pt-chipbtn:active,
 .pt-iconbtn:active,
-.pt-viewbtn:active,
 .pt-timerbtn:active,
 .mc-range:active,
 .mc-chip:active,
 .pt-pick:active,
-.pt-sortrow__main:active,
-.pt-sortrow__moves button:active,
 .gym-btn:active,
 .gym-chip:active,
 .gym-pick:active,
@@ -2052,7 +1955,6 @@ button:disabled:active,
 .pt-toggle,
 .pt-chipbtn,
 .pt-iconbtn,
-.pt-viewbtn,
 .pt-timerbtn,
 .mc-range,
 .mc-chip,
@@ -2070,7 +1972,6 @@ button:disabled:active,
   .pt-toggle,
   .pt-chipbtn,
   .pt-iconbtn,
-  .pt-viewbtn,
   .pt-timerbtn,
   .mc-range,
   .mc-chip,
@@ -2089,13 +1990,10 @@ button:disabled:active,
   .pt-toggle:active,
   .pt-chipbtn:active,
   .pt-iconbtn:active,
-  .pt-viewbtn:active,
   .pt-timerbtn:active,
   .mc-range:active,
   .mc-chip:active,
   .pt-pick:active,
-  .pt-sortrow__main:active,
-  .pt-sortrow__moves button:active,
   .gym-btn:active,
   .gym-chip:active,
   .gym-pick:active,
