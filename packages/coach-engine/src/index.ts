@@ -7,6 +7,7 @@ export {
   patternHistory,
   comparableScores,
   beatsBest,
+  markBefore,
   bestLabel,
 } from "./metrics";
 export type {

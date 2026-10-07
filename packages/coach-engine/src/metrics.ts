@@ -243,6 +243,47 @@ export function beatsBest(
 }
 
 /**
+ * Die Marke, gegen die ein Satz WAEHREND der Einheit antritt: die
+ * bisherige Bestleistung plus die Saetze, die heute schon darueber
+ * stehen.
+ *
+ * Ohne die heutigen Saetze rechnet jede Zeile allein gegen die
+ * Historie. Gibt es keine, steht in jeder Zeile „Erste Leistung" —
+ * viermal bei vier Saetzen, und der zweite Satz mit mehr Gewicht
+ * bekommt keinen Hinweis (Joels Test vom 01.10., Punkt 6). Mit den
+ * Saetzen darueber ist nur der erste die erste Leistung, und jeder
+ * weitere wird an dem gemessen, was heute schon geschafft ist.
+ *
+ * Skalen bleiben getrennt wie in `beatsBest`: Gibt es eine Historie,
+ * zaehlen nur heutige Saetze auf deren Skala dazu — sonst wuerde ein
+ * Klimmzug ohne Gewicht zur Marke fuer den naechsten ohne Gewicht,
+ * obwohl die Historie in Kilogramm steht. Ohne Historie entscheidet die
+ * Skala des Satzes, um den es geht.
+ */
+export function markBefore(
+  history: BestMark | null,
+  earlier: readonly AttemptSet[],
+  attempt: AttemptSet,
+): BestMark | null {
+  const mitLast =
+    history && history.score > 0 ? !history.isBodyweight : hasLoad(attempt);
+
+  let mark = history && history.score > 0 ? history : null;
+  for (const s of earlier) {
+    if (s.reps <= 0 || hasLoad(s) !== mitLast) continue;
+    const score = estimateOneRepMax(s);
+    if (score <= 0 || (mark && score <= mark.score)) continue;
+    mark = {
+      score,
+      weightKg: s.weightKg,
+      reps: s.reps,
+      isBodyweight: !mitLast,
+    };
+  }
+  return mark;
+}
+
+/**
  * Kurzer Satz fuer die Oberflaeche.
  *
  * Nuechtern und ohne Ausrufezeichen — dieselbe Haltung wie beim

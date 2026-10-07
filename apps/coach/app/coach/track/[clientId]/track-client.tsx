@@ -8,7 +8,13 @@ import type {
   MuscleGroup,
   TrainingBlock,
 } from "@ptfive/types";
-import { beatsBest, bestLabel, volumeLabel } from "@ptfive/coach-engine";
+import {
+  beatsBest,
+  bestLabel,
+  markBefore,
+  volumeLabel,
+  type AttemptSet,
+} from "@ptfive/coach-engine";
 import { IconCheck, IconChevronRight, IconX } from "@/app/icons";
 import { Spinner } from "@/app/spinner";
 import {
@@ -284,6 +290,19 @@ export function TrackWorkout({
   function bodyLoad(ex: TrackExercise): number | null {
     if (ex.bodyweightFactor === null || bodyWeightKg === null) return null;
     return Math.round(bodyWeightKg * ex.bodyweightFactor * 10) / 10;
+  }
+
+  /** Ein Satz, so wie er gerade in den Feldern steht. */
+  function attemptOf(
+    ex: TrackExercise,
+    set: { weight: string; reps: string },
+  ): AttemptSet {
+    return {
+      weightKg: Number(set.weight.replace(",", ".")) || 0,
+      bodyLoadKg: bodyLoad(ex),
+      reps: Number(set.reps) || 0,
+      isBodyweight: ex.isBodyweight && !Number(set.weight),
+    };
   }
 
   function startDay(chosen: TrackPlanDay) {
@@ -828,15 +847,16 @@ export function TrackWorkout({
                      dem, was gerade im Feld steht. Der Trainer soll
                      „105, stark" sagen können, während der Klient noch
                      an der Bank steht — nicht erst zu Hause. */
+                  const versuch = attemptOf(slot.exercise, set);
                   const rekord = beatsBest(
-                    {
-                      weightKg: Number(set.weight.replace(",", ".")) || 0,
-                      bodyLoadKg: bodyLoad(slot.exercise),
-                      reps: Number(set.reps) || 0,
-                      isBodyweight:
-                        slot.exercise.isBodyweight && !Number(set.weight),
-                    },
-                    bests[slot.exercise.id] ?? null,
+                    versuch,
+                    // Die Sätze darüber zählen mit — sonst stünde in der
+                    // ersten Einheit in jeder Zeile „Erste Leistung“.
+                    markBefore(
+                      bests[slot.exercise.id] ?? null,
+                      slot.sets.slice(0, i).map((s) => attemptOf(slot.exercise, s)),
+                      versuch,
+                    ),
                   );
 
                   return (

@@ -16,6 +16,7 @@ import {
   effectiveLoad,
   estimateOneRepMax,
   hasLoad,
+  markBefore,
 } from "./metrics";
 
 let n = 0;
@@ -460,5 +461,78 @@ describe("beatsBest — der Moment im Training", () => {
     for (const wort of ["super", "stark", "geil", "Wahnsinn"]) {
       assert.ok(!text.toLowerCase().includes(wort.toLowerCase()));
     }
+  });
+});
+
+describe("markBefore — die Saetze darueber zaehlen mit", () => {
+  const versuch = (kg: number, reps: number, bodyKg: number | null = null) => ({
+    weightKg: kg,
+    bodyLoadKg: bodyKg,
+    reps,
+    isBodyweight: kg === 0 && bodyKg !== null,
+  });
+  const historie = (score: number, bw = false) => ({
+    score,
+    weightKg: 100,
+    reps: 8,
+    isBodyweight: bw,
+  });
+
+  // Rechnet eine ganze Einheit so, wie die Oberflaeche sie zeigt:
+  // jede Zeile gegen die Historie plus die Zeilen darueber.
+  const zeilen = (
+    h: ReturnType<typeof historie> | null,
+    saetze: ReturnType<typeof versuch>[],
+  ) =>
+    saetze.map((s, i) => {
+      const b = beatsBest(s, markBefore(h, saetze.slice(0, i), s));
+      return b ? bestLabel(b) : null;
+    });
+
+  it("erste Einheit: nur der erste Satz ist die erste Leistung", () => {
+    // Das ist Joels Befund. Vorher stand in allen vier Zeilen
+    // "Erste Leistung in dieser Übung".
+    const z = zeilen(null, [
+      versuch(60, 10),
+      versuch(60, 10),
+      versuch(60, 9),
+      versuch(60, 8),
+    ]);
+    assert.deepEqual(z, ["Erste Leistung in dieser Übung", null, null, null]);
+  });
+
+  it("erste Einheit: ein schwererer Satz bekommt seinen Hinweis", () => {
+    // 60 x 10 = 80 ; 70 x 10 = 93,33 -> +17 %
+    const z = zeilen(null, [versuch(60, 10), versuch(70, 10)]);
+    assert.deepEqual(z, [
+      "Erste Leistung in dieser Übung",
+      "Neue Bestleistung · +17 %",
+    ]);
+  });
+
+  it("mit Historie: dieselbe Bestleistung nicht in jeder Zeile", () => {
+    // 110 x 8 schlaegt die alte Marke um 10 %. Ein zweiter Satz
+    // 110 x 8 ist keine weitere Bestleistung — die steht schon oben.
+    const z = zeilen(historie(126.67), [versuch(110, 8), versuch(110, 8)]);
+    assert.deepEqual(z, ["Neue Bestleistung · +10 %", null]);
+  });
+
+  it("schwaechere Saetze darueber senken die Marke nicht", () => {
+    const m = markBefore(historie(126.67), [versuch(80, 5)], versuch(110, 8));
+    assert.equal(m!.score, 126.67);
+  });
+
+  it("leere Zeilen darueber zaehlen nicht", () => {
+    assert.equal(markBefore(null, [versuch(60, 0)], versuch(60, 10)), null);
+  });
+
+  it("Skalen bleiben getrennt", () => {
+    // Historie in Kilogramm (mit Koerperanteil), heute zwei Saetze ohne
+    // bekanntes Gewicht. Der erste darf nicht zur Marke fuer den zweiten
+    // werden — sonst gaebe es eine "Bestleistung" auf einer Skala, auf
+    // der die Historie gar nicht steht.
+    const m = markBefore(historie(120), [versuch(0, 8)], versuch(0, 12));
+    assert.equal(m!.score, 120);
+    assert.equal(beatsBest(versuch(0, 12), m), null);
   });
 });

@@ -31,6 +31,8 @@ import { IconCheck, IconClock, IconX } from "@/app/icons";
 import {
   beatsBest,
   bestLabel,
+  markBefore,
+  type AttemptSet,
   volumeLabel,
   type VolumePoint,
 } from "@ptfive/coach-engine";
@@ -488,6 +490,19 @@ export function LogWorkout({
     return Math.round(bodyWeightKg * ex.bodyweightFactor * 10) / 10;
   }
 
+  /** Ein Satz, so wie er gerade in den Feldern steht. */
+  function attemptOf(
+    ex: ExerciseOption,
+    set: { weight: string; reps: string },
+  ): AttemptSet {
+    return {
+      weightKg: Number(set.weight.replace(",", ".")) || 0,
+      bodyLoadKg: bodyLoad(ex),
+      reps: Number(set.reps) || 0,
+      isBodyweight: ex.isBodyweight && !Number(set.weight),
+    };
+  }
+
   // ---------- Zählwerte ----------
   const filledSets = slots.reduce(
     (n, s) => n + s.sets.filter((set) => Number(set.reps) > 0).length,
@@ -556,15 +571,7 @@ export function LogWorkout({
     for (const slot of slots) {
       const marke = bests[slot.exercise.id] ?? null;
       for (const set of slot.sets) {
-        const r = beatsBest(
-          {
-            weightKg: Number(set.weight.replace(",", ".")) || 0,
-            bodyLoadKg: bodyLoad(slot.exercise),
-            reps: Number(set.reps) || 0,
-            isBodyweight: slot.exercise.isBodyweight && !Number(set.weight),
-          },
-          marke,
-        );
+        const r = beatsBest(attemptOf(slot.exercise, set), marke);
         if (!r) continue;
 
         const bisher = je.get(slot.exercise.id);
@@ -1182,15 +1189,16 @@ export function LogWorkout({
                     Antwort erst nach dem Training, und dann ist der
                     Moment vorbei.
                   */
+                  const versuch = attemptOf(slot.exercise, set);
                   const rekord = beatsBest(
-                    {
-                      weightKg: Number(set.weight.replace(",", ".")) || 0,
-                      bodyLoadKg: bodyLoad(slot.exercise),
-                      reps: Number(set.reps) || 0,
-                      isBodyweight:
-                        slot.exercise.isBodyweight && !Number(set.weight),
-                    },
-                    bests[slot.exercise.id] ?? null,
+                    versuch,
+                    // Die Sätze darüber zählen mit — sonst stünde in der
+                    // ersten Einheit in jeder Zeile „Erste Leistung“.
+                    markBefore(
+                      bests[slot.exercise.id] ?? null,
+                      slot.sets.slice(0, i).map((s) => attemptOf(slot.exercise, s)),
+                      versuch,
+                    ),
                   );
 
                   return (
