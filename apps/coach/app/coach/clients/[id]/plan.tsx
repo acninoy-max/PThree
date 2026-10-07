@@ -83,10 +83,13 @@ function todayISO(): string {
 function NewPlan({
   clientId,
   level,
+  justCreated,
   onClose,
 }: {
   clientId: string;
   level: ExperienceLevel;
+  /** Direkt nach dem Anlegen des Klienten geöffnet, nicht per Klick. */
+  justCreated: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -174,6 +177,22 @@ function NewPlan({
             <IconX size={17} />
           </button>
         </div>
+
+        {/* Ohne diese Zeile wüsste der Trainer nicht, ob das Anlegen
+            geklappt hat — er sieht ja nur ein neues Fenster. */}
+        {justCreated && (
+          <p
+            style={{
+              margin: "-8px 0 16px",
+              fontSize: "var(--pt-fs-base)",
+              color: "var(--pt-text-dim)",
+              lineHeight: 1.45,
+            }}
+          >
+            Klient angelegt. Als Nächstes der Plan — oder später über die
+            Klientenseite.
+          </p>
+        )}
 
         <div style={{ display: "grid", gap: 16 }}>
           <div>
@@ -316,6 +335,15 @@ function NewPlan({
           <button type="submit" className="pt-btn" disabled={pending}>
             {pending ? "Wird angelegt …" : "Anlegen und Slots füllen"}
           </button>
+          {justCreated && (
+            <button
+              type="button"
+              className="pt-btn pt-btn--ghost"
+              onClick={onClose}
+            >
+              Später
+            </button>
+          )}
         </div>
       </form>
     </div>
@@ -327,13 +355,31 @@ export function ClientPlan({
   level,
   active,
   older,
+  startWithPlan = false,
 }: {
   clientId: string;
   level: ExperienceLevel;
   active: Plan | null;
   older: Plan[];
+  /** Klient gerade angelegt, noch ohne Plan: Dialog gleich öffnen. */
+  startWithPlan?: boolean;
 }) {
   const [creating, setCreating] = useState(false);
+
+  /*
+    Erst nach dem Mounten öffnen, nicht als Startwert von `creating`:
+    NewPlan belegt das Startdatum mit „heute" nach der Uhr des Browsers.
+    Auf dem Server gerendert stünde dort die Zeitzone des Servers — und
+    ein Feld, das sich beim Hydrieren ändert.
+
+    `?neu=1` fliegt sofort aus der Adresse. Sonst öffnet jedes Neuladen
+    den Dialog wieder, auch nachdem der Trainer „Später" gesagt hat.
+  */
+  useEffect(() => {
+    if (!startWithPlan) return;
+    setCreating(true);
+    window.history.replaceState(null, "", window.location.pathname);
+  }, [startWithPlan]);
 
   /**
    * „Heute" erst nach dem Mounten — der Server rendert diese Karte mit
@@ -514,6 +560,7 @@ export function ClientPlan({
         <NewPlan
           clientId={clientId}
           level={level}
+          justCreated={startWithPlan}
           onClose={() => setCreating(false)}
         />
       )}

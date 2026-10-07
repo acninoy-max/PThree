@@ -44,21 +44,33 @@ export async function createClientAction(
     .eq("id", user.id)
     .maybeSingle();
 
-  const { error } = await db.from("clients").insert({
-    coach_id: user.id,
-    organisation_id: coach?.organisation_id ?? null,
-    full_name: fullName,
-    email: email || null,
-    birth_date: birthDate || null,
-    level,
-    goal: goal || null,
-  });
+  const { data: angelegt, error } = await db
+    .from("clients")
+    .insert({
+      coach_id: user.id,
+      organisation_id: coach?.organisation_id ?? null,
+      full_name: fullName,
+      email: email || null,
+      birth_date: birthDate || null,
+      level,
+      goal: goal || null,
+    })
+    .select("id")
+    .maybeSingle();
 
   if (error) return { ok: false, error: error.message };
+  // Ohne zurückgelesene Zeile wissen wir nicht, wohin — und ob überhaupt
+  // etwas angelegt wurde. Lieber sagen als auf eine leere Seite leiten.
+  if (!angelegt) {
+    return { ok: false, error: "Der Klient wurde nicht angelegt." };
+  }
 
   revalidatePath("/coach/clients");
   revalidatePath("/coach");
-  redirect("/coach/clients");
+  // Direkt in die Akte, mit offenem Plan-Dialog: Nach dem Anlegen ist der
+  // Plan der nächste Schritt, und zurück in die Liste hieß, ihn erst
+  // suchen zu müssen (Joëls Test vom 01.10., Punkt 2).
+  redirect(`/coach/clients/${angelegt.id}?neu=1`);
 }
 
 export async function updateClientAction(

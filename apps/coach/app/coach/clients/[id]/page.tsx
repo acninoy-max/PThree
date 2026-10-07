@@ -73,8 +73,10 @@ function Sparkline({ values }: { values: number[] }) {
 
 export default async function ClientDetailPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams: { neu?: string };
 }) {
   const db = createServerSupabase();
   const {
@@ -605,6 +607,7 @@ export default async function ClientDetailPage({
               level={client.level}
               active={activePlan}
               older={olderPlans}
+              startWithPlan={searchParams.neu === "1" && !activePlan}
             />
             <ClientAppointments
               client={{
