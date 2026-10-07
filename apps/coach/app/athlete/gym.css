@@ -119,6 +119,15 @@
 .gym-btn:disabled {
   opacity: 0.5;
 }
+/* Knopf neben einem anderen in derselben Zeile: so breit wie sein
+   Text. Ohne das erbt er `width: 100%` von .gym-btn, kann mit
+   `flex: none` nicht schrumpfen und drückt seinen Nachbarn auf
+   Daumenbreite zusammen — „Pause" stand so halb außerhalb der Karte. */
+.gym-btn--fit {
+  width: auto;
+  flex: none;
+}
+
 .gym-btn--ghost {
   background: transparent;
   color: var(--g-text);

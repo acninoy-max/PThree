@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase-browser";
 import { useT } from "@/app/i18n/client";
+import { Sprachwahl } from "@/app/i18n/sprachwahl";
 
 /**
  * Der Zustand „angemeldet, aber zu diesem Zugang gehoert kein Klient".
@@ -64,6 +65,16 @@ export function KeinKlientenkonto({
         >
           {t.common.signOut}
         </button>
+      </div>
+
+      {/* Auch ohne Klientenkonto: Wer hier strandet, soll den Satz oben
+          in seiner Sprache lesen können — das Profil mit der Sprachwahl
+          erreicht er ja gerade nicht. */}
+      <div className="gym-card" style={{ marginTop: 12 }}>
+        <p className="gym-label" style={{ marginBottom: 10 }}>
+          {t.language.label}
+        </p>
+        <Sprachwahl />
       </div>
     </main>
   );

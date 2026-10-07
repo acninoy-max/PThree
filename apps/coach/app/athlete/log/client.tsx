@@ -1367,9 +1367,8 @@ export function LogWorkout({
                 onClick={() =>
                   beginRest(slot.key, plan?.restSeconds ?? DEFAULT_REST_SECONDS)
                 }
-                className="gym-btn gym-btn--ghost"
+                className="gym-btn gym-btn--ghost gym-btn--fit"
                 style={{
-                  flex: "none",
                   minHeight: 44,
                   fontSize: "var(--pt-fs-md)",
                   paddingInline: 16,
