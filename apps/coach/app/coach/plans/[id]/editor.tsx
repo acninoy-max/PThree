@@ -30,6 +30,7 @@ import { SlotForm, type ExercisePick } from "./slot-form";
 import { Spinner } from "@/app/spinner";
 import type { SimpleResult } from "../actions";
 import { useT } from "@/app/i18n/client";
+import { dictFor } from "@/app/i18n";
 
 /** Welches Formular gerade offen ist. */
 type Editing =
@@ -64,6 +65,11 @@ function SlotRow({
 }) {
   const t = useT();
   const E = t.coach.editor;
+  // Eine Bezeichnung, die nur die Muskelgruppe ist (in welcher Sprache
+  // auch immer angelegt), ist automatisch — keine Notiz des Trainers.
+  const automatisch = (["de", "en"] as const).some(
+    (l) => slot.muscleGroup !== null && muscleLabel(dictFor(l), slot.muscleGroup) === slot.label,
+  );
   return (
     <div className="pt-slot">
       {code && <span className="pt-code">{code}</span>}
@@ -95,7 +101,7 @@ function SlotRow({
           {/* Eine abweichende Bezeichnung ist eine Entscheidung des
               Trainers und darf nicht verschwinden, nur weil oben jetzt
               die Übung steht. */}
-          {exerciseName && slot.label !== exerciseName
+          {exerciseName && slot.label !== exerciseName && !automatisch
             ? ` · „${slot.label}"`
             : ""}
           {slot.tempo ? ` · ${t.common.tempo} ${slot.tempo}` : ""}
@@ -513,15 +519,24 @@ function DayCard({
   );
 }
 
+/** Plan eines Klienten oder Programm (0028) — derselbe Editor. */
+export type EditorMode =
+  | { kind: "plan"; clientName: string }
+  | { kind: "program"; kopf: React.ReactNode; backHref: string };
+
 export function PlanEditor({
   plan,
-  clientName,
+  mode,
   exercises,
+  recentIds,
 }: {
   plan: Plan;
-  clientName: string;
+  mode: EditorMode;
   exercises: ExercisePick[];
+  /** Zuletzt in Plänen benutzte Übungen — oben in der Auswahl. */
+  recentIds: string[];
 }) {
+  const clientName = mode.kind === "plan" ? mode.clientName : "";
   const t = useT();
   const E = t.coach.editor;
   const router = useRouter();
@@ -583,89 +598,101 @@ export function PlanEditor({
 
   return (
     <main className="pt-shell">
-      <Link
-        href={`/coach/clients/${plan.clientId}`}
-        style={{ fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
-      >
-        ‹ {clientName}
-      </Link>
-
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-          margin: "14px 0 22px",
-        }}
-      >
-        <div>
-          <p className="pt-label" style={{ margin: 0 }}>
-            {E.plan}
-            {plan.isActive ? (
-              <span style={{ color: "#3b6d11" }}>{E.active}</span>
-            ) : (
-              <span>{E.inactive}</span>
-            )}
-          </p>
-          <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-            {plan.name}
-          </h1>
-          <p
-            style={{
-              margin: "4px 0 0",
-              fontSize: "var(--pt-fs-base)",
-              color: "var(--pt-text-dim)",
-            }}
-          >
-            {E.summary(
-              t.fmt.dateMedium(parseDay(plan.startsOn)),
-              plan.days.length,
-              slotCount,
-            )}
-          </p>
-        </div>
+      {/*
+        Kopf: beim Plan Klient, Status und Startdatum; beim Programm
+        bringt die Seite ihren eigenen Kopf mit (Name ändern, zuweisen,
+        löschen). Darunter ist der Editor für beide derselbe — ein
+        Programm ist ein Plan ohne Klienten.
+      */}
+      {mode.kind === "program" ? (
+        mode.kopf
+      ) : (
+        <>
+        <Link
+          href={`/coach/clients/${plan.clientId}`}
+          style={{ fontSize: "var(--pt-fs-base)", color: "var(--pt-text-dim)" }}
+        >
+          ‹ {clientName}
+        </Link>
 
         <div
           style={{
             display: "flex",
-            gap: 10,
+            alignItems: "flex-end",
+            justifyContent: "space-between",
+            gap: 16,
             flexWrap: "wrap",
-            alignItems: "center",
+            margin: "14px 0 22px",
           }}
         >
-          {!plan.isActive && (
+          <div>
+            <p className="pt-label" style={{ margin: 0 }}>
+              {E.plan}
+              {plan.isActive ? (
+                <span style={{ color: "#3b6d11" }}>{E.active}</span>
+              ) : (
+                <span>{E.inactive}</span>
+              )}
+            </p>
+            <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
+              {plan.name}
+            </h1>
+            <p
+              style={{
+                margin: "4px 0 0",
+                fontSize: "var(--pt-fs-base)",
+                color: "var(--pt-text-dim)",
+              }}
+            >
+              {E.summary(
+                t.fmt.dateMedium(parseDay(plan.startsOn)),
+                plan.days.length,
+                slotCount,
+              )}
+            </p>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            {!plan.isActive && (
+              <button
+                type="button"
+                className="pt-btn"
+                disabled={pending || busyKey !== null}
+                onClick={() =>
+                  run("activate", () =>
+                    updatePlanAction(plan.id, { isActive: true }),
+                  )
+                }
+              >
+                {busyKey === "activate" ? (
+                  <>
+                    <Spinner size={15} />
+                    {E.activating}
+                  </>
+                ) : (
+                  E.activate
+                )}
+              </button>
+            )}
             <button
               type="button"
-              className="pt-btn"
-              disabled={pending || busyKey !== null}
-              onClick={() =>
-                run("activate", () =>
-                  updatePlanAction(plan.id, { isActive: true }),
-                )
-              }
+              className="pt-btn pt-btn--ghost"
+              disabled={pending}
+              onClick={() => setConfirmDelete(true)}
             >
-              {busyKey === "activate" ? (
-                <>
-                  <Spinner size={15} />
-                  {E.activating}
-                </>
-              ) : (
-                E.activate
-              )}
+              {E.deletePlan}
             </button>
-          )}
-          <button
-            type="button"
-            className="pt-btn pt-btn--ghost"
-            disabled={pending}
-            onClick={() => setConfirmDelete(true)}
-          >
-            {E.deletePlan}
-          </button>
+          </div>
         </div>
-      </div>
+        </>
+      )}
 
       {/* Fehler stehen dort, wo man nach einem folgenlosen Klick hinschaut. */}
       {error && (
@@ -766,7 +793,25 @@ export function PlanEditor({
                     const title = newDay;
                     setNewDay("");
                     setAddingDay(false);
-                    run("add-day", () => addPlanDayAction(plan.id, title));
+                    setError(null);
+                    setBusyKey("add-day");
+                    startTransition(async () => {
+                      const res = await addPlanDayAction(
+                        { kind: mode.kind, id: plan.id },
+                        title,
+                      );
+                      setBusyKey(null);
+                      if (!res.ok) {
+                        setError(res.error);
+                        return;
+                      }
+                      setSavedAt(Date.now());
+                      router.refresh();
+                      // Joëls Punkt 4: Nach dem Tag direkt die
+                      // Übungsauswahl — der nächste Schritt ist immer,
+                      // den Tag zu füllen.
+                      setEditing({ kind: "new", dayId: res.id });
+                    });
                   }}
                 >
                   {busyKey === "add-day" ? (
@@ -840,10 +885,18 @@ export function PlanEditor({
               ? E.nameOpenTitle
               : undefined
           }
-          onClick={() => router.push(`/coach/clients/${plan.clientId}`)}
+          onClick={() =>
+            router.push(
+              mode.kind === "plan" ? `/coach/clients/${plan.clientId}` : mode.backHref,
+            )
+          }
         >
           <IconCheck size={17} strokeWidth={2.4} />
-          {openRenames.size > 0 ? E.saveNameFirst : E.done(clientName)}
+          {openRenames.size > 0
+            ? E.saveNameFirst
+            : mode.kind === "plan"
+              ? E.done(clientName)
+              : t.coach.programs.done}
         </button>
       </div>
 
@@ -853,6 +906,7 @@ export function PlanEditor({
           planId={plan.id}
           slot={editing.kind === "edit" ? editing.slot : undefined}
           exercises={exercises}
+          recentIds={recentIds}
           onClose={() => setEditing(null)}
           onDone={() => {
             setEditing(null);

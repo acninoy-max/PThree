@@ -48,6 +48,9 @@ export const fehler: Dict["fehler"] = {
     linkFailed:
       "The link couldn't be set. Please tell your coach — it's not your fault.",
     noAccess: "No access to this client.",
+    programNotFound: "Program not found.",
+    programIncomplete:
+      "The program was not copied completely — nothing was saved. Please try again.",
     unknown: (raw) => `That didn't work: ${raw}`,
   },
 };

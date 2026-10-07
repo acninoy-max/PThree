@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0027 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0028 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -521,6 +521,26 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0027', 'Rolle wird von der Datenbank gesetzt',
          (select count(*) = 1 from pg_trigger
           where tgname = 'app_feedback_role' and not tgisinternal)
+
+  -- 0028: Programme
+  union all
+  select 1, '0028', 'assign_template vorhanden und nicht fuer anon',
+         coalesce((select not has_function_privilege('anon', p.oid, 'execute')
+          from pg_proc p where p.proname = 'assign_template'), false)
+  union all
+  select 1, '0028', 'copy_template vorhanden und nicht fuer anon',
+         coalesce((select not has_function_privilege('anon', p.oid, 'execute')
+          from pg_proc p where p.proname = 'copy_template'), false)
+  union all
+  select 1, '0028', 'Zuweisen zaehlt nach dem Kopieren nach',
+         coalesce((select prosrc like '%v_ist_slots <> v_soll_slots%'
+          from pg_proc where proname = 'assign_template'), false)
+  union all
+  select 1, '0028', 'drei App-Vorlagen mit 39 Slots',
+         (select count(*) = 39 from plan_slots s
+          join plan_days d on d.id = s.plan_day_id
+          join templates t on t.id = d.template_id
+          where t.is_system)
 
   -- 0007: Check-in-Schutz
   union all

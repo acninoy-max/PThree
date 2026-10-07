@@ -48,6 +48,9 @@ export const fehler = {
     linkFailed:
       "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer — es liegt nicht an dir.",
     noAccess: "Kein Zugriff auf diesen Klienten.",
+    programNotFound: "Programm nicht gefunden.",
+    programIncomplete:
+      "Das Programm wurde nicht vollständig übernommen — nichts wurde gespeichert. Bitte noch einmal versuchen.",
     unknown: (roh: string) => `Das hat nicht geklappt: ${roh}`,
   },
 };

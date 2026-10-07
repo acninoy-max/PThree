@@ -1136,6 +1136,49 @@ a.pt-card:active {
   background: #f1efe9;
 }
 
+.pt-pickrow[data-active="true"] {
+  border-color: var(--pt-action);
+}
+
+/* ---------- Übungsauswahl im Plan-Editor ----------
+
+   Filterzeilen laufen am Handy waagerecht statt in vier Zeilen
+   umzubrechen — sonst schieben zehn Muskelgruppen und sechs
+   Bewegungen die eigentliche Liste aus dem Bild. Am Rechner brechen
+   sie normal um. */
+.pt-chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+@media (max-width: 640px) {
+  .pt-chiprow {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .pt-chiprow::-webkit-scrollbar {
+    display: none;
+  }
+  .pt-chiprow > * {
+    flex: none;
+  }
+}
+
+/* Die Trefferliste scrollt für sich; Suche und Filter bleiben stehen. */
+.pt-picklist {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.pt-picklist .pt-pickrow {
+  min-height: 52px;
+  padding: 9px 12px;
+}
+
 /* Hinweisband „du trackst für X". Muss auffallen: Wer versehentlich
    beim falschen Klienten einträgt, merkt es sonst erst hinterher. */
 .pt-trackbar {

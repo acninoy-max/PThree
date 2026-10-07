@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import { getLocale, getT } from "@/app/i18n/server";
-import { fetchClient, fetchExercises, fetchPlan } from "@ptfive/db";
+import {
+  fetchClient,
+  fetchExercises,
+  fetchPlan,
+  fetchRecentExerciseIds,
+} from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { PlanEditor } from "./editor";
@@ -18,9 +23,10 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
     .eq("id", user!.id)
     .maybeSingle();
 
-  const [plan, exercises] = await Promise.all([
+  const [plan, exercises, recentIds] = await Promise.all([
     fetchPlan(db, params.id),
     fetchExercises(db, getLocale()),
+    fetchRecentExerciseIds(db, user!.id),
   ]);
 
   if (!plan) notFound();
@@ -32,16 +38,18 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
       <Nav coachName={profile?.full_name ?? "Coach"} />
       <PlanEditor
         plan={plan}
-        clientName={client?.fullName ?? getT().coach.feed.unknown}
+        mode={{
+          kind: "plan",
+          clientName: client?.fullName ?? getT().coach.feed.unknown,
+        }}
+        recentIds={recentIds}
         exercises={[...exercises.values()].map((e) => ({
           id: e.id,
           name: e.name,
           pattern: e.pattern,
           muscleGroup: e.muscleGroup,
           secondaryMuscleGroups: e.secondaryMuscleGroups,
-          // fetchExercises liefert eine schlanke Form; der Block wird im
-          // Formular ohnehin frei gewählt.
-          defaultBlock: "compound" as const,
+          defaultBlock: e.block,
           own: e.coachId !== null,
         }))}
       />

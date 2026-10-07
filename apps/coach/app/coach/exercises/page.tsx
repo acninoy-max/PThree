@@ -1,28 +1,7 @@
-import { fetchExerciseLibrary } from "@ptfive/db";
-import { createServerSupabase } from "@/lib/supabase-server";
-import { getLocale } from "@/app/i18n/server";
-import { Nav } from "@/app/nav";
-import { ExerciseLibrary } from "./library";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-
-export default async function ExercisesPage() {
-  const db = createServerSupabase();
-  const {
-    data: { user },
-  } = await db.auth.getUser();
-  const { data: profile } = await db
-    .from("profiles")
-    .select("full_name")
-    .eq("id", user!.id)
-    .maybeSingle();
-
-  const exercises = await fetchExerciseLibrary(db, getLocale());
-
-  return (
-    <>
-      <Nav coachName={profile?.full_name ?? "Coach"} />
-      <ExerciseLibrary exercises={exercises} />
-    </>
-  );
+// „Übungen" heißt jetzt „Training" und hat zwei Reiter. Alte Lesezeichen
+// sollen trotzdem ankommen.
+export default function ExercisesPage() {
+  redirect("/coach/training");
 }

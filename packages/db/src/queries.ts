@@ -222,21 +222,17 @@ interface PlanRow {
   plan_days: PlanDayRow[];
 }
 
-function toPlan(r: PlanRow): Plan {
-  return {
-    id: r.id,
-    coachId: r.coach_id,
-    clientId: r.client_id,
-    templateId: r.template_id,
-    name: r.name,
-    level: r.level,
-    startsOn: r.starts_on,
-    endsOn: r.ends_on,
-    isActive: r.is_active,
-    createdAt: r.created_at,
-    // Postgres garantiert keine Reihenfolge in verschachtelten Auswahlen —
-    // deshalb hier sortieren und nicht auf die Datenbank vertrauen.
-    days: [...(r.plan_days ?? [])]
+/**
+ * Tage und Slots eines Plans oder Programms, sortiert.
+ *
+ * Postgres garantiert keine Reihenfolge in verschachtelten Auswahlen —
+ * deshalb hier sortieren und nicht auf die Datenbank vertrauen. Eine
+ * Funktion für beide Besitzer, damit ein Programm und der daraus
+ * zugewiesene Plan nie verschieden gelesen werden.
+ */
+function toDays(rows: PlanDayRow[] | null | undefined, ownerId: string): Plan["days"] {
+  const r = { plan_days: rows ?? [], id: ownerId };
+  return [...(r.plan_days ?? [])]
       .sort((a, b) => a.position - b.position)
       .map((d) => ({
         id: d.id,
@@ -266,11 +262,89 @@ function toPlan(r: PlanRow): Plan {
             restSeconds: s.rest_seconds ?? null,
             note: s.note,
           })),
-      })),
+      }));
+}
+
+function toPlan(r: PlanRow): Plan {
+  return {
+    id: r.id,
+    coachId: r.coach_id,
+    clientId: r.client_id,
+    templateId: r.template_id,
+    name: r.name,
+    level: r.level,
+    startsOn: r.starts_on,
+    endsOn: r.ends_on,
+    isActive: r.is_active,
+    createdAt: r.created_at,
+    days: toDays(r.plan_days, r.id),
   };
 }
 
 const PLAN_SELECT = "*, plan_days(*, plan_slots(*))";
+
+// ---------- Programme (Tabelle templates, gefüllt seit 0028) ----------
+
+/**
+ * Ein Programm: ein Plan ohne Klienten. `isSystem` = Vorlage aus der
+ * App, für alle Trainer lesbar und für niemanden über die App
+ * änderbar — bearbeitet wird eine Kopie (copy_template).
+ */
+export interface Program {
+  id: string;
+  coachId: string | null;
+  name: string;
+  level: Plan["level"];
+  description: string | null;
+  isSystem: boolean;
+  days: Plan["days"];
+}
+
+interface TemplateRow {
+  id: string;
+  coach_id: string | null;
+  name: string;
+  level: Plan["level"];
+  description: string | null;
+  is_system: boolean;
+  plan_days: PlanDayRow[];
+}
+
+function toProgram(r: TemplateRow): Program {
+  return {
+    id: r.id,
+    coachId: r.coach_id,
+    name: r.name,
+    level: r.level,
+    description: r.description,
+    isSystem: r.is_system,
+    days: toDays(r.plan_days, r.id),
+  };
+}
+
+/** Vorlagen aus der App zuerst, dann die eigenen, je nach Name. */
+export async function fetchPrograms(db: SupabaseClient): Promise<Program[]> {
+  const { data, error } = await db
+    .from("templates")
+    .select("*, plan_days(*, plan_slots(*))")
+    .order("is_system", { ascending: false })
+    .order("name");
+  if (error) throw new Error(`Programme laden fehlgeschlagen: ${error.message}`);
+  return (data as TemplateRow[]).map(toProgram);
+}
+
+export async function fetchProgram(
+  db: SupabaseClient,
+  id: string,
+): Promise<Program | null> {
+  const { data, error } = await db
+    .from("templates")
+    .select("*, plan_days(*, plan_slots(*))")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`Programm laden fehlgeschlagen: ${error.message}`);
+  return data ? toProgram(data as TemplateRow) : null;
+}
 
 /** Alle Pläne eines Klienten, aktive zuerst, danach nach Startdatum. */
 export async function fetchPlans(
@@ -670,6 +744,8 @@ export interface ExerciseLite {
   bodyweightFactor: number | null;
   /** null = globale Bibliothek, sonst Eigentum eines Coaches. */
   coachId: string | null;
+  /** Typischer Block — Startwert für Sätze und Wiederholungen im Slot. */
+  block: TrainingBlock;
 }
 
 export async function fetchExercises(
@@ -691,9 +767,47 @@ export async function fetchExercises(
           (e.secondary_muscle_groups as MuscleGroup[] | null) ?? [],
         bodyweightFactor: e.bodyweight_factor === null ? null : num(e.bodyweight_factor as number | string),
         coachId: (e.coach_id as string | null) ?? null,
+        block: e.default_block as TrainingBlock,
       },
     ]),
   );
+}
+
+/**
+ * Welche Übungen dieser Trainer zuletzt in Plänen benutzt hat — für
+ * „Zuletzt benutzt" in der Übungsauswahl (Joëls Punkt 4).
+ *
+ * Gemessen am Anlagedatum des Plans, in dem die Übung steht: Slots
+ * haben keinen eigenen Zeitstempel. Das ist ungenau, wenn ein alter
+ * Plan nachträglich erweitert wird, für „was nehme ich gerade oft" aber
+ * gut genug. Programme zählen nicht mit — sonst stünden die Vorlagen
+ * aus der App bei jedem Trainer oben.
+ */
+export async function fetchRecentExerciseIds(
+  db: SupabaseClient,
+  coachId: string,
+  limit = 8,
+): Promise<string[]> {
+  const { data, error } = await db
+    .from("plan_slots")
+    .select("default_exercise_id, plan_days!inner(plans!inner(coach_id, created_at))")
+    .eq("plan_days.plans.coach_id", coachId)
+    .not("default_exercise_id", "is", null);
+  if (error) throw new Error(`Zuletzt benutzt laden fehlgeschlagen: ${error.message}`);
+
+  const juengst = new Map<string, string>();
+  for (const r of (data ?? []) as unknown as {
+    default_exercise_id: string;
+    plan_days: { plans: { created_at: string } };
+  }[]) {
+    const wann = r.plan_days?.plans?.created_at ?? "";
+    const bisher = juengst.get(r.default_exercise_id);
+    if (!bisher || wann > bisher) juengst.set(r.default_exercise_id, wann);
+  }
+  return [...juengst.entries()]
+    .sort((a, b) => b[1].localeCompare(a[1]))
+    .slice(0, limit)
+    .map(([id]) => id);
 }
 
 export interface ExerciseFull extends ExerciseLite {

@@ -99,7 +99,7 @@ export const en: Dict = {
     feed: "Feed",
     clients: "Clients",
     calendar: "Calendar",
-    exercises: "Exercises",
+    training: "Training",
     today: "Today",
     plan: "Plan",
     progress: "Progress",

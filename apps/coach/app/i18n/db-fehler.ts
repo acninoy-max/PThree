@@ -23,6 +23,8 @@ const ANFAENGE: [string, DbKey][] = [
   ["Dieser Klient ist bereits mit einem anderen Zugang", "clientTaken"],
   ["Die Verknuepfung konnte nicht gesetzt werden", "linkFailed"],
   ["Kein Zugriff auf diesen Klienten", "noAccess"],
+  ["Programm nicht gefunden", "programNotFound"],
+  ["Programm wurde nicht vollstaendig", "programIncomplete"],
 ];
 
 export function dbFehler(t: Dict, meldung: string): string {

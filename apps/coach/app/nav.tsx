@@ -29,7 +29,7 @@ const LINKS: {
   */
   { href: "/coach/clients", label: "clients", Icon: IconClients },
   { href: "/coach/schedule", label: "calendar", Icon: IconCalendar },
-  { href: "/coach/exercises", label: "exercises", Icon: IconLibrary },
+  { href: "/coach/training", label: "training", Icon: IconLibrary },
   { href: "/coach/profile", label: "profile", Icon: IconUser },
 ];
 

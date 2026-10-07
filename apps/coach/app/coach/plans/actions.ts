@@ -20,7 +20,12 @@ function refresh(planId?: string) {
   revalidatePath("/athlete");
   revalidatePath("/athlete/log");
   revalidatePath("/athlete/plan");
-  if (planId) revalidatePath(`/coach/plans/${planId}`);
+  // Die ID kann ein Plan oder ein Programm sein — der Editor ist für
+  // beide derselbe. Beide Pfade neu laden kostet nichts.
+  if (planId) {
+    revalidatePath(`/coach/plans/${planId}`);
+    revalidatePath(`/coach/training/programs/${planId}`);
+  }
 }
 
 /**
@@ -249,32 +254,46 @@ export async function deleteExerciseAction(
 
 // ---------- Tage ----------
 
+/** Wem ein Tag gehört: einem Plan oder einem Programm (0028). */
+export type DayOwner = { kind: "plan" | "program"; id: string };
+
+/**
+ * Tag anlegen. Liefert die neue ID, damit der Editor direkt die
+ * Übungsauswahl für diesen Tag öffnen kann (Joëls Punkt 4).
+ */
 export async function addPlanDayAction(
-  planId: string,
+  owner: DayOwner,
   title: string,
-): Promise<SimpleResult> {
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const t = getT();
   const clean = title.trim();
   if (clean === "") return { ok: false, error: t.coach.planErrors.dayName };
 
+  const spalte = owner.kind === "plan" ? "plan_id" : "template_id";
   const db = createServerSupabase();
   const { data: last } = await db
     .from("plan_days")
     .select("position")
-    .eq("plan_id", planId)
+    .eq(spalte, owner.id)
     .order("position", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  const { error } = await db.from("plan_days").insert({
-    plan_id: planId,
-    position: (last?.position ?? 0) + 1,
-    title: clean,
-  });
-  if (error) return { ok: false, error: error.message };
+  const { data, error } = await db
+    .from("plan_days")
+    .insert({
+      [spalte]: owner.id,
+      position: (last?.position ?? 0) + 1,
+      title: clean,
+    })
+    .select("id")
+    .single();
+  if (error || !data) {
+    return { ok: false, error: error?.message ?? t.coach.planErrors.createFailed };
+  }
 
-  refresh(planId);
-  return { ok: true };
+  refresh(owner.id);
+  return { ok: true, id: data.id as string };
 }
 
 export async function renamePlanDayAction(

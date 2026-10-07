@@ -115,7 +115,7 @@ export const de = {
     feed: "Feed",
     clients: "Klienten",
     calendar: "Kalender",
-    exercises: "Übungen",
+    training: "Training",
     today: "Heute",
     plan: "Plan",
     progress: "Fortschritt",

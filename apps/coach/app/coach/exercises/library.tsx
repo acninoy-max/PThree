@@ -327,26 +327,23 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
     );
   }
 
+  // Kein eigenes <main> mehr: Die Bibliothek ist ein Reiter der Seite
+  // „Training" und steht in deren Hülle.
   return (
-    <main className="pt-shell">
+    <div>
       <div
         style={{
           display: "flex",
-          alignItems: "flex-end",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 16,
           flexWrap: "wrap",
-          marginBottom: 20,
+          marginBottom: 16,
         }}
       >
-        <div>
-          <p className="pt-label" style={{ margin: 0 }}>
-            {B.kicker}
-          </p>
-          <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-3xl)", fontWeight: 600 }}>
-            {B.count(exercises.length)}
-          </h1>
-        </div>
+        <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", color: "var(--pt-text-dim)" }}>
+          {B.count(exercises.length)}
+        </p>
         <button
           type="button"
           className="pt-btn"
@@ -429,6 +426,6 @@ export function ExerciseLibrary({ exercises }: { exercises: ExerciseFull[] }) {
       </div>
 
       {creating && <NewExercise onClose={() => setCreating(false)} />}
-    </main>
+    </div>
   );
 }
