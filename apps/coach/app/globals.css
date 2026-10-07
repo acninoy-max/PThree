@@ -555,6 +555,11 @@ a.pt-card:active {
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   min-width: 660px;
+  /* Nicht über die volle Breite: Auf einem breiten Bildschirm wurden
+     die Tage zu flachen Streifen, und das Auge musste quer über den
+     Monitor springen, um eine Woche zu lesen. 880px sind gut 120px je
+     Tag — Platz für drei Termine untereinander. */
+  max-width: 880px;
 }
 
 .pt-month__head {
