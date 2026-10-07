@@ -7,7 +7,8 @@
 # produziert hat, die erst im Studio auffielen:
 #
 #   app/plan-week.ts            Datumsrechnung (Zeitzonen-Bug 09.09.)
-#   app/format.ts               Datumsformate (Hydration-Bug)
+#   app/format.ts               Datums- und Zahlenformate je Sprache
+#   app/i18n/locale.ts          Welche Sprache eine Anfrage bekommt
 #   app/athlete/log/rest.ts     Uhren aus Zeitstempeln
 #   app/coach/clients/[id]/sections.ts
 #                               Anordnung der Klientenakte
@@ -50,6 +51,9 @@ cat > "$ZIEL/tsconfig.json" <<JSON
   },
   "files": [
     "$HIER/app/format.ts",
+    "$HIER/app/format.test.ts",
+    "$HIER/app/i18n/locale.ts",
+    "$HIER/app/i18n/locale.test.ts",
     "$HIER/app/plan-week.ts",
     "$HIER/app/athlete/log/rest.ts",
     "$HIER/app/coach/clients/[id]/sections.ts",

@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Splash } from "./splash";
 import { Toaster } from "./toast";
+import { LocaleProvider } from "./i18n/client";
+import { getLocale } from "./i18n/server";
 
 export const metadata: Metadata = {
   title: "PTHREE — Coach",
@@ -108,20 +110,25 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const locale = getLocale();
   return (
-    <html lang="de" data-theme="light">
+    <html lang={locale} data-theme="light">
       <body>
-        {/*
-          Ganz vorn im Markup, damit der Browser sie zeichnet, bevor er
-          mit dem Rest anfängt. Sie liegt über allem und räumt sich nach
-          knapp einer Sekunde selbst weg — ohne JavaScript, siehe
-          splash.tsx.
-        */}
-        <Splash />
-        {children}
-        {/* Nimmt Bestaetigungen aus der ganzen App entgegen. Liegt
-            hier, damit keine Seite ihn selbst einbinden muss. */}
-        <Toaster />
+        {/* Die Sprache entscheidet der Server, der Browser übernimmt sie
+            nur — siehe i18n/client.tsx. */}
+        <LocaleProvider locale={locale}>
+          {/*
+            Ganz vorn im Markup, damit der Browser sie zeichnet, bevor er
+            mit dem Rest anfängt. Sie liegt über allem und räumt sich nach
+            knapp einer Sekunde selbst weg — ohne JavaScript, siehe
+            splash.tsx.
+          */}
+          <Splash />
+          {children}
+          {/* Nimmt Bestaetigungen aus der ganzen App entgegen. Liegt
+              hier, damit keine Seite ihn selbst einbinden muss. */}
+          <Toaster />
+        </LocaleProvider>
       </body>
     </html>
   );

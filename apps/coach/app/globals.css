@@ -909,6 +909,15 @@ a.pt-card:active {
   border-color: var(--pt-action);
   color: #fff;
 }
+/* Sprachwahl: zwei Umschalter nebeneinander. Während des Wechsels
+   gedimmt, damit ein zweiter Tipp nicht ins Leere geht. */
+.pt-langswitch {
+  display: inline-flex;
+  gap: 6px;
+}
+.pt-langswitch[data-pending="true"] {
+  opacity: 0.6;
+}
 .pt-toggle--day {
   min-width: 42px;
   padding: 8px 6px;

@@ -9,7 +9,7 @@
 # woanders nichts.
 #
 # Bricht NICHT beim ersten Fehler ab. Wer vor dem Ausrollen prueft, will
-# alle Baustellen auf einmal sehen und nicht neunmal neu starten. Am Ende
+# alle Baustellen auf einmal sehen und nicht zehnmal neu starten. Am Ende
 # steht eine Liste mit dem, was gerissen ist.
 #
 # Was hier NICHT drinsteht: `npx next build`. Der gehoert dazu, dauert
@@ -56,6 +56,7 @@ lauf "Datumsformate"     node apps/coach/check-format.mjs
 lauf "Layout"            node apps/coach/check-layout.mjs
 lauf "Server Actions"    node apps/coach/check-actions.mjs
 lauf "Schriftgroessen"   node apps/coach/check-scale.mjs
+lauf "Texte"             node apps/coach/check-texte.mjs
 lauf "SQL"               "$PY" supabase/check_sql.py
 lauf "Rollen-Namen"      "$PY" supabase/check_enums.py
 lauf "Engine-Tests"      bash packages/coach-engine/run-tests.sh
@@ -63,7 +64,7 @@ lauf "App-Tests"         bash apps/coach/run-tests.sh
 
 echo
 if [ ${#fehler[@]} -eq 0 ]; then
-  printf '\033[32m✓ Alle neun Pruefungen sauber.\033[0m\n'
+  printf '\033[32m✓ Alle zehn Pruefungen sauber.\033[0m\n'
   exit 0
 fi
 

@@ -17,9 +17,11 @@ PTHREE — SaaS für freelance Personal Trainer. Eine Next.js-App
 `/athlete/*` mobil für den Klienten. Supabase liefert Postgres, Auth und
 Storage; läuft öffentlich unter `https://pthree-wine.vercel.app`.
 
-Sprache im Code, in Kommentaren, in Dokumenten und in der Oberfläche:
-**Deutsch.** (Eine Umstellung auf Englisch steht zur Entscheidung an,
-siehe `PROJEKTSTAND.md` Abschnitt 8 — bis dahin Deutsch.)
+**Sprache:** Code, Kommentare und Dokumente bleiben **Deutsch**. Die
+**Oberfläche ist zweisprachig** — Englisch ist Standard (Launch in den
+Niederlanden, entschieden am 07.10.2026), Deutsch wählbar. Jeder
+sichtbare Text steht in `app/i18n/de` und `app/i18n/en`, nie direkt im
+Markup; `check-texte.mjs` wacht darüber.
 
 ---
 
@@ -29,7 +31,7 @@ siehe `PROJEKTSTAND.md` Abschnitt 8 — bis dahin Deutsch.)
 bash pruefen.sh
 ```
 
-Neun Prüfungen. Erwartung: `✓ Alle neun Pruefungen sauber.` Nichts
+Zehn Prüfungen. Erwartung: `✓ Alle zehn Pruefungen sauber.` Nichts
 committen, solange eine rot ist.
 
 Bau: **`pnpm build` im Wurzelverzeichnis**, nie `npx next build` — das
@@ -38,7 +40,7 @@ Netz.
 
 ---
 
-## Sieben Regeln, die hier nicht verhandelbar sind
+## Acht Regeln, die hier nicht verhandelbar sind
 
 **1. Die Zeilensicherheit ist die Sicherheitsgrenze, nicht der Code.**
 Die App filtert nirgends nach `coach_id` — sie fragt, und die Datenbank
@@ -73,9 +75,16 @@ Schriftgrößen.** Ein `style`-Attribut schlägt jede Stylesheet-Regel,
 auch die aus `@media`; daran ist das Mobil-Layout zweimal gebrochen.
 Größen stehen als `--pt-fs-*`-Token in `globals.css`.
 
-**7. Datumsformatierung nur über `app/format.ts`.** `toLocaleDateString`
-liefert in Node und in mobilem Safari Unterschiedliches — das erzeugt
-Hydration-Fehler, die nur auf dem Handy auftreten.
+**7. Datum und Zahlen nur über `t.fmt`** (gebaut in `app/format.ts`).
+`toLocaleDateString` liefert in Node und in mobilem Safari
+Unterschiedliches — das erzeugt Hydration-Fehler, die nur auf dem Handy
+auftreten. Englisch heißt europäisch: Tag vor Monat, 24 Stunden.
+
+**8. Texte nur über das Wörterbuch.** Server: `getT()` aus
+`app/i18n/server`, Browser: `useT()` aus `app/i18n/client`. Neuer
+Schlüssel zuerst in `de/`, dann meldet `tsc`, was in `en/` fehlt. Die
+Sprache entscheidet der Server (Cookie, dann Browser-Sprache) — nie der
+Browser selbst, sonst Hydration-Fehler.
 
 ---
 

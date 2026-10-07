@@ -122,7 +122,16 @@ Zahlen im Markup meldet `check-scale.mjs`. Einzige Ausnahme:
 `app/global-error.tsx`, weil dort das Stylesheet möglicherweise nicht
 geladen ist.
 
-**Datumsformatierung nur über `app/format.ts`.** `toLocaleDateString`
+**Zwei Sprachen, eine Quelle.** Die Oberfläche ist Englisch (Standard)
+und Deutsch. Die Texte stehen in `app/i18n/de` und `app/i18n/en`; `de`
+gibt die Form vor, `en` muss sie erfüllen, sonst meldet es `tsc`. Die
+Sprache entscheidet der **Server** aus Cookie `pt_lang`, sonst aus der
+Browser-Sprache, sonst Englisch — und reicht nur den Code an den
+Browser. Würde der Browser selbst entscheiden, gäbe es auf jeder Seite
+einen Hydration-Fehler.
+
+**Datumsformatierung nur über `app/format.ts`** (in Komponenten als
+`t.fmt`). `toLocaleDateString`
 liefert in Node und in mobilem Safari unterschiedliche Ergebnisse — das
 erzeugt Hydration-Fehler, die nur auf dem Handy auftreten. Dagegen läuft
 `check-format.mjs`.
@@ -162,8 +171,8 @@ cd ~/Desktop/Q/ptfive
 bash pruefen.sh
 ```
 
-Neun Prüfungen, bricht nicht beim ersten Fehler ab, listet am Ende auf,
-was gerissen ist. Erwartung: `✓ Alle neun Pruefungen sauber.`
+Zehn Prüfungen, bricht nicht beim ersten Fehler ab, listet am Ende auf,
+was gerissen ist. Erwartung: `✓ Alle zehn Pruefungen sauber.`
 
 | Prüfung | Was sie fängt |
 |---|---|
@@ -172,6 +181,7 @@ was gerissen ist. Erwartung: `✓ Alle neun Pruefungen sauber.`
 | `check-layout.mjs` | Inline-Styles, die eine Media-Query aushebeln |
 | `check-actions.mjs` | die zwei Server/Client-Regeln oben |
 | `check-scale.mjs` | freie Schriftgrößen, tote Token |
+| `check-texte.mjs` | Texte am Wörterbuch vorbei; Obergrenze je Datei in `texte-baseline.json`, darf nur sinken |
 | `check_sql.py` | SQL-Syntax aller Migrationen (braucht `pglast` in `.venv`) |
 | `check_enums.py` | Rollen-Namen gegen die echten Enum-Werte |
 | Engine-Tests | 93 Tests |
@@ -326,8 +336,14 @@ Texte raus aus den Dateien, Sprachdatei rein, überall durchziehen.
 Bestand. Nach den Punkten 1 bis 12 betrifft es den Bestand plus alles
 Neue, und jeder neue Bildschirm wird zweimal gebaut.
 
-Vor jeder weiteren Arbeit zu klären: Ist der NL-Launch eine
-Entscheidung oder eine Idee aus dem Gespräch?
+**Entschieden am 07.10.2026:** Der NL-Launch kommt. Die Oberfläche wird
+Englisch (Standard) und Deutsch (wählbar), mit europäischen Formaten.
+Code, Kommentare und Dokumente bleiben Deutsch. Der Umbau läuft
+Bereich für Bereich; wie weit er ist, zeigt `check-texte.mjs`.
+
+**Erledigt seit dem Test:** Punkt 6 (nur noch der erste Satz ist die
+„erste Leistung", `markBefore`), Punkt 2 (nach dem Anlegen direkt in
+die Akte mit offenem Plan-Dialog).
 
 ---
 
@@ -386,7 +402,7 @@ Meeting vom 19.06. Sie stehen in keinem Dokument in diesem Ordner.
 
 ## 11. Wenn du hier weiterbaust
 
-1. **`bash pruefen.sh` vor jedem Commit.** Neun müssen grün sein.
+1. **`bash pruefen.sh` vor jedem Commit.** Zehn müssen grün sein.
 2. **Jede neue Tabelle bekommt eine RLS-Regel**, sonst ist sie offen.
 3. **Jeder Spaltenschutz braucht einen Trigger**, RLS reicht nicht.
 4. **Nach jedem schreibenden Vorgang in der Datenbank zurücklesen**, ob
@@ -396,7 +412,8 @@ Meeting vom 19.06. Sie stehen in keinem Dokument in diesem Ordner.
    dokumentiert (wie in 0022).
 6. **`check_schema.sql` erweitern**, wenn du eine Migration schreibst.
    Sonst merkt niemand, dass sie fehlt.
-7. **Texte sind Deutsch** — bis Punkt 13 oben entschieden ist.
+7. **Texte gehören ins Wörterbuch** (`app/i18n/de`, `app/i18n/en`).
+   Code, Kommentare und Dokumente bleiben Deutsch.
 8. Kommentare im Code erklären **warum**, nicht was. Das ist hier
    durchgängig so und sollte so bleiben: Die meisten Fallen in diesem
    Projekt sind nicht am Code ablesbar.
