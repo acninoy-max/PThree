@@ -365,7 +365,19 @@ baut die App. Meldungen aus Postgres übersetzt `i18n/db-fehler.ts`.
 
 **Erledigt seit dem Test:** Punkt 6 (nur noch der erste Satz ist die
 „erste Leistung", `markBefore`), Punkt 2 (nach dem Anlegen direkt in
-die Akte mit offenem Plan-Dialog).
+die Akte mit offenem Plan-Dialog), Punkt 13 (Klientenakte in drei
+Reitern Tracken / Check-ins / Progress plus Stammdaten, über `?tab=`;
+Zuordnung der Abschnitte in `sections.ts`), Punkt 11 (Check-in nicht
+mehr in der Athleten-Leiste, sondern über „Heute").
+
+**Trainer-Leiste seitdem:** Feed · Klienten · Kalender · Übungen ·
+Profil. Sprache und Abmelden stehen im Profil. Die Sammelseiten
+`/coach/track` und `/coach/checkins` gibt es weiter, nur ohne eigenen
+Punkt: erreichbar über die Akte, den Feed und die Homescreen-Verknüpfung.
+
+**Als Nächstes, nach Absprache mit Joël:** Punkt 4 und 5 zusammen mit
+englischen Übungsnamen in einer Migration 0026 — braucht von Joël die
+Listen für Attachment und Grip und eine Vorführung von Punkt 3.
 
 ---
 
