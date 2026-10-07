@@ -106,6 +106,20 @@ export const en: Dict = {
     profile: "Profile",
   },
 
+  feedback: {
+    title: "Feedback on the app",
+    intro:
+      "What's missing, what's annoying, what do you like? Write it here — it goes straight to us.",
+    placeholder: "e.g. When tracking, the page jumps if …",
+    send: "Send feedback",
+    sending: "Sending …",
+    thanks: "Thanks — it arrived.",
+    empty: "Please write something.",
+    tooLong: "That's more than 4000 characters — please shorten it.",
+    notSaved: "The feedback wasn't saved. Please try again.",
+    notReady: "Feedback isn't available yet: migration 0027 is missing in the database.",
+  },
+
   language: {
     label: "Language",
     en: "English",

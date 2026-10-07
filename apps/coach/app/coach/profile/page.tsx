@@ -3,6 +3,7 @@ import { Nav } from "@/app/nav";
 import { getT } from "@/app/i18n/server";
 import { Sprachwahl } from "@/app/i18n/sprachwahl";
 import { Abmelden } from "./abmelden";
+import { FeedbackForm } from "@/app/feedback";
 
 export const dynamic = "force-dynamic";
 
@@ -79,6 +80,10 @@ export default async function CoachProfilePage() {
           >
             {P.languageHint}
           </p>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <FeedbackForm variante="coach" />
         </div>
 
         <div className="pt-card">

@@ -15,6 +15,7 @@ import {
 } from "@/app/athlete/photos/shrink";
 import { useT } from "@/app/i18n/client";
 import { Sprachwahl } from "@/app/i18n/sprachwahl";
+import { FeedbackForm } from "@/app/feedback";
 import {
   removeAvatarAction,
   saveAvatarAction,
@@ -324,6 +325,10 @@ export function ProfileForm({
           {t.language.label}
         </p>
         <Sprachwahl />
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <FeedbackForm variante="athlete" />
       </div>
 
       {/* ---------- Abmelden ----------

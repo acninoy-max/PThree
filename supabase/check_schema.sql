@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0026 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0027 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -506,6 +506,21 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
          (select count(*) = 0 from exercises e
           where e.coach_id is null
             and coalesce(to_jsonb(e) ->> 'name_en', '') = '')
+
+  -- 0027: Feedback aus der App
+  union all
+  select 1, '0027', 'Tabelle app_feedback vorhanden',
+         (select count(*) = 1 from information_schema.tables
+          where table_schema = 'public' and table_name = 'app_feedback')
+  union all
+  select 1, '0027', 'app_feedback: nur eigene Zeilen schreiben und lesen',
+         (select count(*) = 2 from pg_policies
+          where tablename = 'app_feedback'
+            and policyname in ('app_feedback_insert_own', 'app_feedback_read_own'))
+  union all
+  select 1, '0027', 'Rolle wird von der Datenbank gesetzt',
+         (select count(*) = 1 from pg_trigger
+          where tgname = 'app_feedback_role' and not tgisinternal)
 
   -- 0007: Check-in-Schutz
   union all

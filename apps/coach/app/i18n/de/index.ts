@@ -122,6 +122,21 @@ export const de = {
     profile: "Profil",
   },
 
+  feedback: {
+    title: "Feedback zur App",
+    intro:
+      "Was fehlt, was nervt, was gefällt? Schreib es hier rein — es landet direkt bei uns.",
+    placeholder: "z. B. Beim Tracken springt die Seite, wenn …",
+    send: "Feedback senden",
+    sending: "Wird gesendet …",
+    thanks: "Danke — ist angekommen.",
+    empty: "Schreib bitte etwas hinein.",
+    tooLong: "Das sind mehr als 4000 Zeichen — bitte kürzen.",
+    notSaved: "Das Feedback wurde nicht gespeichert. Bitte noch einmal versuchen.",
+    notReady:
+      "Feedback geht noch nicht: In der Datenbank fehlt die Migration 0027.",
+  },
+
   language: {
     label: "Sprache",
     en: "English",
