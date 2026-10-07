@@ -424,11 +424,10 @@ Kategorien nach Art. 9 DSGVO in der Datenbank.
 
 - Sicherungen: Im kleinen Supabase-Tarif einmal nachsehen, was
   eingestellt ist.
-- Die Einladungsvorlage in Supabase zeigt auf die Site URL statt auf
-  `/auth/callback`. Ein eingeladener Trainer landet deshalb ohne
-  Passwort auf der Anmeldeseite. Behelf: „Passwort vergessen". Richtige
-  Lösung: In der Vorlage *Invite user* den Link ersetzen durch
-  `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&next=/auth/passwort/neu`
+- Mailvorlagen in Supabase: englische Fassungen mit den richtigen
+  Links (Einladung führt direkt auf „New password") stehen in
+  `MAILVORLAGEN.md` — einzutragen unter *Authentication → Email
+  Templates*.
 - Ladezustände fehlen für fünf Routen, leere Zustände ohne nächste
   Handlung, Abstandsraster.
 
@@ -450,6 +449,7 @@ Meeting vom 19.06. Sie stehen in keinem Dokument in diesem Ordner.
 | `TESTLAUF.md` | Vollständiger Durchgang, 17 Abschnitte |
 | `GO-LIVE.md` | Der Weg nach draußen, vier Blöcke — weitgehend abgearbeitet |
 | `RESEND-EINRICHTEN.md` | Mailversand, Schritt für Schritt |
+| `MAILVORLAGEN.md` | Die vier Mailvorlagen für Supabase, englisch, mit Links über `/auth/callback` |
 | `BACKLOG.md` | Was offen ist, gegen den Code geprüft |
 | `STAND.md` | Älterer Stand vom 23.09., teilweise überholt |
 | `KOERPERGEWICHT-Faktoren.md` | Körpergewichtsanteile je Übung — fachlich von Joël |
