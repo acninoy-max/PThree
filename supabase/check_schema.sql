@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0028 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0029 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -404,8 +404,11 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
          (select count(*) = 1 from pg_trigger
           where tgname = 'clients_self_edit_guard' and not tgisinternal)
   union all
+  -- Regulärer Ausdruck statt `like`: 0025 hat die Zuweisung mit
+  -- Ausrichtungs-Leerzeichen neu geschrieben, und die alte Prüfung
+  -- meldete den vorhandenen Trigger als fehlend.
   select 1, '0021', 'Trigger setzt coach_id zurueck',
-         coalesce((select prosrc like '%new.coach_id := old.coach_id%'
+         coalesce((select prosrc ~ 'new\.coach_id\s*:=\s*old\.coach_id'
           from pg_proc where proname = 'guard_client_self_edit'), false)
   union all
   select 1, '0021', 'Bucket avatars ist NICHT oeffentlich',
@@ -547,6 +550,26 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
           join plan_days d on d.id = s.plan_day_id
           join templates t on t.id = d.template_id
           where t.is_system)
+
+  -- 0029: Ausfuehrungsrechte — PUBLIC war nie entzogen
+  union all
+  select 1, '0029', 'promote_to_coach von aussen nicht aufrufbar',
+         coalesce((select not has_function_privilege('authenticated', p.oid, 'execute')
+                      and not has_function_privilege('anon', p.oid, 'execute')
+          from pg_proc p where p.proname = 'promote_to_coach'), false)
+  union all
+  select 1, '0029', 'promote_to_coach lehnt Aufrufe ueber die API ab',
+         coalesce((select prosrc like '%request.jwt.claims%'
+          from pg_proc where proname = 'promote_to_coach'), false)
+  union all
+  -- Fehlt die Funktion ganz, ist das auch dicht — deshalb `true`.
+  select 1, '0029', 'seed_demo_data von aussen nicht aufrufbar',
+         coalesce((select not has_function_privilege('authenticated', p.oid, 'execute')
+                      and not has_function_privilege('anon', p.oid, 'execute')
+          from pg_proc p where p.proname = 'seed_demo_data'), true)
+  union all
+  select 1, '0029', 'restore_coach_account geloescht',
+         (select count(*) = 0 from pg_proc where proname = 'restore_coach_account')
 
   -- 0007: Check-in-Schutz
   union all
