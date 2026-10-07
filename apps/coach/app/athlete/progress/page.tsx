@@ -21,7 +21,7 @@ import { muscleLabel } from "@/app/components";
 import { MetricChart } from "@/app/metric-chart";
 import { PhotoCompare } from "@/app/photo-compare";
 import { ProgressExercises } from "./progress-exercises";
-import { getT } from "@/app/i18n/server";
+import { getLocale, getT } from "@/app/i18n/server";
 import {
   MEASURE_INFO,
   MEASURE_KEYS,
@@ -54,7 +54,7 @@ export default async function ProgressPage() {
 
   const [sessions, exercises, checkIns, plan, gewaehlt] = await Promise.all([
     fetchSessions(db, { sinceDays: 365 }),
-    fetchExercises(db),
+    fetchExercises(db, getLocale()),
     // Ein Jahr reicht: Die Zeitraumwahl im Diagramm greift darauf zu.
     fetchMyCheckIns(db, 60),
     fetchActivePlan(db),

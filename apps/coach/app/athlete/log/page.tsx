@@ -1,4 +1,9 @@
-import { fetchActivePlan, fetchMyCheckIns, fetchSessions } from "@ptfive/db";
+import {
+  fetchActivePlan,
+  fetchMyCheckIns,
+  fetchSessions,
+  localizeExercise,
+} from "@ptfive/db";
 import {
   bestSet,
   estimateOneRepMax,
@@ -7,6 +12,7 @@ import {
 } from "@ptfive/coach-engine";
 import type { MovementPattern, MuscleGroup } from "@ptfive/types";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getLocale } from "@/app/i18n/server";
 import {
   LogWorkout,
   type ExerciseOption,
@@ -23,14 +29,14 @@ export default async function LogPage({
   searchParams: { day?: string };
 }) {
   const db = createServerSupabase();
+  const locale = getLocale();
 
   const [{ data: rows }, sessions, plan, checkIns] = await Promise.all([
     db
       .from("exercises")
-      .select(
-        "id, name, pattern, muscle_group, secondary_muscle_groups, bodyweight_factor, default_block, cue, setup, common_fault, is_bodyweight",
-      )
-      .order("name"),
+      // `*` statt Spaltenliste: Die englischen Spalten aus 0026 dürfen
+      // fehlen, ohne dass die Seite bricht — siehe localizeExercise.
+      .select("*"),
     fetchSessions(db, { sinceDays: 365 }),
     fetchActivePlan(db),
     // Für die wirksame Last bei Körpergewichtsübungen. Zwölf reichen —
@@ -50,9 +56,11 @@ export default async function LogPage({
       .sort((a, b) => b.weekOf.localeCompare(a.weekOf))
       .find((c) => c.weightKg !== null)?.weightKg ?? null;
 
+  // Nach dem angezeigten Namen sortieren — die Datenbank kennt nur den
+  // deutschen.
   const exercises: ExerciseOption[] = (rows ?? []).map((r) => ({
     id: r.id as string,
-    name: r.name as string,
+    name: localizeExercise(r, locale).name,
     // null bei Rumpfarbeit — die läuft bewusst ohne Musterkurve.
     pattern: (r.pattern as MovementPattern | null) ?? null,
     muscleGroup: r.muscle_group as MuscleGroup,
@@ -63,11 +71,11 @@ export default async function LogPage({
         ? null
         : Number(r.bodyweight_factor),
     block: r.default_block as ExerciseOption["block"],
-    cue: (r.cue as string | null) ?? null,
-    setup: (r.setup as string | null) ?? null,
-    commonFault: (r.common_fault as string | null) ?? null,
+    cue: localizeExercise(r, locale).cue,
+    setup: localizeExercise(r, locale).setup,
+    commonFault: localizeExercise(r, locale).commonFault,
     isBodyweight: r.is_bodyweight as boolean,
-  }));
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 
   /**
    * Bestleistung je Übung — erscheint beim Loggen als Zielmarke.

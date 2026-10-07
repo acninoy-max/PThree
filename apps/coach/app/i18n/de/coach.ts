@@ -454,7 +454,12 @@ export const coach = {
     rest: "Pause (Sekunden)",
     restHint: "Leer = keine Vorgabe.",
     note: "Hinweis für den Athleten",
-    notePlaceholder: "z. B. letzte zwei Sätze bis kurz vors Versagen",
+    /*
+      Joëls Punkt 5: Griff und Aufsatz als Freitext statt eigener Felder
+      — der Platzhalter zeigt, dass sie hier hingehören.
+    */
+    notePlaceholder:
+      "z. B. letzte zwei Sätze bis kurz vors Versagen, enger Griff, V-Griff am Kabel",
     save: "Speichern",
     addButton: "Hinzufügen",
   },

@@ -446,7 +446,8 @@ export const coach: Dict["coach"] = {
     rest: "Rest (seconds)",
     restHint: "Empty = no target.",
     note: "Note for the athlete",
-    notePlaceholder: "e.g. last two sets close to failure",
+    notePlaceholder:
+      "e.g. last two sets close to failure, narrow grip, V-bar attachment",
     save: "Save",
     addButton: "Add",
   },

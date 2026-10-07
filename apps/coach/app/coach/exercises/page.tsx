@@ -1,5 +1,6 @@
 import { fetchExerciseLibrary } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getLocale } from "@/app/i18n/server";
 import { Nav } from "@/app/nav";
 import { ExerciseLibrary } from "./library";
 
@@ -16,7 +17,7 @@ export default async function ExercisesPage() {
     .eq("id", user!.id)
     .maybeSingle();
 
-  const exercises = await fetchExerciseLibrary(db);
+  const exercises = await fetchExerciseLibrary(db, getLocale());
 
   return (
     <>

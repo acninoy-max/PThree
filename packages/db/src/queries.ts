@@ -622,6 +622,41 @@ export async function fetchCheckInConfig(
   };
 }
 
+/**
+ * Sprache für Inhalte aus der Datenbank. Bewusst ein eigener Typ hier
+ * und nicht der aus der App: Dieses Paket kennt die App nicht.
+ */
+export type ContentLocale = "en" | "de";
+
+/**
+ * Name, Aufbau, Hinweis und Fehlerbild einer Übung in einer Sprache.
+ *
+ * Englisch nimmt die Spalten aus 0026 und fällt auf Deutsch zurück, wo
+ * sie leer sind — eigene Übungen der Trainer haben keine englische
+ * Fassung, und eine leere Zeile wäre schlechter als eine deutsche.
+ *
+ * Gelesen wird aus einer Zeile, die mit `select("*")` geholt wurde:
+ * Fehlen die Spalten, weil 0026 noch nicht eingespielt ist, sind sie
+ * schlicht undefined, und es bleibt beim Deutschen. Eine ausdrücklich
+ * benannte Spalte, die es nicht gibt, ließe dagegen die ganze Abfrage
+ * scheitern — und mit ihr jede Seite, die Übungen zeigt.
+ */
+export function localizeExercise(
+  row: Record<string, unknown>,
+  locale: ContentLocale,
+): { name: string; setup: string | null; cue: string | null; commonFault: string | null } {
+  const feld = (de: string): string | null => {
+    const en = locale === "en" ? (row[`${de}_en`] as string | null | undefined) : null;
+    return (en && en.trim() !== "" ? en : (row[de] as string | null)) ?? null;
+  };
+  return {
+    name: feld("name") ?? "",
+    setup: feld("setup"),
+    cue: feld("cue"),
+    commonFault: feld("common_fault"),
+  };
+}
+
 export interface ExerciseLite {
   id: string;
   name: string;
@@ -639,19 +674,17 @@ export interface ExerciseLite {
 
 export async function fetchExercises(
   db: SupabaseClient,
+  locale: ContentLocale,
 ): Promise<Map<string, ExerciseLite>> {
-  const { data, error } = await db
-    .from("exercises")
-    .select(
-      "id, name, pattern, muscle_group, secondary_muscle_groups, bodyweight_factor, coach_id",
-    );
+  // `*` statt einer Spaltenliste — siehe localizeExercise.
+  const { data, error } = await db.from("exercises").select("*");
   if (error) throw new Error(`Übungen laden fehlgeschlagen: ${error.message}`);
   return new Map(
     (data ?? []).map((e) => [
       e.id as string,
       {
         id: e.id as string,
-        name: e.name as string,
+        name: localizeExercise(e, locale).name,
         pattern: (e.pattern as MovementPattern | null) ?? null,
         muscleGroup: e.muscle_group as MuscleGroup,
         secondaryMuscleGroups:
@@ -675,17 +708,16 @@ export interface ExerciseFull extends ExerciseLite {
 /** Volle Bibliothek für die Übungsverwaltung des Coaches. */
 export async function fetchExerciseLibrary(
   db: SupabaseClient,
+  locale: ContentLocale,
 ): Promise<ExerciseFull[]> {
-  const { data, error } = await db
-    .from("exercises")
-    .select(
-      "id, name, pattern, muscle_group, secondary_muscle_groups, bodyweight_factor, coach_id, default_block, cue, setup, common_fault, is_bodyweight",
-    )
-    .order("name");
+  // `*` statt einer Spaltenliste — siehe localizeExercise.
+  const { data, error } = await db.from("exercises").select("*");
   if (error) throw new Error(`Übungen laden fehlgeschlagen: ${error.message}`);
-  return (data ?? []).map((e) => ({
+  const liste = (data ?? []).map((e) => {
+    const l = localizeExercise(e, locale);
+    return {
     id: e.id as string,
-    name: e.name as string,
+    name: l.name,
     pattern: (e.pattern as MovementPattern | null) ?? null,
     muscleGroup: e.muscle_group as MuscleGroup,
     secondaryMuscleGroups:
@@ -693,11 +725,15 @@ export async function fetchExerciseLibrary(
     bodyweightFactor: e.bodyweight_factor === null ? null : num(e.bodyweight_factor as number | string),
     coachId: (e.coach_id as string | null) ?? null,
     block: e.default_block as TrainingBlock,
-    cue: (e.cue as string | null) ?? null,
-    setup: (e.setup as string | null) ?? null,
-    commonFault: (e.common_fault as string | null) ?? null,
+    cue: l.cue,
+    setup: l.setup,
+    commonFault: l.commonFault,
     isBodyweight: e.is_bodyweight as boolean,
-  }));
+  };
+  });
+  // Nach dem Namen in der angezeigten Sprache sortieren, nicht nach dem
+  // deutschen — sonst stünde „Barbell Row" unter L wie Langhantelrudern.
+  return liste.sort((a, b) => a.name.localeCompare(b.name, locale));
 }
 
 // ---------- Fortschrittsauswahl ----------

@@ -33,7 +33,7 @@ import { ManageClient } from "./manage";
 import { ClientAppointments } from "./appointments";
 import { ClientPlan } from "./plan";
 import { CheckInConfig } from "./checkin-config";
-import { getT } from "@/app/i18n/server";
+import { getLocale, getT } from "@/app/i18n/server";
 import { ClientPhotos } from "./photos";
 import {
   CLIENT_TABS,
@@ -110,7 +110,7 @@ export default async function ClientDetailPage({
   ] = await Promise.all([
     fetchClient(db, params.id),
     fetchSessions(db, { clientId: params.id, sinceDays: 365 }),
-    fetchExercises(db),
+    fetchExercises(db, getLocale()),
     fetchAppointmentsBetween(db, new Date(), in90Days),
     fetchUnresolvedAppointments(db, 14),
     fetchClientCheckIns(db, params.id, 12),

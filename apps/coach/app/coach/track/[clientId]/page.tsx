@@ -5,9 +5,11 @@ import {
   fetchMyCheckIns,
   fetchPlans,
   fetchSessions,
+  localizeExercise,
 } from "@ptfive/db";
 import { bestSet, estimateOneRepMax } from "@ptfive/coach-engine";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { getLocale } from "@/app/i18n/server";
 import {
   TrackWorkout,
   type TrackExercise,
@@ -31,6 +33,7 @@ export default async function TrackClientPage({
   params: { clientId: string };
 }) {
   const db = createServerSupabase();
+  const locale = getLocale();
   const {
     data: { user },
   } = await db.auth.getUser();
@@ -41,10 +44,9 @@ export default async function TrackClientPage({
   const [{ data: rows }, sessions, plans, checkIns] = await Promise.all([
     db
       .from("exercises")
-      .select(
-        "id, name, pattern, muscle_group, secondary_muscle_groups, bodyweight_factor, default_block, cue, setup, common_fault, is_bodyweight",
-      )
-      .order("name"),
+      // `*` statt Spaltenliste: Die englischen Spalten aus 0026 dürfen
+      // fehlen, ohne dass die Seite bricht — siehe localizeExercise.
+      .select("*"),
     fetchSessions(db, { clientId: client.id, sinceDays: 365 }),
     fetchPlans(db, client.id),
     // Für die wirksame Last bei Körpergewichtsübungen.
@@ -62,9 +64,11 @@ export default async function TrackClientPage({
       ? Number(checkIns.data[0]!.weight_kg)
       : null;
 
+  // Nach dem angezeigten Namen sortieren — die Datenbank kennt nur den
+  // deutschen.
   const exercises: TrackExercise[] = (rows ?? []).map((r) => ({
     id: r.id as string,
-    name: r.name as string,
+    name: localizeExercise(r, locale).name,
     pattern: (r.pattern as MovementPattern | null) ?? null,
     muscleGroup: r.muscle_group as MuscleGroup,
     secondaryMuscleGroups:
@@ -74,10 +78,10 @@ export default async function TrackClientPage({
         ? null
         : Number(r.bodyweight_factor),
     block: r.default_block as TrackExercise["block"],
-    cue: (r.cue as string | null) ?? null,
-    setup: (r.setup as string | null) ?? null,
+    cue: localizeExercise(r, locale).cue,
+    setup: localizeExercise(r, locale).setup,
     isBodyweight: r.is_bodyweight as boolean,
-  }));
+  })).sort((a, b) => a.name.localeCompare(b.name, locale));
 
   const bests: Record<string, TrackPersonalBest> = {};
   const lastEfforts: Record<string, TrackLastEffort> = {};

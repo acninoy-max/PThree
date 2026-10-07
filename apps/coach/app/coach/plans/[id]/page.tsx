@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getT } from "@/app/i18n/server";
+import { getLocale, getT } from "@/app/i18n/server";
 import { fetchClient, fetchExercises, fetchPlan } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
@@ -20,7 +20,7 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
 
   const [plan, exercises] = await Promise.all([
     fetchPlan(db, params.id),
-    fetchExercises(db),
+    fetchExercises(db, getLocale()),
   ]);
 
   if (!plan) notFound();

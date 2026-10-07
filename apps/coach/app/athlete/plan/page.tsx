@@ -4,7 +4,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel, restLabel, supersetCodes } from "@/app/components";
 import { IconCheck, IconClock } from "@/app/icons";
 import { buildWeek, estimateMinutes, flexibleDays } from "@/app/plan-week";
-import { getT } from "@/app/i18n/server";
+import { getLocale, getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +15,7 @@ export default async function AthletePlanPage() {
   const [plan, sessions, exercises] = await Promise.all([
     fetchActivePlan(db),
     fetchSessions(db, { sinceDays: 30 }),
-    fetchExercises(db),
+    fetchExercises(db, getLocale()),
   ]);
 
   const days = (plan?.days ?? []).filter((d) => d.slots.length > 0);

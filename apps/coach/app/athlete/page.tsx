@@ -9,7 +9,7 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel } from "@/app/components";
 import { estimateMinutes } from "@/app/plan-week";
 import { IconChevronRight } from "@/app/icons";
-import { getT } from "@/app/i18n/server";
+import { getLocale, getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ export default async function AthleteHome() {
       db.from("profiles").select("full_name").eq("id", user!.id).maybeSingle(),
       fetchSessions(db, { sinceDays: 60 }),
       fetchUpcomingAppointments(db, 14),
-      fetchExercises(db),
+      fetchExercises(db, getLocale()),
       fetchActivePlan(db),
     ]);
 

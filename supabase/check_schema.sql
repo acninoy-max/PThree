@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0025 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0026 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -495,6 +495,17 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
          (select count(*) = 0 from client_invites i
           join clients c on c.id = i.client_id
           where i.accepted_at is not null and c.profile_id is null)
+
+  -- 0026: Uebungsbibliothek auf Englisch
+  union all
+  select 1, '0026', 'exercises.name_en vorhanden',
+         (select count(*) = 1 from information_schema.columns
+          where table_name = 'exercises' and column_name = 'name_en')
+  union all
+  select 1, '0026', 'jede globale Uebung hat einen englischen Namen',
+         (select count(*) = 0 from exercises e
+          where e.coach_id is null
+            and coalesce(to_jsonb(e) ->> 'name_en', '') = '')
 
   -- 0007: Check-in-Schutz
   union all
