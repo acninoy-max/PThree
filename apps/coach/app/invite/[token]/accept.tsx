@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { useT } from "@/app/i18n/client";
+import { dbFehler } from "@/app/i18n/db-fehler";
 
 /**
  * Registrierung über Einladung.
@@ -33,11 +35,15 @@ export function AcceptInvite({
   vorgabeEmail: string | null;
   bereitsVerknuepft: boolean;
 }) {
+  const t = useT();
   const fest = (vorgabeEmail ?? "").trim() !== "";
   const [email, setEmail] = useState(vorgabeEmail ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ob der Weg über „Passwort vergessen" angeboten wird. Früher am
+  // Meldungstext erkannt — der ist jetzt je Sprache ein anderer.
+  const [zeigeReset, setZeigeReset] = useState(false);
   const [done, setDone] = useState(false);
 
   /*
@@ -73,6 +79,7 @@ export function AcceptInvite({
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setZeigeReset(false);
 
     const db = createClient();
     const adresse = email.trim().toLowerCase();
@@ -122,13 +129,15 @@ export function AcceptInvite({
         password,
       });
       if (signIn.error) {
+        const vorhanden = /already registered|already exists/i.test(
+          signUp.error.message,
+        );
+        setZeigeReset(vorhanden);
         setError(
-          /already registered|already exists/i.test(signUp.error.message)
-            ? "Zu dieser Adresse gibt es schon ein Konto. Trag dein " +
-              "bisheriges Passwort ein — oder setz es unter " +
-              "„Passwort vergessen“ neu und komm dann hierher zurück."
+          vorhanden
+            ? t.auth.invite.accountExists
             : /invalid login credentials/i.test(signIn.error.message)
-              ? "E-Mail oder Passwort stimmt nicht."
+              ? t.auth.login.wrongCredentials
               : signUp.error.message,
         );
         setBusy(false);
@@ -145,10 +154,10 @@ export function AcceptInvite({
         Seit 0024 kommt hier ein Satz an, den man lesen kann — vorher
         lief dieser Fall ohne jeden Fehler durch und der Eingeladene
         stand in einer App ohne Daten. Die Meldung aus der Datenbank
-        wird deshalb durchgereicht und nicht übersetzt: Sie ist bereits
-        auf Deutsch und sagt, was zu tun ist.
+        sagt, was zu tun ist; dbFehler bringt sie in die Sprache der
+        Oberfläche.
       */
-      setError(linkError.message);
+      setError(dbFehler(t, linkError.message));
       setBusy(false);
       return;
     }
@@ -161,7 +170,7 @@ export function AcceptInvite({
   if (done) {
     return (
       <div className="pt-card">
-        <p style={{ margin: 0, fontWeight: 500 }}>Alles klar, {clientName}.</p>
+        <p style={{ margin: 0, fontWeight: 500 }}>{t.auth.invite.doneTitle(clientName)}</p>
         <p
           style={{
             margin: "6px 0 0",
@@ -170,8 +179,7 @@ export function AcceptInvite({
             lineHeight: 1.5,
           }}
         >
-          Dein Konto ist mit deinem Coach verknüpft. Wir bringen dich zu deinem
-          Trainingsbereich …
+          {t.auth.invite.doneBody}
         </p>
       </div>
     );
@@ -184,7 +192,7 @@ export function AcceptInvite({
       style={{ display: "grid", gap: 14 }}
     >
       <label style={{ display: "grid", gap: 6 }}>
-        <span className="pt-label">E-Mail</span>
+        <span className="pt-label">{t.auth.login.email}</span>
         <input
           type="email"
           required
@@ -215,8 +223,7 @@ export function AcceptInvite({
             lineHeight: 1.5,
           }}
         >
-          Die Adresse hat dein Coach hinterlegt. Stimmt sie nicht, sag ihm
-          Bescheid — er schickt dir dann eine neue Einladung.
+          {t.auth.invite.emailFixed}
         </p>
       )}
 
@@ -229,13 +236,12 @@ export function AcceptInvite({
             lineHeight: 1.55,
           }}
         >
-          Du bist bereits unter dieser Adresse angemeldet — kein Passwort
-          nötig.
+          {t.auth.invite.alreadySignedIn}
         </p>
       ) : (
         <label style={{ display: "grid", gap: 6 }}>
           <span className="pt-label">
-            {bereitsVerknuepft ? "Dein Passwort" : "Passwort wählen"}
+            {bereitsVerknuepft ? t.auth.invite.yourPassword : t.auth.invite.pickPassword}
           </span>
           <input
             type="password"
@@ -243,7 +249,7 @@ export function AcceptInvite({
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder={bereitsVerknuepft ? undefined : "mindestens 8 Zeichen"}
+            placeholder={bereitsVerknuepft ? undefined : t.auth.invite.minChars}
             autoComplete={
               bereitsVerknuepft ? "current-password" : "new-password"
             }
@@ -268,13 +274,13 @@ export function AcceptInvite({
             Passwort nicht mehr weiß, müsste sonst die Einladung
             verlassen — und der Link ist dann im Zweifel weg.
           */}
-          {error.includes("Passwort vergessen") && (
+          {zeigeReset && (
             <p style={{ margin: "8px 0 0", fontSize: "var(--pt-fs-base)" }}>
               <Link
                 href="/auth/passwort"
                 style={{ color: "var(--pt-action)", fontWeight: 500 }}
               >
-                Passwort zurücksetzen
+                {t.auth.invite.resetPassword}
               </Link>
             </p>
           )}
@@ -283,12 +289,12 @@ export function AcceptInvite({
 
       <button type="submit" className="pt-btn" disabled={busy}>
         {busy
-          ? "Moment …"
+          ? t.auth.login.busy
           : passt
-            ? "Einladung annehmen"
+            ? t.auth.invite.accept
             : bereitsVerknuepft
-              ? "Anmelden"
-              : "Konto anlegen"}
+              ? t.auth.invite.signIn
+              : t.auth.invite.createAccount}
       </button>
     </form>
   );

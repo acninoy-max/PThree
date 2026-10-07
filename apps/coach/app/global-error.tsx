@@ -17,6 +17,13 @@
  *
  * Wie oft das vorkommt: fast nie. Was es kostet, wenn es fehlt: der
  * Browser zeigt seine eigene, englische Absturzmeldung.
+ *
+ * ZWEISPRACHIG STATT ÜBERSETZT: Hier gibt es keinen LocaleProvider —
+ * der steckt im Grundgerüst, das gerade weggebrochen ist. Die Sprache
+ * aus Cookie oder Browser selbst zu raten, könnte anders ausfallen als
+ * auf dem Server und wäre dann ein Hydration-Fehler auf der Seite, die
+ * keinen mehr verträgt. Also stehen beide Sprachen da, Englisch zuerst.
+ * Deshalb ist diese Datei auch von check-texte.mjs ausgenommen.
  */
 export default function GlobalError({
   error,
@@ -26,7 +33,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html lang="de">
+    <html lang="en">
       <body
         style={{
           margin: 0,
@@ -62,7 +69,7 @@ export default function GlobalError({
             }}
           >
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
-              Die App konnte nicht starten
+              The app couldn&apos;t start
             </h1>
             <p
               style={{
@@ -72,9 +79,21 @@ export default function GlobalError({
                 color: "#57514A",
               }}
             >
-              Das ist ein Fehler bei uns, nicht bei dir. Versuch es noch
-              einmal — bleibt es dabei, gib deinem Trainer die Kennung
-              unten durch.
+              This is our fault, not yours. Try again — if it keeps
+              happening, pass the reference below on to your coach.
+            </p>
+            <p
+              lang="de"
+              style={{
+                margin: "10px 0 0",
+                fontSize: 15,
+                lineHeight: 1.6,
+                color: "#57514A",
+              }}
+            >
+              Die App konnte nicht starten. Das ist ein Fehler bei uns,
+              nicht bei dir. Versuch es noch einmal — bleibt es dabei, gib
+              deinem Trainer die Kennung unten durch.
             </p>
 
             <button
@@ -91,7 +110,7 @@ export default function GlobalError({
                 fontSize: 15,
               }}
             >
-              Nochmal versuchen
+              Try again · Nochmal versuchen
             </button>
 
             {error.digest && (
@@ -104,7 +123,7 @@ export default function GlobalError({
                   wordBreak: "break-all",
                 }}
               >
-                Kennung: {error.digest}
+                Reference · Kennung: {error.digest}
               </p>
             )}
           </div>

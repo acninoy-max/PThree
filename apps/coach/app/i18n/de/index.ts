@@ -10,6 +10,8 @@
  * den Browser gereicht werden — Funktionen ließen sich nicht übertragen.
  */
 import { formats } from "@/app/format";
+import { auth } from "./auth";
+import { fehler } from "./fehler";
 
 export const de = {
   fmt: formats("de"),
@@ -25,7 +27,11 @@ export const de = {
     later: "Später",
     signOut: "Abmelden",
     toHome: "PTHREE — zur Startseite",
+    metaDescription: "Das Betriebssystem für freelance Personal Trainer",
   },
+
+  auth,
+  fehler,
 
   language: {
     label: "Sprache",

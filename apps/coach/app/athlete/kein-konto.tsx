@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase-browser";
+import { useT } from "@/app/i18n/client";
 
 /**
  * Der Zustand „angemeldet, aber zu diesem Zugang gehoert kein Klient".
@@ -27,6 +28,7 @@ export function KeinKlientenkonto({
   loginEmail: string | null;
   bereich: string;
 }) {
+  const t = useT();
   async function abmelden() {
     await createClient().auth.signOut();
     window.location.assign("/login");
@@ -37,7 +39,7 @@ export function KeinKlientenkonto({
       <p className="gym-label">{bereich}</p>
       <div className="gym-card" style={{ marginTop: 12 }}>
         <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", lineHeight: 1.55 }}>
-          Zu diesem Zugang gehört kein Klientenkonto.
+          {t.fehler.noClient.title}
         </p>
 
         {loginEmail && (
@@ -49,9 +51,8 @@ export function KeinKlientenkonto({
               lineHeight: 1.55,
             }}
           >
-            Du bist angemeldet als <strong>{loginEmail}</strong>. Wenn dein
-            Trainer dich unter einer anderen Adresse eingeladen hat, meld
-            dich hier ab und öffne den Einladungslink noch einmal.
+            {t.fehler.noClient.signedInAs} <strong>{loginEmail}</strong>.{" "}
+            {t.fehler.noClient.hint}
           </p>
         )}
 
@@ -61,7 +62,7 @@ export function KeinKlientenkonto({
           onClick={abmelden}
           style={{ marginTop: 14 }}
         >
-          Abmelden
+          {t.common.signOut}
         </button>
       </div>
     </main>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { AcceptInvite } from "./accept";
+import { getT } from "@/app/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function InvitePage({
   });
 
   const invite = (data as InvitePeek[] | null)?.[0] ?? null;
+  const t = getT();
 
   return (
     <main
@@ -46,7 +48,7 @@ export default async function InvitePage({
 
         {!invite || !invite.is_valid ? (
           <div className="pt-card" style={{ marginTop: 22 }}>
-            <p style={{ margin: 0, fontWeight: 500 }}>Einladung ungültig</p>
+            <p style={{ margin: 0, fontWeight: 500 }}>{t.auth.invite.invalidTitle}</p>
             <p
               style={{
                 margin: "6px 0 0",
@@ -55,8 +57,7 @@ export default async function InvitePage({
                 lineHeight: 1.5,
               }}
             >
-              Der Link ist abgelaufen oder wurde bereits verwendet. Bitte frag
-              deinen Coach nach einem neuen.
+              {t.auth.invite.invalidBody}
             </p>
           </div>
         ) : (
@@ -72,10 +73,10 @@ export default async function InvitePage({
               <strong style={{ color: "var(--pt-text)" }}>
                 {invite.coach_name}
               </strong>{" "}
-              hat dich eingeladen.{" "}
+              {t.auth.invite.invitedBy}{" "}
               {invite.bereits_verknuepft
-                ? "Zu deinem Namen gibt es schon einen Zugang — melde dich damit an."
-                : "Wähl ein Passwort, dann siehst du deine Pläne, Termine und Fortschritte."}
+                ? t.auth.invite.alreadyLinked
+                : t.auth.invite.choosePassword}
             </p>
             <AcceptInvite
               token={params.token}

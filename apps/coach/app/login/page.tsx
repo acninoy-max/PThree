@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { useT } from "@/app/i18n/client";
+import { Sprachwahl } from "@/app/i18n/sprachwahl";
 
 /**
  * Anmelden. Nur anmelden.
@@ -25,6 +27,7 @@ import { createClient } from "@/lib/supabase-browser";
  *   Trainer  — von Hand angelegt, dann promote_to_coach()
  */
 export default function LoginPage() {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -52,9 +55,9 @@ export default function LoginPage() {
       */
       setError(
         /invalid login credentials/i.test(fehlerVomDienst.message)
-          ? "E-Mail oder Passwort stimmt nicht."
+          ? t.auth.login.wrongCredentials
           : /email not confirmed/i.test(fehlerVomDienst.message)
-            ? "Diese Adresse ist noch nicht bestaetigt — schau in dein Postfach."
+            ? t.auth.login.notConfirmed
             : fehlerVomDienst.message,
       );
       setBusy(false);
@@ -93,7 +96,7 @@ export default function LoginPage() {
               lineHeight: 1.5,
             }}
           >
-            Anmelden — als Coach oder Athlet
+            {t.auth.login.tagline}
           </p>
         </div>
 
@@ -103,7 +106,7 @@ export default function LoginPage() {
           style={{ display: "grid", gap: 14 }}
         >
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">E-Mail</span>
+            <span className="pt-label">{t.auth.login.email}</span>
             <input
               type="email"
               required
@@ -115,7 +118,7 @@ export default function LoginPage() {
           </label>
 
           <label style={{ display: "grid", gap: 6 }}>
-            <span className="pt-label">Passwort</span>
+            <span className="pt-label">{t.auth.login.password}</span>
             <input
               type="password"
               required
@@ -139,7 +142,7 @@ export default function LoginPage() {
           )}
 
           <button type="submit" className="pt-btn" disabled={busy}>
-            {busy ? "Moment …" : "Anmelden"}
+            {busy ? t.auth.login.busy : t.auth.login.submit}
           </button>
         </form>
 
@@ -154,7 +157,7 @@ export default function LoginPage() {
             href="/auth/passwort"
             style={{ color: "var(--pt-action)", fontWeight: 500 }}
           >
-            Passwort vergessen?
+            {t.auth.login.forgot}
           </Link>
         </p>
 
@@ -166,9 +169,14 @@ export default function LoginPage() {
             lineHeight: 1.5,
           }}
         >
-          Noch kein Zugang? Athleten bekommen einen Einladungslink von
-          ihrem Coach.
+          {t.auth.login.noAccess}
         </p>
+
+        {/* Vor der Anmeldung gibt es kein Profil, in dem die Sprache
+            stehen könnte — also hier wählbar, nicht erst danach. */}
+        <div style={{ marginTop: 20 }}>
+          <Sprachwahl />
+        </div>
       </div>
     </main>
   );

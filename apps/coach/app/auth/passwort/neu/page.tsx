@@ -3,7 +3,11 @@ import { createServerSupabase } from "@/lib/supabase-server";
 import { AuthSchale } from "../../schale";
 import { NeuesPasswortFormular } from "./neues-passwort-formular";
 
-export const metadata = { title: "Neues Passwort — PTHREE" };
+import { getT } from "@/app/i18n/server";
+
+export function generateMetadata() {
+  return { title: getT().auth.newPassword.metaTitle };
+}
 
 /**
  * Hier landet man NUR ueber die Callback-Route, und die hat vorher eine
@@ -22,10 +26,11 @@ export default async function NeuesPasswortPage() {
 
   if (!user) redirect("/auth/passwort?fehler=abgelaufen");
 
+  const t = getT();
   return (
     <AuthSchale
-      titel="Neues Passwort"
-      unterzeile={`Fuer ${user.email ?? "dein Konto"}.`}
+      titel={t.auth.newPassword.title}
+      unterzeile={t.auth.newPassword.forAccount(user.email ?? null)}
     >
       <NeuesPasswortFormular />
     </AuthSchale>

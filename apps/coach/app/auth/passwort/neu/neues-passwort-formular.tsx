@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { useT } from "@/app/i18n/client";
 
 const MINDESTLAENGE = 8;
 
 export function NeuesPasswortFormular() {
+  const t = useT();
   const [passwort, setPasswort] = useState("");
   const [wiederholung, setWiederholung] = useState("");
   const [zeigen, setZeigen] = useState(false);
@@ -29,10 +31,10 @@ export function NeuesPasswortFormular() {
 
     if (fehlerVomDienst) {
       // Die eine Meldung, die jeder zweite bekommt, der sein altes
-      // Passwort nochmal eintippt — auf Deutsch und ohne Fachbegriff.
+      // Passwort nochmal eintippt — in seiner Sprache, ohne Fachbegriff.
       setError(
         /different from the old password/i.test(fehlerVomDienst.message)
-          ? "Das ist dein bisheriges Passwort. Waehle ein anderes."
+          ? t.auth.newPassword.sameAsOld
           : fehlerVomDienst.message,
       );
       setBusy(false);
@@ -53,21 +55,21 @@ export function NeuesPasswortFormular() {
   return (
     <form onSubmit={submit} className="pt-card" style={{ display: "grid", gap: 14 }}>
       <label style={{ display: "grid", gap: 6 }}>
-        <span className="pt-label">Neues Passwort</span>
+        <span className="pt-label">{t.auth.newPassword.label}</span>
         <input
           type={zeigen ? "text" : "password"}
           required
           minLength={MINDESTLAENGE}
           value={passwort}
           onChange={(e) => setPasswort(e.target.value)}
-          placeholder={`mindestens ${MINDESTLAENGE} Zeichen`}
+          placeholder={t.auth.newPassword.placeholder(MINDESTLAENGE)}
           autoComplete="new-password"
           autoFocus
         />
       </label>
 
       <label style={{ display: "grid", gap: 6 }}>
-        <span className="pt-label">Nochmal zur Sicherheit</span>
+        <span className="pt-label">{t.auth.newPassword.repeat}</span>
         <input
           type={zeigen ? "text" : "password"}
           required
@@ -92,7 +94,7 @@ export function NeuesPasswortFormular() {
           onChange={(e) => setZeigen(e.target.checked)}
           style={{ width: "auto", margin: 0 }}
         />
-        Passwort anzeigen
+        {t.auth.newPassword.show}
       </label>
 
       {/*
@@ -111,8 +113,8 @@ export function NeuesPasswortFormular() {
         >
           {error ??
             (zuKurz
-              ? `Noch ${MINDESTLAENGE - passwort.length} Zeichen.`
-              : "Die beiden Eingaben sind nicht gleich.")}
+              ? t.auth.newPassword.missing(MINDESTLAENGE - passwort.length)
+              : t.auth.newPassword.mismatch)}
         </p>
       )}
 
@@ -121,7 +123,7 @@ export function NeuesPasswortFormular() {
         className="pt-btn"
         disabled={busy || passwort.length < MINDESTLAENGE || ungleich}
       >
-        {busy ? "Moment …" : "Passwort speichern"}
+        {busy ? t.auth.login.busy : t.auth.newPassword.submit}
       </button>
     </form>
   );

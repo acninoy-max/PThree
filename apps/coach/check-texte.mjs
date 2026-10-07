@@ -56,7 +56,9 @@ function ausgenommen(datei) {
   return (
     r.includes("/i18n/") ||
     /\.test\.tsx?$/.test(r) ||
-    r.endsWith("app/format.ts")
+    r.endsWith("app/format.ts") ||
+    // Notfallseite ohne Provider, bewusst zweisprachig — siehe dort.
+    r.endsWith("app/global-error.tsx")
   );
 }
 
@@ -102,14 +104,24 @@ function funde(quelle, name = "x.tsx") {
       }
       return; // Modulpfade sind keine Texte.
     }
+    // Protokollzeilen liest kein Nutzer, sondern wer im Vercel-Log sucht.
+    if (
+      ts.isCallExpression(n) &&
+      ts.isPropertyAccessExpression(n.expression) &&
+      ts.isIdentifier(n.expression.expression) &&
+      n.expression.expression.text === "console"
+    ) {
+      return;
+    }
     if (ts.isJsxText(n)) {
       const t = n.text.replace(/\s+/g, " ").trim();
       if (/\p{L}{2}/u.test(t) && !NEUTRAL.test(t)) liste.push({ zeile: zeile(n), text: t });
     } else if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) {
-      if (DEUTSCH.test(n.text) && !NEUTRAL.test(n.text)) liste.push({ zeile: zeile(n), text: n.text });
+      // Pfade wie "/auth/passwort?fehler=abgelaufen" sind Adressen, keine Sätze.
+      if (DEUTSCH.test(n.text) && !NEUTRAL.test(n.text) && !n.text.startsWith("/")) liste.push({ zeile: zeile(n), text: n.text });
     } else if (ts.isTemplateExpression(n)) {
       const teile = [n.head.text, ...n.templateSpans.map((s) => s.literal.text)].join(" ");
-      if (DEUTSCH.test(teile)) liste.push({ zeile: zeile(n), text: teile });
+      if (DEUTSCH.test(teile) && !n.head.text.startsWith("/")) liste.push({ zeile: zeile(n), text: teile });
     }
     ts.forEachChild(n, besuche);
   }
@@ -129,6 +141,8 @@ export function A() {
 const b = \`\${n} Sätze\`;
 const c = "Bitte einen Namen eingeben.";
 const ok = "pt-btn";
+console.error("Unbehandelter Fehler:", e);
+redirect("/auth/passwort?fehler=abgelaufen");
 `;
 const probe = funde(PROBE);
 const erwartet = ["import dateMedium", "Plan löschen", "Noch kein Plan.", "Sätze", "Bitte einen"];
@@ -138,9 +152,11 @@ for (const e of erwartet) {
     process.exit(2);
   }
 }
-if (probe.some((f) => f.text === "pt-btn")) {
-  console.error("check-texte: Selbstprüfung gescheitert — Klassenname als Text gezählt.");
-  process.exit(2);
+for (const falsch of ["pt-btn", "Unbehandelter", "/auth/passwort"]) {
+  if (probe.some((f) => f.text.includes(falsch))) {
+    console.error(`check-texte: Selbstprüfung gescheitert — „${falsch}" als Text gezählt.`);
+    process.exit(2);
+  }
 }
 
 // ---------- Lauf ----------
@@ -173,7 +189,7 @@ for (const d of alle) {
   }
 }
 
-const grenze = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8")) : null;
+let grenze = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8")) : null;
 
 if (process.argv.includes("--init")) {
   // Nur für den allerersten Lauf: schreibt den Ist-Stand als Grenze.
@@ -205,6 +221,7 @@ if (process.argv.includes("--update")) {
   }
   writeFileSync(BASELINE, JSON.stringify(sortiert(neu), null, 2) + "\n");
   console.log(`Grenze: ${summe(grenze)} → ${summe(neu)}`);
+  grenze = neu;
 }
 
 if (zuviel.length > 0) {
@@ -216,6 +233,18 @@ if (zuviel.length > 0) {
     }
   }
   process.exit(1);
+}
+
+// `--zeigen <teil>`: alle Funde in Dateien, deren Pfad <teil> enthält —
+// die Arbeitsliste beim Umbau eines Bereichs.
+const zi = process.argv.indexOf("--zeigen");
+if (zi > 0) {
+  const teil = process.argv[zi + 1] ?? "";
+  for (const [datei, f] of Object.entries(details)) {
+    if (!datei.includes(teil)) continue;
+    console.log(datei);
+    for (const x of f) console.log(`  :${x.zeile}  ${x.text.slice(0, 90)}`);
+  }
 }
 
 const rest = summe(ist);

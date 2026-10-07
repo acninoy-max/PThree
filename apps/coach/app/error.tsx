@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { Fehlerkarte } from "./fehlerkarte";
+import { useT } from "./i18n/client";
 
 /**
  * Die Seite, die kommt, wenn etwas weggebrochen ist.
@@ -32,6 +33,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useT();
   useEffect(() => {
     // Landet in den Vercel-Protokollen unter derselben Kennung.
     console.error("Unbehandelter Fehler:", error);
@@ -39,28 +41,26 @@ export default function Error({
 
   return (
     <Fehlerkarte
-      titel="Da ist etwas schiefgelaufen"
+      titel={t.fehler.crash.title}
       text={
         <>
-          Die Seite konnte nicht geladen werden. Meistens hilft ein zweiter
-          Versuch — gerade wenn das Netz gerade schwach ist.
+          {t.fehler.crash.body}
           <br />
           <br />
-          Bleibt es dabei, schick deinem Trainer die Kennung unten. Damit
-          lässt sich nachsehen, was genau passiert ist.
+          {t.fehler.crash.bodyMore}
         </>
       }
     >
       <div style={{ display: "flex", gap: 8, marginTop: 16, flexWrap: "wrap" }}>
         <button type="button" className="pt-btn" onClick={reset}>
-          Nochmal versuchen
+          {t.fehler.crash.retry}
         </button>
         <a
           href="/"
           className="pt-btn pt-btn--ghost"
           style={{ textDecoration: "none" }}
         >
-          Zur Startseite
+          {t.fehler.crash.home}
         </a>
       </div>
 
@@ -74,7 +74,7 @@ export default function Error({
             wordBreak: "break-all",
           }}
         >
-          Kennung: {error.digest}
+          {t.fehler.crash.digest}: {error.digest}
         </p>
       )}
     </Fehlerkarte>

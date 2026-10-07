@@ -3,27 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase-browser";
+import { useT } from "@/app/i18n/client";
+import type { Dict } from "@/app/i18n";
 
 /**
- * Die Gruende, mit denen die Callback-Route zurueckschickt.
- *
- * Jeder Text sagt, was zu tun ist. „Ungueltiger Code" sagt das nicht —
- * und wer vor einer Meldung sitzt, die ihm nichts zu tun gibt, schreibt
- * seinem Trainer.
+ * Die Gründe, mit denen die Callback-Route zurückschickt, stehen im
+ * Wörterbuch unter `auth.forgot.reasons`. Jeder Text sagt, was zu tun
+ * ist. „Ungültiger Code" sagt das nicht — und wer vor einer Meldung
+ * sitzt, die ihm nichts zu tun gibt, schreibt seinem Trainer.
  */
-const FEHLERTEXTE: Record<string, string> = {
-  abgelaufen:
-    "Der Link ist abgelaufen oder wurde schon benutzt. Fordere unten " +
-    "einfach einen neuen an — das geht beliebig oft.",
-  ungueltig:
-    "Mit diesem Link stimmt etwas nicht. Fordere unten einen neuen an.",
-  browser:
-    "Der Link wurde in einem anderen Browser geoeffnet, als du ihn " +
-    "angefordert hast. Fordere hier einen neuen an und oeffne die Mail " +
-    "dann auf demselben Geraet.",
-};
+type Grund = keyof Dict["auth"]["forgot"]["reasons"];
+const GRUENDE: readonly Grund[] = ["abgelaufen", "ungueltig", "browser"];
 
 export function AnfrageFormular({ fehler }: { fehler: string | null }) {
+  const t = useT();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [gesendet, setGesendet] = useState(false);
@@ -68,10 +61,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
     if (fehlerVomDienst && /rate|limit|seconds|security purposes/i.test(
       fehlerVomDienst.message,
     )) {
-      setError(
-        "Gerade wurde schon eine Mail an diese Adresse geschickt. " +
-          "Warte eine Minute und versuch es dann noch einmal.",
-      );
+      setError(t.auth.forgot.rateLimited);
       setBusy(false);
       return;
     }
@@ -84,7 +74,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
     return (
       <>
         <div className="pt-card">
-          <p style={{ margin: 0, fontWeight: 500 }}>Mail ist unterwegs.</p>
+          <p style={{ margin: 0, fontWeight: 500 }}>{t.auth.forgot.sentTitle}</p>
           <p
             style={{
               margin: "8px 0 0",
@@ -93,9 +83,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
               lineHeight: 1.55,
             }}
           >
-            Falls ein Konto zu {email.trim() || "dieser Adresse"} gehoert,
-            liegt gleich eine Mail im Postfach. Der Link darin gilt eine
-            Stunde und funktioniert einmal.
+            {t.auth.forgot.sentBody(email.trim() || null)}
           </p>
           <p
             style={{
@@ -105,8 +93,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
               lineHeight: 1.55,
             }}
           >
-            Nichts da? Schau in den Spam-Ordner — und oeffne die Mail auf
-            demselben Geraet, auf dem du gerade bist.
+            {t.auth.forgot.sentHint}
           </p>
         </div>
         <p
@@ -117,14 +104,20 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
           }}
         >
           <Link href="/login" style={{ color: "var(--pt-action)", fontWeight: 500 }}>
-            Zurueck zur Anmeldung
+            {t.auth.forgot.backToLogin}
           </Link>
         </p>
       </>
     );
   }
 
-  const hinweis = fehler ? FEHLERTEXTE[fehler] ?? FEHLERTEXTE.ungueltig : null;
+  // Ein unbekannter Grund in der Adresse ist trotzdem ein Fehler — dann
+  // der allgemeine Text, nicht gar keiner.
+  const hinweis = fehler
+    ? t.auth.forgot.reasons[
+        GRUENDE.includes(fehler as Grund) ? (fehler as Grund) : "ungueltig"
+      ]
+    : null;
 
   return (
     <>
@@ -147,7 +140,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
 
       <form onSubmit={submit} className="pt-card" style={{ display: "grid", gap: 14 }}>
         <label style={{ display: "grid", gap: 6 }}>
-          <span className="pt-label">E-Mail</span>
+          <span className="pt-label">{t.auth.login.email}</span>
           <input
             type="email"
             required
@@ -173,7 +166,7 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
         )}
 
         <button type="submit" className="pt-btn" disabled={busy}>
-          {busy ? "Moment …" : "Link schicken"}
+          {busy ? t.auth.login.busy : t.auth.forgot.submit}
         </button>
       </form>
 
@@ -184,9 +177,9 @@ export function AnfrageFormular({ fehler }: { fehler: string | null }) {
           color: "var(--pt-text-dim)",
         }}
       >
-        Wieder eingefallen?{" "}
+        {t.auth.forgot.remembered}{" "}
         <Link href="/login" style={{ color: "var(--pt-action)", fontWeight: 500 }}>
-          Anmelden
+          {t.auth.forgot.signIn}
         </Link>
       </p>
     </>

@@ -3,11 +3,18 @@ import "./globals.css";
 import { Splash } from "./splash";
 import { Toaster } from "./toast";
 import { LocaleProvider } from "./i18n/client";
-import { getLocale } from "./i18n/server";
+import { getLocale, getT } from "./i18n/server";
 
-export const metadata: Metadata = {
+/*
+  Als Funktion statt als festes Objekt: Die Beschreibung hängt an der
+  Sprache, und die steht erst pro Anfrage fest.
+*/
+export function generateMetadata(): Metadata {
+  return { ...BASIS, description: getT().common.metaDescription };
+}
+
+const BASIS: Metadata = {
   title: "PTHREE — Coach",
-  description: "Das Betriebssystem für freelance Personal Trainer",
   // Ohne das startet die App auf iOS weiter im Browser-Rahmen — Apple
   // liest das Manifest für den Vollbildstart bis heute nicht aus.
   appleWebApp: {
