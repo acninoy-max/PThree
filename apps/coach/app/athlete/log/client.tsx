@@ -807,7 +807,7 @@ export function LogWorkout({
                   lineHeight: 1.5,
                 }}
               >
-                {d.slots.map((s) => s.label).join(" · ")}
+                {d.slots.map((s) => s.label).join(", ")}
               </span>
             </button>
           ))}

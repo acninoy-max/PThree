@@ -13,7 +13,7 @@ export const coach: Dict["coach"] = {
     nothing: "Nothing to report yet",
     noClients:
       "No clients yet. With demo data you'll see right away how the feed works.",
-    allGood: "All clients are on track — no plateaus, nobody inactive.",
+    allGood: "All clients are on track. No plateaus, nobody inactive.",
     unknown: "Unknown",
     nextAppointments: "Next appointments",
     nothingThisWeek: "Nothing scheduled this week.",
@@ -35,7 +35,7 @@ export const coach: Dict["coach"] = {
     create: "Add client",
     none: "No clients yet",
     noneBody:
-      "Add your first client — or load demo data to see the app with real histories.",
+      "Add your first client, or load demo data to see the app with real histories.",
     noAppAccess: "no app access",
     noAppointment: "no appointment scheduled",
     lastTrained: (days) =>
@@ -81,34 +81,34 @@ export const coach: Dict["coach"] = {
     birthDate: "Date of birth",
     level: "Level",
     levels: {
-      beginner: "Beginner — technique and basics",
-      intermediate: "Intermediate — volume and variety",
-      pro: "Pro — fine-tuning and periodisation",
+      beginner: "Beginner: technique and basics",
+      intermediate: "Intermediate: volume and variety",
+      pro: "Pro: fine-tuning and periodisation",
     },
     goals: "Goals & onboarding notes",
     goalsPlaceholder:
       "Bench press 80 kg by Christmas\nLeft knee: old meniscus surgery, avoid deep squats\nTrains Tue + Thu evenings, Sat possible\nNo breakfast, first meal at noon\nMotivation: wants to last on the ski slopes",
     goalsHint:
-      "Put in everything you'd otherwise jot down on paper — goals, limitations, availability, motivation.",
+      "Put in everything you'd otherwise jot down on paper: goals, limitations, availability, motivation.",
   },
   clientPlan: {
     presets: [
-      { label: "Full body 2×", hint: "Getting started, two sessions per week", days: ["Day A — Full body", "Day B — Full body"] },
-      { label: "Upper / Lower", hint: "Classic, three to four sessions", days: ["Day A — Upper body", "Day B — Lower body"] },
-      { label: "Push / Pull", hint: "Two days, pushing and pulling separated", days: ["Day A — Push", "Day B — Pull"] },
-      { label: "Push / Pull / Legs", hint: "Advanced, three to six sessions", days: ["Day A — Push", "Day B — Pull", "Day C — Legs"] },
-      { label: "Arnold split", hint: "Chest and back, shoulders and arms, legs", days: ["Day A — Chest & back", "Day B — Shoulders & arms", "Day C — Legs"] },
-      { label: "5-day split", hint: "One muscle group per day, high volume", days: ["Day A — Chest", "Day B — Back", "Day C — Legs", "Day D — Shoulders", "Day E — Arms"] },
+      { label: "Full body 2×", hint: "Getting started, two sessions per week", days: ["Day A: Full body", "Day B: Full body"] },
+      { label: "Upper / Lower", hint: "Classic, three to four sessions", days: ["Day A: Upper body", "Day B: Lower body"] },
+      { label: "Push / Pull", hint: "Two days, pushing and pulling separated", days: ["Day A: Push", "Day B: Pull"] },
+      { label: "Push / Pull / Legs", hint: "Advanced, three to six sessions", days: ["Day A: Push", "Day B: Pull", "Day C: Legs"] },
+      { label: "Arnold split", hint: "Chest and back, shoulders and arms, legs", days: ["Day A: Chest & back", "Day B: Shoulders & arms", "Day C: Legs"] },
+      { label: "5-day split", hint: "One muscle group per day, high volume", days: ["Day A: Chest", "Day B: Back", "Day C: Legs", "Day D: Shoulders", "Day E: Arms"] },
       { label: "Empty", hint: "Build your own split from scratch", days: ["Day A"] },
     ],
     dayName: (letter) => `Day ${letter}`,
     needOneDay: "At least one training day is required.",
     create: "Create training plan",
     justCreated:
-      "Client created. Next up: the plan — or later from the client page.",
+      "Client created. Next up: the plan. Or do it later from the client page.",
     template: "Template",
     templateHint: (hint) =>
-      `${hint}. Only fills the list below — you can change it freely afterwards.`,
+      `${hint}. Only fills the list below. You can change it freely afterwards.`,
     trainingDays: "Training days",
     removeDay: (n) => `Remove day ${n}`,
     removeDayTitle: "Remove day",
@@ -126,23 +126,23 @@ export const coach: Dict["coach"] = {
       `from ${from}${since ? ` · ${since}` : ""} · ${days} ${
         days === 1 ? "training day" : "training days"
       } · ${slots} slots`,
-    createdOn: (date) => `Created on ${date} — start date can be changed in the plan.`,
+    createdOn: (date) => `Created on ${date}. The start date can be changed in the plan.`,
     noSlots:
-      "No slots yet — the plan only appears to the athlete once at least one is filled.",
+      "No slots yet. The plan only appears to the athlete once at least one is filled.",
     earlierPlans: "Earlier plans",
     noPlan:
-      "No plan yet. Without a plan the athlete trains freely — the pattern history still runs.",
+      "No plan yet. Without a plan the athlete trains freely; the pattern history still runs.",
     createPlan: "Create plan",
   },
   file: {
     goals: "Goals & notes",
     hints: "Coach hints",
-    nothing: "Nothing to report — all good.",
+    nothing: "Nothing to report. All good.",
     checkins: "Check-ins",
     open: (n) => ` · ${n} open`,
     allCheckins: "All check-ins",
     noAccessNoCheckin:
-      "No access set up yet — without an app account the client can't send a check-in.",
+      "No access set up yet. Without an app account the client can't send a check-in.",
     noCheckin: "No check-in sent yet.",
     bodyValues: "Body measurements",
     noValues: "No values reported yet.",
@@ -167,16 +167,16 @@ export const coach: Dict["coach"] = {
   },
   manage: {
     appAccess: "App access",
-    linked: (name) => `Account linked — ${name} can use the app.`,
+    linked: (name) => `Account linked. ${name} can use the app.`,
     unlink: "Remove access …",
     unlinkExplain: (name) =>
-      `Removes the link to the sign-in account. ${name}'s plans, sessions, check-ins and photos are kept in full — you can invite again afterwards.`,
+      `Removes the link to the sign-in account. ${name}'s plans, sessions, check-ins and photos are kept in full. You can invite again afterwards.`,
     unlinking: "Removing …",
     unlinkConfirm: "Remove",
     noAccount:
       "No account yet. Create an invitation link and send it via WhatsApp or email. The link is valid for 14 days.",
     noEmail: (name) =>
-      `No email is stored for ${name}. Add it below in the client details — then it's fixed in the invitation and can't differ.`,
+      `No email is stored for ${name}. Add it below in the client details. Then it's fixed in the invitation and can't differ.`,
     copied: "Copied",
     copyLink: "Copy link",
     regenerate: "Create new",
@@ -199,7 +199,7 @@ export const coach: Dict["coach"] = {
       `Removes ${name} including training history, appointments, check-ins and notes. This can't be undone.`,
     deleteStart: "Delete …",
     pauseInstead:
-      "Only want to pause? Set the status above to “Paused” — the data is kept.",
+      "Only want to pause? Set the status above to “Paused”. The data is kept.",
     confirmName: "Type the name to confirm:",
     deleting: "Deleting …",
     deleteFinal: "Delete permanently",
@@ -209,22 +209,22 @@ export const coach: Dict["coach"] = {
     title: "Progress per exercise",
     choose: "Choose exercises",
     nothingLogged: (name) => `${name} hasn't logged anything yet.`,
-    noneChosen: "No exercise chosen — tap “Choose exercises” above.",
+    noneChosen: "No exercise chosen. Tap “Choose exercises” above.",
     curveMeta: (n, last) =>
       `${n} ${n === 1 ? "session" : "sessions"} · last ${last}`,
     inReps: " · in reps",
     otherScale: (n) => ` · ${n} older on a different scale`,
     pickerTitle: (name) => `${name}'s exercises`,
     pickerIntro: (name, n, max) =>
-      `Everything ${name} has ever tracked. Your selection only applies to you — your client's progress page stays as it is. ${n} of at most ${max}.`,
+      `Everything ${name} has ever tracked. Your selection only applies to you. Your client's progress page stays as it is. ${n} of at most ${max}.`,
   },
   sections: {
     goal: { label: "Goals & notes", hint: "What you've noted about this client" },
-    insights: { label: "Coach hints", hint: "Plateaus, breaks, progress — detected automatically" },
+    insights: { label: "Coach hints", hint: "Plateaus, breaks and progress, detected automatically" },
     checkins: { label: "Check-ins", hint: "The latest reports, with a reply option" },
     progress: { label: "Progress per exercise", hint: "Your own exercise selection, best or volume" },
     body: { label: "Body measurements", hint: "Weight and measurements from check-ins" },
-    photos: { label: "Photos", hint: "Before and after — only if the client has consented" },
+    photos: { label: "Photos", hint: "Before and after, only if the client has consented" },
     volume: { label: "Volume per training day", hint: "Is the upper-body day progressing or stuck" },
     sessions: { label: "Recent sessions", hint: "The last six workouts, set by set" },
   },
@@ -232,7 +232,7 @@ export const coach: Dict["coach"] = {
   clientAppointments: {
     title: "Appointments",
     create: "Add appointment",
-    statusOpen: (when) => `${when} — status open`,
+    statusOpen: (when) => `${when}, status open`,
     nothing: "Nothing scheduled.",
     minutesShort: "min",
     more: (n) => `and ${n} more`,
@@ -244,7 +244,7 @@ export const coach: Dict["coach"] = {
       `Only ${name} can give consent, in their own app under `,
     consentPath: "Progress → Photos",
     consentOnlySelfAfter:
-      ". You can't give it on their behalf — consent given by someone else isn't consent.",
+      ". You can't give it on their behalf. Consent given by someone else isn't consent.",
     noPhotos: "Consented, but no photo uploaded yet.",
     viewOnly: (n, name) =>
       `${n} ${n === 1 ? "photo" : "photos"} · View only. Only ${name} can delete them or withdraw consent.`,
@@ -300,7 +300,7 @@ export const coach: Dict["coach"] = {
     waiting: (n) => `${n} ${n === 1 ? "is" : "are"} waiting for you`,
     none: "No check-ins yet",
     noneBody:
-      "As soon as a client sends their weekly check-in, it lands here — with weight trend, wellbeing and note.",
+      "As soon as a client sends their weekly check-in, it lands here with weight trend, wellbeing and note.",
     week: (range) => `Week ${range}`,
     sentAt: (when) => ` · sent ${when}`,
     sentReply: "Reply sent",
@@ -346,14 +346,14 @@ export const coach: Dict["coach"] = {
     duration: "Duration",
     minutes: (n) => `${n} min`,
     place: "Location",
-    placePlaceholder: "Exact place, optional — e.g. Trainmore Oost",
+    placePlaceholder: "Exact place, optional, e.g. Trainmore Oost",
     repeat: "Repeat weekly",
     forWeeks: "For how many weeks",
     weeks: (n) => `${n} weeks`,
     seriesHint: (n) =>
       `Creates ${n} separate appointments. Each can be moved or cancelled individually later.`,
     note: "Note",
-    notePlaceholder: "Optional — e.g. focus on back, go easy on the shoulder",
+    notePlaceholder: "Optional, e.g. focus on back, go easy on the shoulder",
     creating: "Creating …",
     createMany: (n) => `Add ${n} appointments`,
     createOne: "Add appointment",
@@ -388,10 +388,10 @@ export const coach: Dict["coach"] = {
     title: "For whom?",
     introBefore: "You enter the sets while you train together. The session is saved as ",
     introStrong: "recorded by you",
-    introAfter: " — your client sees it in their app.",
+    introAfter: ". Your client sees it in their app.",
     noClients: "No active clients yet.",
     planDays: (plan, n) => `${plan} · ${n} ${n === 1 ? "day" : "days"}`,
-    noPlan: "No plan — free training",
+    noPlan: "No plan, free training",
   },
   track: {
     addNote: "+ Note",
@@ -418,9 +418,9 @@ export const coach: Dict["coach"] = {
     duration: "Training duration",
     pause: "Pause",
     bodyLoad: (kg) =>
-      `Counts ${kg} kg of body weight — only enter the added load in the kg field.`,
+      `Counts ${kg} kg of body weight. Only enter the added load in the kg field.`,
     removeExercise: (name) => `Remove ${name}`,
-    lastTime: (what, date) => `Last time: ${what} (${date}) — use again`,
+    lastTime: (what, date) => `Last time: ${what} (${date}), use again`,
     setWeight: (n) => `Set ${n} weight`,
     setReps: (n) => `Set ${n} reps`,
     setRir: (n) => `Set ${n} RIR`,
@@ -432,7 +432,7 @@ export const coach: Dict["coach"] = {
     add: "Add slot",
     muscleGroup: "Muscle group",
     coreHint:
-      "Core work is logged and appears in the plan, but has no strength curve — otherwise a plank would dilute the deadlift numbers.",
+      "Core work is logged and appears in the plan, but has no strength curve. Otherwise a plank would dilute the deadlift numbers.",
     block: "Block",
     label: "Label in the plan",
     labelPlaceholder: "e.g. Upper-body push",
@@ -485,13 +485,13 @@ export const coach: Dict["coach"] = {
     weekdays: "Weekdays",
     weekdayToggle: (day, active) => `${active ? "Remove" : "Add"} ${day}`,
     free: "flexible",
-    noFixedDay: "No fixed day — the athlete trains whenever it suits.",
+    noFixedDay: "No fixed day. The athlete trains whenever it suits.",
     timesPerWeek: (n) => ` · ${n}× per week`,
     alone: "Solo",
     withCoach: "With coach",
     exercises: (n) => `${n} ${n === 1 ? "exercise" : "exercises"}`,
     noSlot:
-      "No slot yet. A slot is a muscle group — the exercise in it can be swapped without breaking the history.",
+      "No slot yet. A slot is a muscle group. The exercise in it can be swapped without breaking the history.",
     slot: "Slot",
     unexpected: "Unexpected error while saving.",
     plan: "Training plan",
@@ -504,8 +504,8 @@ export const coach: Dict["coach"] = {
     deletePlan: "Delete plan",
     hide: "Dismiss",
     noSlotsWarning:
-      "The plan has no slots yet — so it doesn't appear in the athlete app.",
-    dayPlaceholder: "e.g. Day A — Upper body",
+      "The plan has no slots yet, so it doesn't appear in the athlete app.",
+    dayPlaceholder: "e.g. Day A: Upper body",
     creating: "Creating …",
     create: "Create",
     trainingDay: "Training day",
@@ -513,12 +513,12 @@ export const coach: Dict["coach"] = {
     notSaved: "Not saved",
     allSaved: "All changes saved",
     nothingChanged: "Nothing changed yet",
-    nameOpenTitle: "A day name is still open — save or discard it first.",
+    nameOpenTitle: "A day name is still open. Save or discard it first.",
     saveNameFirst: "Save day name first",
-    done: (name) => `Done — back to ${name}`,
+    done: (name) => `Done, back to ${name}`,
     deleteQuestion: "Delete plan?",
     deleteExplain: (name) =>
-      `“${name}” with all days and slots will be removed. Sessions already logged are kept — they just lose their link to this plan.`,
+      `“${name}” with all days and slots will be removed. Sessions already logged are kept. They just lose their link to this plan.`,
     deleteFinal: "Delete permanently",
   },
   profile: {
@@ -539,7 +539,7 @@ export const coach: Dict["coach"] = {
   programs: {
     appTemplates: "Templates from the app",
     appTemplatesHint:
-      "Ready-made programs to assign. Changes happen on a copy — the template stays the same for everyone.",
+      "Ready-made programs to assign. Changes happen on a copy. The template stays the same for everyone.",
     yours: "Your programs",
     noneYet:
       "No programs of your own yet. Create one or copy a template from the app.",
@@ -561,9 +561,9 @@ export const coach: Dict["coach"] = {
     startsOn: "Start",
     assigning: "Assigning …",
     assignConfirm: "Assign",
-    readOnly: "Template from the app — copy it to make changes. Assigning works directly.",
+    readOnly: "Template from the app. Copy it to make changes. Assigning works directly.",
     notYours:
-      "The program can't be changed — it's a template from the app or doesn't belong to you.",
+      "The program can't be changed. It's a template from the app or doesn't belong to you.",
     kicker: "Program",
     back: "‹ Programs",
     rename: "Rename",
@@ -573,7 +573,7 @@ export const coach: Dict["coach"] = {
     deleteQuestion: "Delete program?",
     deleteExplain: (name) =>
       `“${name}” with all days and exercises will be removed. Clients you assigned it to keep their plan.`,
-    done: "Done — back to programs",
+    done: "Done, back to programs",
     createTitle: "Create program",
     createAndFill: "Create and fill exercises",
   },
@@ -586,10 +586,10 @@ export const coach: Dict["coach"] = {
     recent: "Recently used",
     results: (n) => `${n} ${n === 1 ? "exercise" : "exercises"}`,
     nothing: "No exercise matches. Create it below as your own.",
-    noExercise: "No fixed exercise — muscle group only, the athlete chooses",
+    noExercise: "No fixed exercise. Muscle group only, the athlete chooses.",
     change: "Change",
     exercise: "Exercise",
-    none: "No fixed exercise — the athlete chooses",
+    none: "No fixed exercise. The athlete chooses.",
     createOwn: "Exercise missing? Create your own",
     ownGroup: "Muscle group",
   },

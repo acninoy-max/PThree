@@ -23,7 +23,7 @@ export const en: Dict = {
     back: "Back",
     later: "Later",
     signOut: "Sign out",
-    toHome: "PTHREE — home",
+    toHome: "PTHREE home",
     metaDescription: "The operating system for freelance personal trainers",
     tempo: "Tempo",
     rest: "Rest",
@@ -67,7 +67,7 @@ export const en: Dict = {
       return `${Math.round(days / 30.44)} months in`;
     },
     duration: (minutes) => {
-      if (minutes === 0) return "—";
+      if (minutes === 0) return "–";
       if (minutes < 60) return `${minutes} min`;
       if (minutes < 70) return "just over 1 h";
       const h = Math.floor(minutes / 60);
@@ -97,13 +97,13 @@ export const en: Dict = {
     metricHint: {
       best: "Best set per session, converted to a one-rep max.",
       volume:
-        "All sets per session combined — load times reps. Exercises without a measurable load count in reps.",
+        "All sets per session combined: load times reps. Exercises without a measurable load count in reps.",
     },
   },
 
   compare: {
     noPhoto: "No photo yet.",
-    needTwo: "Only one photo in this view — a comparison needs two.",
+    needTwo: "Only one photo in this view. A comparison needs two.",
     before: "Before",
     after: "After",
     notLoadable: "couldn't load",
@@ -125,13 +125,13 @@ export const en: Dict = {
   feedback: {
     title: "Feedback on the app",
     intro:
-      "What's missing, what's annoying, what do you like? Write it here — it goes straight to us.",
+      "What's missing, what's annoying, what do you like? Write it here. It goes straight to us.",
     placeholder: "e.g. When tracking, the page jumps if …",
     send: "Send feedback",
     sending: "Sending …",
-    thanks: "Thanks — it arrived.",
+    thanks: "Thanks, it arrived.",
     empty: "Please write something.",
-    tooLong: "That's more than 4000 characters — please shorten it.",
+    tooLong: "That's more than 4000 characters. Please shorten it.",
     notSaved: "The feedback wasn't saved. Please try again.",
     notReady: "Feedback isn't available yet: migration 0027 is missing in the database.",
   },

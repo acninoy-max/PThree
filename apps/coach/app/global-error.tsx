@@ -79,7 +79,7 @@ export default function GlobalError({
                 color: "#57514A",
               }}
             >
-              This is our fault, not yours. Try again — if it keeps
+              This is our fault, not yours. Try again. If it keeps
               happening, pass the reference below on to your coach.
             </p>
             <p
@@ -92,7 +92,7 @@ export default function GlobalError({
               }}
             >
               Die App konnte nicht starten. Das ist ein Fehler bei uns,
-              nicht bei dir. Versuch es noch einmal — bleibt es dabei, gib
+              nicht bei dir. Versuch es noch einmal. Bleibt es dabei, gib
               deinem Trainer die Kennung unten durch.
             </p>
 

@@ -14,7 +14,7 @@ export function generateMetadata(): Metadata {
 }
 
 const BASIS: Metadata = {
-  title: "PTHREE — Coach",
+  title: "PTHREE | Coach",
   // Ohne das startet die App auf iOS weiter im Browser-Rahmen — Apple
   // liest das Manifest für den Vollbildstart bis heute nicht aus.
   appleWebApp: {

@@ -35,7 +35,7 @@ export const engine = {
     if (f.kind === "plateau") {
       return {
         title: `${muster} steht seit ${f.window} Einheiten`,
-        body: `${name} macht in diesem Muster keinen messbaren Fortschritt mehr. Normal — jetzt einen Hebel wählen.`,
+        body: `${name} macht in diesem Muster keinen messbaren Fortschritt mehr. Das ist normal. Zeit, einen Hebel zu wählen.`,
         action:
           "Volumen erhöhen, Intensitätstechnik einsetzen, Übungsvariation wählen oder Equipment wechseln. Muster beibehalten, Winkel ändern.",
       };
@@ -62,10 +62,10 @@ export const engine = {
   volumeChange: (c: VolumeChange): string => {
     if (!c.previous) {
       return c.current.volumeKg > 0
-        ? "Erstes Mal an diesem Tag — das ist deine Marke."
+        ? "Erstes Mal an diesem Tag. Das ist deine Marke."
         : "Erstes Mal an diesem Tag.";
     }
-    if (c.percent === null) return "Vorher ohne Gewicht — kein Vergleich möglich.";
+    if (c.percent === null) return "Vorher ohne Gewicht, kein Vergleich möglich.";
     if (c.percent === 0) return "Genauso viel wie letztes Mal.";
     const kg = f.integer(Math.abs(c.deltaKg));
     return c.percent > 0

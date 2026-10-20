@@ -16,7 +16,7 @@ export const engine: Dict["engine"] = {
     if (f.kind === "plateau") {
       return {
         title: `${pattern} flat for ${f.window} sessions`,
-        body: `${name} is no longer making measurable progress in this pattern. That's normal — time to pick a lever.`,
+        body: `${name} is no longer making measurable progress in this pattern. That's normal. Time to pick a lever.`,
         action:
           "Increase volume, use an intensity technique, choose an exercise variation or switch equipment. Keep the pattern, change the angle.",
       };
@@ -43,10 +43,10 @@ export const engine: Dict["engine"] = {
   volumeChange: (c) => {
     if (!c.previous) {
       return c.current.volumeKg > 0
-        ? "First time on this day — this is your benchmark."
+        ? "First time on this day. This is your benchmark."
         : "First time on this day.";
     }
-    if (c.percent === null) return "No weight last time — nothing to compare.";
+    if (c.percent === null) return "No weight last time, nothing to compare.";
     if (c.percent === 0) return "Same as last time.";
     const kg = f.integer(Math.abs(c.deltaKg));
     return c.percent > 0

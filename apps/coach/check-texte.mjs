@@ -161,6 +161,69 @@ for (const falsch of ["pt-btn", "Unbehandelter", "/auth/passwort"]) {
   }
 }
 
+// ---------- Lange Gedankenstriche ----------
+//
+// „App screams AI" (Test vom 15.10.2026): Der lange Gedankenstrich „—"
+// mitten im Satz war das deutlichste Merkmal. Er ist aus allen sichtbaren
+// Texten raus und soll draußen bleiben: Diese Regel kennt keine
+// Grenze, jeder Fund ist ein Fehler.
+//
+// Gesucht wird in Texten, nicht in Kommentaren — dort darf er stehen.
+// Ein „—" allein (Platzhalter für „kein Wert") ist kein Satzzeichen und
+// bleibt erlaubt. Ausgenommen sind die Einwilligungstexte: Deren
+// Wortlaut ist das, wozu Klienten zugestimmt haben (Fassung in
+// einwilligung.ts); ändern heißt neue Fassung, nicht stilles Putzen.
+
+const STRICH_IM_SATZ = /\p{L}[^\p{L}\n]{0,3}\u2014|\u2014[^\p{L}\n]{0,3}\p{L}/u;
+
+function striche(quelle, name = "x.tsx") {
+  const sf = ts.createSourceFile(name, quelle, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const liste = [];
+  function besuche(n) {
+    if (
+      ts.isCallExpression(n) &&
+      ts.isPropertyAccessExpression(n.expression) &&
+      ts.isIdentifier(n.expression.expression) &&
+      n.expression.expression.text === "console"
+    ) {
+      return;
+    }
+    let text = null;
+    if (ts.isJsxText(n) || ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) {
+      text = n.text;
+    } else if (ts.isTemplateHead(n) || ts.isTemplateMiddle(n) || ts.isTemplateTail(n)) {
+      text = n.text;
+    }
+    if (text !== null && STRICH_IM_SATZ.test(text)) {
+      const zeile = sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
+      liste.push({ zeile, text: text.replace(/\s+/g, " ").trim() });
+    }
+    ts.forEachChild(n, besuche);
+  }
+  besuche(sf);
+  return liste;
+}
+
+const STRICH_PROBE = `
+// Kommentar — darf bleiben
+const a = { hint: "Optional \u2014 z. B. Rücken" };
+const b = \`Fertig \u2014 zurück zu \${name}\`;
+export function C() { return <p>Leg los \u2014 jetzt</p>; }
+const leer = "\u2014";
+console.error("Fehler \u2014 egal");
+`;
+const sp = striche(STRICH_PROBE);
+for (const e of ["Optional", "Fertig", "Leg los"]) {
+  if (!sp.some((f) => f.text.includes(e))) {
+    console.error(`check-texte: Selbstprüfung (Striche) gescheitert — „${e}" nicht erkannt.`);
+    process.exit(2);
+  }
+}
+if (sp.length !== 3) {
+  console.error(`check-texte: Selbstprüfung (Striche) gescheitert — ${sp.length} statt 3 Funde.`);
+  process.exit(2);
+}
+
 // ---------- Lauf ----------
 
 function dateien(pfad) {
@@ -189,6 +252,29 @@ for (const d of alle) {
     ist[r] = f.length;
     details[r] = f;
   }
+}
+
+// Striche: in allen Dateien der App samt Wörterbüchern, ohne Tests und
+// ohne Einwilligungstexte (siehe oben).
+const strichDateien = ORTE.flatMap(dateien).filter(
+  (d) => !/\.test\.tsx?$/.test(d) && !d.endsWith("einwilligung.ts"),
+);
+if (!strichDateien.some((d) => d.includes("/i18n/en/")) || !strichDateien.some((d) => d.includes("/i18n/de/"))) {
+  console.error("check-texte: Wörterbücher für die Strich-Regel nicht gefunden — Pfade prüfen.");
+  process.exit(2);
+}
+const strichFunde = [];
+for (const d of strichDateien) {
+  for (const f of striche(readFileSync(d, "utf8"), d)) {
+    strichFunde.push({ datei: relative(WURZEL, d), ...f });
+  }
+}
+if (strichFunde.length > 0) {
+  console.error("Langer Gedankenstrich „—\" im sichtbaren Text (Punkt, Komma oder Doppelpunkt nehmen):\n");
+  for (const f of strichFunde.slice(0, 30)) {
+    console.error(`  ${f.datei}:${f.zeile}  ${f.text.slice(0, 80)}`);
+  }
+  process.exit(1);
 }
 
 let grenze = existsSync(BASELINE) ? JSON.parse(readFileSync(BASELINE, "utf8")) : null;

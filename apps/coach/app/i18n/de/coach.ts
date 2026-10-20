@@ -12,7 +12,7 @@ export const coach = {
     nothing: "Noch nichts zu melden",
     noClients:
       "Es sind noch keine Klienten angelegt. Mit Demo-Daten siehst du sofort, wie der Feed arbeitet.",
-    allGood: "Alle Klienten laufen sauber — keine Plateaus, niemand inaktiv.",
+    allGood: "Alle Klienten laufen sauber. Keine Plateaus, niemand inaktiv.",
     unknown: "Unbekannt",
     nextAppointments: "Nächste Termine",
     nothingThisWeek: "Diese Woche nichts geplant.",
@@ -34,7 +34,7 @@ export const coach = {
     create: "Klient anlegen",
     none: "Noch keine Klienten",
     noneBody:
-      "Leg deinen ersten Klienten an — oder spiel Demo-Daten ein, um die App mit echten Verläufen zu sehen.",
+      "Leg deinen ersten Klienten an oder spiel Demo-Daten ein, um die App mit echten Verläufen zu sehen.",
     noAppAccess: "kein App-Zugang",
     noAppointment: "kein Termin geplant",
     /** „vor 3 Tagen" statt eines Datums — schneller zu erfassen. */
@@ -81,15 +81,15 @@ export const coach = {
     birthDate: "Geburtsdatum",
     level: "Level",
     levels: {
-      beginner: "Beginner — Technik und Basis",
-      intermediate: "Intermediate — Volumen und Vielfalt",
-      pro: "Pro — Feinschliff und Periodisierung",
+      beginner: "Beginner: Technik und Basis",
+      intermediate: "Intermediate: Volumen und Vielfalt",
+      pro: "Pro: Feinschliff und Periodisierung",
     },
     goals: "Ziele & Onboarding-Notizen",
     goalsPlaceholder:
       "Bankdrücken 80 kg bis Weihnachten\nKnie links: alte Meniskus-OP, tiefe Kniebeuge meiden\nTrainiert Di + Do abends, Sa möglich\nKein Frühstück, isst erst ab 12 Uhr\nMotivation: will beim Skifahren durchhalten",
     goalsHint:
-      "Alles rein, was du dir sonst auf einen Zettel schreibst — Ziele, Einschränkungen, Verfügbarkeit, Motivation.",
+      "Alles rein, was du dir sonst auf einen Zettel schreibst: Ziele, Einschränkungen, Verfügbarkeit, Motivation.",
   },
   clientPlan: {
     /**
@@ -97,12 +97,12 @@ export const coach = {
      * der Sprache dessen, der den Plan anlegt; danach sind sie Inhalt.
      */
     presets: [
-      { label: "Ganzkörper 2×", hint: "Einstieg, zwei Einheiten pro Woche", days: ["Tag A — Ganzkörper", "Tag B — Ganzkörper"] },
-      { label: "Ober / Unter", hint: "Klassisch, drei bis vier Einheiten", days: ["Tag A — Oberkörper", "Tag B — Unterkörper"] },
-      { label: "Push / Pull", hint: "Zwei Tage, drücken und ziehen getrennt", days: ["Tag A — Drücken", "Tag B — Ziehen"] },
-      { label: "Push / Pull / Beine", hint: "Fortgeschritten, drei bis sechs Einheiten", days: ["Tag A — Drücken", "Tag B — Ziehen", "Tag C — Beine"] },
-      { label: "Arnold-Split", hint: "Brust und Rücken, Schulter und Arme, Beine", days: ["Tag A — Brust & Rücken", "Tag B — Schultern & Arme", "Tag C — Beine"] },
-      { label: "5er-Split", hint: "Eine Muskelgruppe pro Tag, hohes Volumen", days: ["Tag A — Brust", "Tag B — Rücken", "Tag C — Beine", "Tag D — Schultern", "Tag E — Arme"] },
+      { label: "Ganzkörper 2×", hint: "Einstieg, zwei Einheiten pro Woche", days: ["Tag A: Ganzkörper", "Tag B: Ganzkörper"] },
+      { label: "Ober / Unter", hint: "Klassisch, drei bis vier Einheiten", days: ["Tag A: Oberkörper", "Tag B: Unterkörper"] },
+      { label: "Push / Pull", hint: "Zwei Tage, drücken und ziehen getrennt", days: ["Tag A: Drücken", "Tag B: Ziehen"] },
+      { label: "Push / Pull / Beine", hint: "Fortgeschritten, drei bis sechs Einheiten", days: ["Tag A: Drücken", "Tag B: Ziehen", "Tag C: Beine"] },
+      { label: "Arnold-Split", hint: "Brust und Rücken, Schulter und Arme, Beine", days: ["Tag A: Brust & Rücken", "Tag B: Schultern & Arme", "Tag C: Beine"] },
+      { label: "5er-Split", hint: "Eine Muskelgruppe pro Tag, hohes Volumen", days: ["Tag A: Brust", "Tag B: Rücken", "Tag C: Beine", "Tag D: Schultern", "Tag E: Arme"] },
       { label: "Leer", hint: "Eigenen Split von Grund auf bauen", days: ["Tag A"] },
     ],
     /** Vorgeschlagener Name eines weiteren Tages: „Tag C". */
@@ -110,10 +110,10 @@ export const coach = {
     needOneDay: "Mindestens ein Trainingstag ist nötig.",
     create: "Trainingsplan anlegen",
     justCreated:
-      "Klient angelegt. Als Nächstes der Plan — oder später über die Klientenseite.",
+      "Klient angelegt. Als Nächstes der Plan, oder später über die Klientenseite.",
     template: "Vorlage",
     templateHint: (hinweis: string) =>
-      `${hinweis}. Füllt nur die Liste unten — die kannst du danach frei ändern.`,
+      `${hinweis}. Füllt nur die Liste unten. Die kannst du danach frei ändern.`,
     trainingDays: "Trainingstage",
     removeDay: (n: number) => `Tag ${n} entfernen`,
     removeDayTitle: "Tag entfernen",
@@ -132,23 +132,23 @@ export const coach = {
         tage === 1 ? "Trainingstag" : "Trainingstage"
       } · ${slots} Slots`,
     createdOn: (datum: string) =>
-      `Angelegt am ${datum} — Startdatum im Plan änderbar.`,
+      `Angelegt am ${datum}. Startdatum im Plan änderbar.`,
     noSlots:
-      "Noch keine Slots — der Plan erscheint dem Athleten erst, wenn mindestens einer gefüllt ist.",
+      "Noch keine Slots. Der Plan erscheint dem Athleten erst, wenn mindestens einer gefüllt ist.",
     earlierPlans: "Frühere Pläne",
     noPlan:
-      "Noch kein Plan. Ohne Plan trainiert der Athlet frei — die Musterhistorie läuft trotzdem.",
+      "Noch kein Plan. Ohne Plan trainiert der Athlet frei. Die Musterhistorie läuft trotzdem.",
     createPlan: "Plan anlegen",
   },
   file: {
     goals: "Ziele & Notizen",
     hints: "Coach-Hinweise",
-    nothing: "Nichts zu melden — läuft.",
+    nothing: "Nichts zu melden. Läuft.",
     checkins: "Check-ins",
     open: (n: number) => ` · ${n} offen`,
     allCheckins: "Alle Check-ins",
     noAccessNoCheckin:
-      "Noch kein Zugang eingerichtet — ohne App-Konto kann der Klient kein Check-in abschicken.",
+      "Noch kein Zugang eingerichtet. Ohne App-Konto kann der Klient kein Check-in abschicken.",
     noCheckin: "Noch kein Check-in abgeschickt.",
     bodyValues: "Körperwerte",
     noValues: "Noch keine Werte gemeldet.",
@@ -174,16 +174,16 @@ export const coach = {
   },
   manage: {
     appAccess: "App-Zugang",
-    linked: (name: string) => `Konto verknüpft — ${name} kann die App nutzen.`,
+    linked: (name: string) => `Konto verknüpft. ${name} kann die App nutzen.`,
     unlink: "Zugang trennen …",
     unlinkExplain: (name: string) =>
-      `Trennt die Verbindung zum Anmeldekonto. Pläne, Einheiten, Check-ins und Fotos von ${name} bleiben vollständig erhalten — danach kannst du neu einladen.`,
+      `Trennt die Verbindung zum Anmeldekonto. Pläne, Einheiten, Check-ins und Fotos von ${name} bleiben vollständig erhalten. Danach kannst du neu einladen.`,
     unlinking: "Trennt …",
     unlinkConfirm: "Trennen",
     noAccount:
       "Noch kein Konto. Erzeuge einen Einladungslink und schick ihn per WhatsApp oder Mail. Der Link gilt 14 Tage.",
     noEmail: (name: string) =>
-      `Für ${name} ist keine E-Mail hinterlegt. Trag sie unten bei den Stammdaten ein — dann steht sie in der Einladung fest und kann nicht abweichen.`,
+      `Für ${name} ist keine E-Mail hinterlegt. Trag sie unten bei den Stammdaten ein. Dann steht sie in der Einladung fest und kann nicht abweichen.`,
     copied: "Kopiert",
     copyLink: "Link kopieren",
     regenerate: "Neu erzeugen",
@@ -206,7 +206,7 @@ export const coach = {
       `Entfernt ${name} samt Trainingshistorie, Terminen, Check-ins und Notizen. Das lässt sich nicht rückgängig machen.`,
     deleteStart: "Löschen …",
     pauseInstead:
-      "Nur pausieren? Dann oben den Status auf „Pausiert“ setzen — die Daten bleiben erhalten.",
+      "Nur pausieren? Dann oben den Status auf „Pausiert“ setzen. Die Daten bleiben erhalten.",
     confirmName: "Zum Bestätigen den Namen eingeben:",
     deleting: "Löscht …",
     deleteFinal: "Endgültig löschen",
@@ -216,22 +216,22 @@ export const coach = {
     title: "Fortschritt pro Übung",
     choose: "Übungen wählen",
     nothingLogged: (name: string) => `${name} hat noch nichts geloggt.`,
-    noneChosen: "Keine Übung gewählt — tipp oben auf „Übungen wählen“.",
+    noneChosen: "Keine Übung gewählt. Tipp oben auf „Übungen wählen“.",
     curveMeta: (n: number, zuletzt: string) =>
       `${n} ${n === 1 ? "Einheit" : "Einheiten"} · zuletzt ${zuletzt}`,
     inReps: " · in Wiederholungen",
     otherScale: (n: number) => ` · ${n} ältere auf anderer Skala`,
     pickerTitle: (name: string) => `Übungen von ${name}`,
     pickerIntro: (name: string, n: number, max: number) =>
-      `Alles, was ${name} je getrackt hat. Deine Auswahl gilt nur für dich — die Fortschrittsseite deines Klienten bleibt, wie sie ist. ${n} von höchstens ${max}.`,
+      `Alles, was ${name} je getrackt hat. Deine Auswahl gilt nur für dich. Die Fortschrittsseite deines Klienten bleibt, wie sie ist. ${n} von höchstens ${max}.`,
   },
   sections: {
     goal: { label: "Ziele & Notizen", hint: "Was du dir zu diesem Klienten notiert hast" },
-    insights: { label: "Coach-Hinweise", hint: "Plateaus, Pausen, Fortschritte — automatisch erkannt" },
+    insights: { label: "Coach-Hinweise", hint: "Plateaus, Pausen und Fortschritte, automatisch erkannt" },
     checkins: { label: "Check-ins", hint: "Die letzten Meldungen, mit Antwortmöglichkeit" },
     progress: { label: "Fortschritt pro Übung", hint: "Deine eigene Übungsauswahl, Bestleistung oder Volumen" },
     body: { label: "Körperwerte", hint: "Gewicht und Maße aus den Check-ins" },
-    photos: { label: "Fotos", hint: "Vorher und Nachher — nur wenn der Klient zugestimmt hat" },
+    photos: { label: "Fotos", hint: "Vorher und Nachher, nur wenn der Klient zugestimmt hat" },
     volume: { label: "Volumen je Trainingstag", hint: "Läuft der Oberkörpertag oder tritt er auf der Stelle" },
     sessions: { label: "Letzte Einheiten", hint: "Die letzten sechs Trainings, Satz für Satz" },
   },
@@ -239,7 +239,7 @@ export const coach = {
   clientAppointments: {
     title: "Termine",
     create: "Termin anlegen",
-    statusOpen: (wann: string) => `${wann} — Status offen`,
+    statusOpen: (wann: string) => `${wann}, Status offen`,
     nothing: "Nichts geplant.",
     minutesShort: "Min",
     more: (n: number) => `und ${n} weitere`,
@@ -251,7 +251,7 @@ export const coach = {
       `Die Zustimmung kann nur ${name} selbst geben, in der eigenen App unter `,
     consentPath: "Fortschritt → Fotos",
     consentOnlySelfAfter:
-      ". Du kannst sie nicht für ihn erteilen — eine Einwilligung, die ein anderer gibt, ist keine.",
+      ". Du kannst sie nicht für ihn erteilen. Eine Einwilligung, die ein anderer gibt, ist keine.",
     noPhotos: "Zugestimmt, aber noch kein Bild hochgeladen.",
     viewOnly: (n: number, name: string) =>
       `${n} ${n === 1 ? "Bild" : "Bilder"} · Nur ansehen. Löschen und Zurücknehmen kann nur ${name} selbst.`,
@@ -307,7 +307,7 @@ export const coach = {
     waiting: (n: number) => `${n} ${n === 1 ? "wartet" : "warten"} auf dich`,
     none: "Noch keine Check-ins",
     noneBody:
-      "Sobald ein Klient sein wöchentliches Check-in abschickt, landet es hier — mit Gewichtsverlauf, Befinden und Notiz.",
+      "Sobald ein Klient sein wöchentliches Check-in abschickt, landet es hier, mit Gewichtsverlauf, Befinden und Notiz.",
     week: (range: string) => `Woche ${range}`,
     sentAt: (wann: string) => ` · abgeschickt ${wann}`,
     sentReply: "Antwort geschickt",
@@ -353,14 +353,14 @@ export const coach = {
     duration: "Dauer",
     minutes: (n: number) => `${n} Min`,
     place: "Ort",
-    placePlaceholder: "Genauer Ort, optional — z. B. Trainmore Oost",
+    placePlaceholder: "Genauer Ort, optional, z. B. Trainmore Oost",
     repeat: "Wöchentlich wiederholen",
     forWeeks: "Über wie viele Wochen",
     weeks: (n: number) => `${n} Wochen`,
     seriesHint: (n: number) =>
       `Legt ${n} einzelne Termine an. Jeder lässt sich später getrennt verschieben oder absagen.`,
     note: "Notiz",
-    notePlaceholder: "Optional — z. B. Fokus Rücken, Schulter schonen",
+    notePlaceholder: "Optional, z. B. Fokus Rücken, Schulter schonen",
     creating: "Legt an …",
     createMany: (n: number) => `${n} Termine anlegen`,
     createOne: "Termin anlegen",
@@ -395,11 +395,11 @@ export const coach = {
     title: "Für wen?",
     introBefore: "Du trägst die Sätze ein, während ihr trainiert. Die Einheit wird als ",
     introStrong: "von dir erfasst",
-    introAfter: " gespeichert — dein Klient sieht sie in seiner App.",
+    introAfter: " gespeichert. Dein Klient sieht sie in seiner App.",
     noClients: "Noch keine aktiven Klienten.",
     planDays: (plan: string, n: number) =>
       `${plan} · ${n} ${n === 1 ? "Tag" : "Tage"}`,
-    noPlan: "Kein Plan — freies Training",
+    noPlan: "Kein Plan, freies Training",
   },
   track: {
     addNote: "+ Notiz",
@@ -426,9 +426,9 @@ export const coach = {
     duration: "Trainingsdauer",
     pause: "Anhalten",
     bodyLoad: (kg: string) =>
-      `Zählt mit ${kg} kg Körpergewicht — ins kg-Feld nur den Zusatz.`,
+      `Zählt mit ${kg} kg Körpergewicht. Ins kg-Feld nur den Zusatz.`,
     removeExercise: (name: string) => `${name} entfernen`,
-    lastTime: (was: string, datum: string) => `Letztes Mal: ${was} (${datum}) — übernehmen`,
+    lastTime: (was: string, datum: string) => `Letztes Mal: ${was} (${datum}) übernehmen`,
     setWeight: (n: number) => `Satz ${n} Gewicht`,
     setReps: (n: number) => `Satz ${n} Wiederholungen`,
     setRir: (n: number) => `Satz ${n} RIR`,
@@ -440,7 +440,7 @@ export const coach = {
     add: "Slot hinzufügen",
     muscleGroup: "Muskelgruppe",
     coreHint:
-      "Rumpfarbeit wird geloggt und steht im Plan, läuft aber ohne Kraftkurve — sonst würde ein Plank die Kreuzheben-Zahlen verwässern.",
+      "Rumpfarbeit wird geloggt und steht im Plan, läuft aber ohne Kraftkurve. Sonst würde ein Plank die Kreuzheben-Zahlen verwässern.",
     block: "Block",
     label: "Bezeichnung im Plan",
     labelPlaceholder: "z. B. Oberkörper drücken",
@@ -498,13 +498,13 @@ export const coach = {
     weekdayToggle: (tag: string, aktiv: boolean) =>
       `${tag} ${aktiv ? "entfernen" : "hinzufügen"}`,
     free: "frei",
-    noFixedDay: "Ohne festen Tag — der Athlet trainiert, wann es passt.",
+    noFixedDay: "Ohne festen Tag. Der Athlet trainiert, wann es passt.",
     timesPerWeek: (n: number) => ` · ${n}× pro Woche`,
     alone: "Allein",
     withCoach: "Mit Trainer",
     exercises: (n: number) => `${n} ${n === 1 ? "Übung" : "Übungen"}`,
     noSlot:
-      "Noch kein Slot. Ein Slot ist eine Muskelgruppe — die Übung darin ist austauschbar, ohne dass die Historie abreißt.",
+      "Noch kein Slot. Ein Slot ist eine Muskelgruppe. Die Übung darin ist austauschbar, ohne dass die Historie abreißt.",
     slot: "Slot",
     unexpected: "Unerwarteter Fehler beim Speichern.",
     plan: "Trainingsplan",
@@ -517,8 +517,8 @@ export const coach = {
     deletePlan: "Plan löschen",
     hide: "Ausblenden",
     noSlotsWarning:
-      "Der Plan hat noch keine Slots — in der Athleten-App erscheint er deshalb noch nicht.",
-    dayPlaceholder: "z. B. Tag A — Oberkörper",
+      "Der Plan hat noch keine Slots und erscheint deshalb noch nicht in der Athleten-App.",
+    dayPlaceholder: "z. B. Tag A: Oberkörper",
     creating: "Wird angelegt …",
     create: "Anlegen",
     trainingDay: "Trainingstag",
@@ -527,12 +527,12 @@ export const coach = {
     allSaved: "Alle Änderungen gespeichert",
     nothingChanged: "Noch nichts geändert",
     nameOpenTitle:
-      "Es steht noch ein Tagesname offen — erst speichern oder verwerfen.",
+      "Es steht noch ein Tagesname offen. Erst speichern oder verwerfen.",
     saveNameFirst: "Erst Tagesnamen speichern",
-    done: (name: string) => `Fertig — zurück zu ${name}`,
+    done: (name: string) => `Fertig, zurück zu ${name}`,
     deleteQuestion: "Plan löschen?",
     deleteExplain: (name: string) =>
-      `„${name}“ mit allen Tagen und Slots wird entfernt. Bereits geloggte Einheiten bleiben erhalten — sie verlieren nur den Bezug zu diesem Plan.`,
+      `„${name}“ mit allen Tagen und Slots wird entfernt. Bereits geloggte Einheiten bleiben erhalten. Sie verlieren nur den Bezug zu diesem Plan.`,
     deleteFinal: "Endgültig löschen",
   },
   profile: {
@@ -553,7 +553,7 @@ export const coach = {
   programs: {
     appTemplates: "Vorlagen aus der App",
     appTemplatesHint:
-      "Fertige Programme zum Zuweisen. Ändern geht an einer Kopie — die Vorlage bleibt für alle gleich.",
+      "Fertige Programme zum Zuweisen. Ändern geht an einer Kopie. Die Vorlage bleibt für alle gleich.",
     yours: "Deine Programme",
     noneYet:
       "Noch keine eigenen Programme. Leg eins an oder kopiere eine Vorlage aus der App.",
@@ -576,9 +576,9 @@ export const coach = {
     assigning: "Wird zugewiesen …",
     assignConfirm: "Zuweisen",
     readOnly:
-      "Vorlage aus der App — zum Ändern erst kopieren. Zuweisen geht direkt.",
+      "Vorlage aus der App. Zum Ändern erst kopieren. Zuweisen geht direkt.",
     notYours:
-      "Das Programm kann nicht geändert werden — es ist eine Vorlage aus der App oder gehört dir nicht.",
+      "Das Programm kann nicht geändert werden. Es ist eine Vorlage aus der App oder gehört dir nicht.",
     kicker: "Programm",
     back: "‹ Programme",
     rename: "Umbenennen",
@@ -588,7 +588,7 @@ export const coach = {
     deleteQuestion: "Programm löschen?",
     deleteExplain: (name: string) =>
       `„${name}“ mit allen Tagen und Übungen wird entfernt. Klienten, denen du es zugewiesen hast, behalten ihren Plan.`,
-    done: "Fertig — zurück zu den Programmen",
+    done: "Fertig, zurück zu den Programmen",
     createTitle: "Programm anlegen",
     createAndFill: "Anlegen und Übungen füllen",
   },
@@ -601,10 +601,10 @@ export const coach = {
     recent: "Zuletzt benutzt",
     results: (n: number) => `${n} ${n === 1 ? "Übung" : "Übungen"}`,
     nothing: "Keine Übung passt. Leg sie unten als eigene an.",
-    noExercise: "Ohne feste Übung — nur Muskelgruppe, der Athlet wählt",
+    noExercise: "Ohne feste Übung. Nur Muskelgruppe, der Athlet wählt.",
     change: "Ändern",
     exercise: "Übung",
-    none: "Keine feste Übung — der Athlet wählt",
+    none: "Keine feste Übung. Der Athlet wählt.",
     createOwn: "Übung fehlt? Eigene anlegen",
     ownGroup: "Muskelgruppe",
   },

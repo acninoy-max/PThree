@@ -9,7 +9,7 @@ export const athlete = {
     exercises: (n: number) => `${n} ${n === 1 ? "Übung" : "Übungen"}`,
     sets: (n: number) => `${n} ${n === 1 ? "Satz" : "Sätze"}`,
     nothingYet: "Heute noch nichts geloggt",
-    justStart: "Leg einfach los — dein Coach sieht mit.",
+    justStart: "Leg einfach los. Dein Coach sieht mit.",
     upNext: "Als Nächstes: ",
     addMore: "Noch was nachtragen",
     startDay: (title: string) => `${title} starten`,
@@ -32,14 +32,14 @@ export const athlete = {
     yourPlan: "Dein Plan",
     noPlan: "Noch kein Plan",
     noPlanBody:
-      "Dein Coach hat noch keinen Trainingsplan hinterlegt. Bis dahin kannst du frei trainieren — deine Einheiten zählen trotzdem.",
+      "Dein Coach hat noch keinen Trainingsplan hinterlegt. Bis dahin kannst du frei trainieren. Deine Einheiten zählen trotzdem.",
     freeTraining: "Freies Training",
     yourWeek: "Deine Woche",
     sessionsThisWeek: (done: number, of: number) =>
       `${done} von ${of} Einheiten diese Woche`,
     thisWeek: "diese Woche",
     flexibleHint:
-      "Tage ohne festen Wochentag machst du, wann es passt — sie tauchen in der Leiste oben nicht auf.",
+      "Tage ohne festen Wochentag machst du, wann es passt. Sie tauchen in der Leiste oben nicht auf.",
   },
   schedule: {
     back: "Zurück",
@@ -85,12 +85,12 @@ export const athlete = {
       "Dein Coach schaut drauf und meldet sich bei dir. Die Antwort erscheint hier und auf deiner Startseite.",
     toHome: "Zur Startseite",
     stayHere: "Hier bleiben",
-    alreadySent: "Abgeschickt — du kannst noch korrigieren.",
+    alreadySent: "Abgeschickt. Du kannst noch korrigieren.",
     weightPlaceholder: "z. B. 78,4",
     optional: "Freiwillig. Leer lassen ist völlig in Ordnung.",
     tape: "Maßband",
     tapeHint: (weeks: number) =>
-      `Alle ${weeks} Wochen. Miss so, wie es darunter steht — immer gleich, sonst ist der Verlauf nur Zufall.`,
+      `Alle ${weeks} Wochen. Miss so, wie es darunter steht, und immer gleich. Sonst ist der Verlauf nur Zufall.`,
     cmPlaceholder: "z. B. 106,5",
     noteLabel: "Was soll dein Coach wissen?",
     notePlaceholder:
@@ -102,11 +102,11 @@ export const athlete = {
     title: "Dein Fortschritt",
     sessions: (n: number) => `${n} ${n === 1 ? "Einheit" : "Einheiten"}`,
     setsTotal: (n: number) => `${n} Sätze insgesamt`,
-    beforeAfter: "Vorher — Nachher",
+    beforeAfter: "Vorher und Nachher",
     allPhotos: "Alle Fotos",
     photos: "Fotos",
     firstPhoto:
-      "Lad dein erstes Bild hoch — ab dem zweiten siehst du hier den Vergleich.",
+      "Lad dein erstes Bild hoch. Ab dem zweiten siehst du hier den Vergleich.",
     photoInvite:
       "Vorher und Nachher nebeneinander. Nur du und dein Trainer sehen sie.",
     volumePerDay: "Volumen je Trainingstag",
@@ -127,7 +127,7 @@ export const athlete = {
     choose: "Auswählen",
     nothingYet: "Noch nichts da",
     nothingYetBody:
-      "Sobald du dein erstes Training loggst, siehst du hier deine Entwicklung — für jede Übung, die du machst.",
+      "Sobald du dein erstes Training loggst, siehst du hier deine Entwicklung, für jede Übung, die du machst.",
     noneChosen: "Keine Übung gewählt",
     noneChosenBody:
       "Tipp oben auf „Auswählen“ und such dir aus, was dich interessiert. Alles, was du je getrackt hast, steht dort.",
@@ -143,7 +143,7 @@ export const athlete = {
       tooMany: (max: number) => `Mehr als ${max} Kurven kann man nicht mehr lesen.`,
       aria: "Übungen für den Fortschritt wählen",
       intro: (n: number, max: number) =>
-        `Alles, was du je getrackt hast. Wähl die aus, die dich interessieren — ${n} von höchstens ${max}.`,
+        `Alles, was du je getrackt hast. Wähl die aus, die dich interessieren: ${n} von höchstens ${max}.`,
       search: "Suchen",
       searchAria: "Übung suchen",
       nothingFound: "Nichts gefunden.",
@@ -159,7 +159,7 @@ export const athlete = {
     agree: "Einverstanden",
     moment: "Moment",
     noChange:
-      "Wenn du nicht einverstanden bist, ändert sich nichts — der Rest der App funktioniert genauso.",
+      "Wenn du nicht einverstanden bist, ändert sich nichts. Der Rest der App funktioniert genauso.",
     uploadFailed: (grund: string) => `Hochladen fehlgeschlagen: ${grund}`,
     saved: "Bild gespeichert",
     unknownError: "Unbekannter Fehler.",
@@ -180,7 +180,7 @@ export const athlete = {
     revokeBefore: "Dabei werden ",
     revokeAll: "alle",
     revokeAfter:
-      " deine Bilder gelöscht — nicht ausgeblendet, sondern gelöscht. Das lässt sich nicht rückgängig machen.",
+      " deine Bilder gelöscht. Nicht ausgeblendet, sondern gelöscht. Das lässt sich nicht rückgängig machen.",
     deleting: "Löscht",
     confirmDelete: (n: number) => `Ja, ${n} ${n === 1 ? "Bild" : "Bilder"} löschen`,
     revoke: "Zurücknehmen",
@@ -204,19 +204,19 @@ export const athlete = {
     email: "E-Mail",
     emailPlaceholder: "du@example.com",
     loginHint: (adresse: string) =>
-      `Anmelden tust du dich mit ${adresse}. Änderst du die Adresse hier, schicken wir dir einen Bestätigungslink — erst danach gilt die neue.`,
+      `Anmelden tust du dich mit ${adresse}. Änderst du die Adresse hier, schicken wir dir einen Bestätigungslink. Erst danach gilt die neue.`,
     contactHint: "Hierhin schreibt dir dein Trainer.",
     save: "Speichern",
     savedState: "Gespeichert",
     since: (datum: string) => `Dabei seit ${datum}. `,
     coachMaintains:
-      "Level, Ziele und deinen Trainingsplan pflegt dein Trainer — die siehst du, aber änderst sie nicht hier.",
+      "Level, Ziele und deinen Trainingsplan pflegt dein Trainer. Du siehst sie hier, änderst sie aber nicht.",
     errors: {
       nameMissing: "Bitte trag deinen Namen ein.",
       emailInvalid: "Diese E-Mail-Adresse sieht nicht gültig aus.",
       birthDateImplausible: "Das Geburtsdatum kann nicht stimmen.",
       loginNotChanged:
-        "Gespeichert. Deine Anmeldeadresse konnte nicht umgestellt werden — melde dich bei deinem Trainer.",
+        "Gespeichert. Deine Anmeldeadresse konnte nicht umgestellt werden. Melde dich bei deinem Trainer.",
       confirmSent: (adresse: string) =>
         `Gespeichert. An ${adresse} ist eine Bestätigungsmail unterwegs. Bis du den Link anklickst, meldest du dich weiter mit deiner alten Adresse an.`,
     },
@@ -240,7 +240,7 @@ export const athlete = {
     letsGo: "Los geht's",
     back: "‹ Zurück",
     whatTraining: "Was trainierst du?",
-    swapHint: "Andere Übung im selben Muster — dein Verlauf läuft weiter.",
+    swapHint: "Andere Übung im selben Muster. Dein Verlauf läuft weiter.",
     recentlyUsed: "Zuletzt benutzt",
     byMuscle: "Nach Muskelgruppe",
     bestColon: "Bestleistung:",
@@ -251,18 +251,18 @@ export const athlete = {
     resume: "Fortsetzen",
     pause: "Pause",
     firstExercise:
-      "Füg deine erste Übung hinzu. Die Reihenfolge ist dir überlassen — dein Coach sieht später, welche Muster du trainiert hast.",
+      "Füg deine erste Übung hinzu. Die Reihenfolge ist dir überlassen. Dein Coach sieht später, welche Muster du trainiert hast.",
     swap: "tauschen",
     removeExercise: "Übung entfernen",
-    carryFrom: (datum: string) => `vom ${datum} — übernehmen`,
+    carryFrom: (datum: string) => `vom ${datum} übernehmen`,
     bodyLoad: (kg: string) =>
       `Zählt mit ${kg} kg Körpergewicht. Ins kg-Feld nur, was du zusätzlich dranhängst.`,
     noBodyWeight:
-      "Trag dein Gewicht im Check-in ein — dann zählt diese Übung mit Last statt nur mit Wiederholungen.",
+      "Trag dein Gewicht im Check-in ein. Dann zählt diese Übung mit Last statt nur mit Wiederholungen.",
     deleteSet: (n: number) => `Satz ${n} löschen`,
-    lastSetStays: "Der letzte Satz bleibt — nimm sonst die Übung raus",
+    lastSetStays: "Der letzte Satz bleibt. Nimm sonst die Übung raus.",
     deviation: (ist: number, soll: number) =>
-      `${ist} statt ${soll} Sätzen — nur für heute. Dein Plan bleibt, wie er ist; dein Coach sieht, was du tatsächlich gemacht hast.`,
+      `${ist} statt ${soll} Sätzen, nur für heute. Dein Plan bleibt, wie er ist; dein Coach sieht, was du tatsächlich gemacht hast.`,
     on: (datum: string) => `am ${datum}`,
     addSet: "Satz hinzufügen",
     startRest: (dauer: string) => `Pause starten: ${dauer}`,
@@ -277,7 +277,7 @@ export const athlete = {
     doneBody: (saetze: number, zeit: string) =>
       `${saetze} Sätze in ${zeit} Minuten. Sauber.`,
     incompleteBody: (ist: number, soll: number) =>
-      `${ist} von ${soll} geplanten Sätzen sind eingetragen. Du kannst trotzdem abschließen — die Einheit wird dann als unvollständig gezählt.`,
+      `${ist} von ${soll} geplanten Sätzen sind eingetragen. Du kannst trotzdem abschließen. Die Einheit wird dann als unvollständig gezählt.`,
     sameAsLast: "Genauso viel wie letztes Mal.",
     volumeVsLast: (prozent: number, delta: string) =>
       `${Math.abs(prozent)} % ${prozent > 0 ? "mehr" : "weniger"} als letztes Mal (${delta}).`,

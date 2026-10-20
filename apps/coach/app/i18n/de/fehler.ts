@@ -1,14 +1,14 @@
 /** Fehlerseiten und Meldungen aus der Datenbank. */
 export const fehler = {
   notFound: {
-    metaTitle: "Seite nicht gefunden — PTHREE",
+    metaTitle: "Seite nicht gefunden | PTHREE",
     title: "Diese Seite gibt es nicht",
-    body: "Die Adresse stimmt nicht — vertippt, oder der Link ist nicht mehr gültig. Einladungslinks laufen nach 14 Tagen ab und funktionieren nur einmal; frag in dem Fall deinen Trainer nach einem neuen.",
+    body: "Die Adresse stimmt nicht: vertippt, oder der Link ist nicht mehr gültig. Einladungslinks laufen nach 14 Tagen ab und funktionieren nur einmal; frag in dem Fall deinen Trainer nach einem neuen.",
     back: "Zurück zur App",
   },
   crash: {
     title: "Da ist etwas schiefgelaufen",
-    body: "Die Seite konnte nicht geladen werden. Meistens hilft ein zweiter Versuch — gerade wenn das Netz gerade schwach ist.",
+    body: "Die Seite konnte nicht geladen werden. Meistens hilft ein zweiter Versuch, vor allem bei schwachem Netz.",
     bodyMore:
       "Bleibt es dabei, schick deinem Trainer die Kennung unten. Damit lässt sich nachsehen, was genau passiert ist.",
     retry: "Nochmal versuchen",
@@ -36,7 +36,7 @@ export const fehler = {
     maxEight: "Höchstens acht Übungen auf einmal.",
     defaultSessionTitle: "Training",
     photosNotDeleted:
-      "Die Bilder konnten nicht gelöscht werden — der Widerruf wurde deshalb nicht eingetragen. Bitte noch einmal versuchen.",
+      "Die Bilder konnten nicht gelöscht werden. Der Widerruf wurde deshalb nicht eingetragen. Bitte noch einmal versuchen.",
   },
   db: {
     notSignedIn: "Nicht angemeldet.",
@@ -44,14 +44,14 @@ export const fehler = {
       "Dieses Konto ist ein Coach-Konto. Öffne die Einladung in einem privaten Fenster und melde dich mit einer anderen Adresse an.",
     inviteInvalid: "Einladung ungültig oder abgelaufen.",
     clientTaken:
-      "Dieser Klient ist bereits mit einem anderen Zugang verknüpft. Melde dich mit der Adresse an, die du zuerst benutzt hast — oder bitte deinen Trainer, die Verknüpfung zu lösen.",
+      "Dieser Klient ist bereits mit einem anderen Zugang verknüpft. Melde dich mit der Adresse an, die du zuerst benutzt hast, oder bitte deinen Trainer, die Verknüpfung zu lösen.",
     linkFailed:
-      "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer — es liegt nicht an dir.",
+      "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer. Es liegt nicht an dir.",
     noAccess: "Kein Zugriff auf diesen Klienten.",
     programNotFound: "Programm nicht gefunden.",
     planNotFound: "Plan nicht gefunden.",
     programIncomplete:
-      "Das Programm wurde nicht vollständig übernommen — nichts wurde gespeichert. Bitte noch einmal versuchen.",
+      "Das Programm wurde nicht vollständig übernommen. Es wurde nichts gespeichert. Bitte noch einmal versuchen.",
     slotNotFound: "Diese Übung gibt es im Plan nicht mehr. Seite neu laden.",
     moveFailed: "Verschieben hat nicht geklappt. Die Reihenfolge ist unverändert.",
     moveMissing: "Verschieben braucht Migration 0030 in der Datenbank.",

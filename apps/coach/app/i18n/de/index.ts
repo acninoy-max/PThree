@@ -33,7 +33,7 @@ export const de = {
     back: "Zurück",
     later: "Später",
     signOut: "Abmelden",
-    toHome: "PTHREE — zur Startseite",
+    toHome: "PTHREE, zur Startseite",
     metaDescription: "Das Betriebssystem für freelance Personal Trainer",
     tempo: "Tempo",
     rest: "Pause",
@@ -80,7 +80,7 @@ export const de = {
     },
     /** „gut 1 Std." liest sich besser als „62 Min". */
     duration: (minutes: number): string => {
-      if (minutes === 0) return "—";
+      if (minutes === 0) return "–";
       if (minutes < 60) return `${minutes} Min`;
       if (minutes < 70) return "gut 1 Std.";
       const h = Math.floor(minutes / 60);
@@ -114,13 +114,13 @@ export const de = {
     metricHint: {
       best: "Bester Satz je Einheit, umgerechnet auf ein Einer-Maximum.",
       volume:
-        "Alle Sätze je Einheit zusammen — Last mal Wiederholungen. Übungen ohne bezifferbare Last zählen in Wiederholungen.",
+        "Alle Sätze je Einheit zusammen: Last mal Wiederholungen. Übungen ohne bezifferbare Last zählen in Wiederholungen.",
     },
   },
 
   compare: {
     noPhoto: "Noch kein Bild.",
-    needTwo: "Erst ein Bild in dieser Ansicht — ein Vergleich braucht zwei.",
+    needTwo: "Erst ein Bild in dieser Ansicht. Ein Vergleich braucht zwei.",
     before: "Vorher",
     after: "Nachher",
     notLoadable: "nicht ladbar",
@@ -142,13 +142,13 @@ export const de = {
   feedback: {
     title: "Feedback zur App",
     intro:
-      "Was fehlt, was nervt, was gefällt? Schreib es hier rein — es landet direkt bei uns.",
+      "Was fehlt, was nervt, was gefällt? Schreib es hier rein. Es landet direkt bei uns.",
     placeholder: "z. B. Beim Tracken springt die Seite, wenn …",
     send: "Feedback senden",
     sending: "Wird gesendet …",
-    thanks: "Danke — ist angekommen.",
+    thanks: "Danke, ist angekommen.",
     empty: "Schreib bitte etwas hinein.",
-    tooLong: "Das sind mehr als 4000 Zeichen — bitte kürzen.",
+    tooLong: "Das sind mehr als 4000 Zeichen. Bitte kürzen.",
     notSaved: "Das Feedback wurde nicht gespeichert. Bitte noch einmal versuchen.",
     notReady:
       "Feedback geht noch nicht: In der Datenbank fehlt die Migration 0027.",

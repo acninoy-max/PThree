@@ -2,14 +2,14 @@ import type { Dict } from "../de";
 
 export const fehler: Dict["fehler"] = {
   notFound: {
-    metaTitle: "Page not found — PTHREE",
+    metaTitle: "Page not found | PTHREE",
     title: "This page doesn't exist",
-    body: "The address is wrong — a typo, or the link is no longer valid. Invitation links expire after 14 days and only work once; in that case, ask your coach for a new one.",
+    body: "The address is wrong: a typo, or the link is no longer valid. Invitation links expire after 14 days and only work once; in that case, ask your coach for a new one.",
     back: "Back to the app",
   },
   crash: {
     title: "Something went wrong",
-    body: "The page couldn't be loaded. A second try usually helps — especially on a weak connection.",
+    body: "The page couldn't be loaded. A second try usually helps, especially on a weak connection.",
     bodyMore:
       "If it keeps happening, send your coach the reference below. It lets us look up exactly what happened.",
     retry: "Try again",
@@ -36,7 +36,7 @@ export const fehler: Dict["fehler"] = {
     maxEight: "At most eight exercises at once.",
     defaultSessionTitle: "Workout",
     photosNotDeleted:
-      "The photos couldn't be deleted — so the withdrawal was not recorded. Please try again.",
+      "The photos couldn't be deleted, so the withdrawal was not recorded. Please try again.",
   },
   db: {
     notSignedIn: "Not signed in.",
@@ -44,14 +44,14 @@ export const fehler: Dict["fehler"] = {
       "This is a coach account. Open the invitation in a private window and sign in with a different address.",
     inviteInvalid: "Invitation invalid or expired.",
     clientTaken:
-      "This client is already linked to another account. Sign in with the address you used first — or ask your coach to remove the link.",
+      "This client is already linked to another account. Sign in with the address you used first, or ask your coach to remove the link.",
     linkFailed:
-      "The link couldn't be set. Please tell your coach — it's not your fault.",
+      "The link couldn't be set. Please tell your coach. It's not your fault.",
     noAccess: "No access to this client.",
     programNotFound: "Program not found.",
     planNotFound: "Plan not found.",
     programIncomplete:
-      "The program was not copied completely — nothing was saved. Please try again.",
+      "The program was not copied completely. Nothing was saved. Please try again.",
     slotNotFound: "This exercise is no longer in the plan. Please reload the page.",
     moveFailed: "Moving didn't work. The order is unchanged.",
     moveMissing: "Moving needs migration 0030 in the database.",

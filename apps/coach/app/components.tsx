@@ -48,7 +48,12 @@ export function inGroup(
   );
 }
 
-/** „Brust" oder „Brust · auch Trizeps" — für die Zeile unter dem Namen. */
+/**
+ * „Brust" oder „Brust (auch Trizeps)" — für die Zeile unter dem Namen.
+ *
+ * Klammer statt „·": Der Punkt als Trenner in der Übungsauswahl war im
+ * Test (15.10.) eines der Merkmale, an denen die App „nach KI" aussah.
+ */
 export function muscleSummary(
   t: Dict,
   exercise: {
@@ -58,9 +63,9 @@ export function muscleSummary(
 ): string {
   const haupt = muscleLabel(t, exercise.muscleGroup);
   if (exercise.secondaryMuscleGroups.length === 0) return haupt;
-  return `${haupt} · ${t.labels.muscleAlso} ${exercise.secondaryMuscleGroups
+  return `${haupt} (${t.labels.muscleAlso} ${exercise.secondaryMuscleGroups
     .map((g) => muscleLabel(t, g))
-    .join(", ")}`;
+    .join(", ")})`;
 }
 
 export function muscleLabel(t: Dict, group: MuscleGroup | null): string {

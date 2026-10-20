@@ -4,7 +4,9 @@
 Supersätze per 0030, B4 Startwerte, A5 Geburtsdatum). Schritt 2
 umgesetzt (B1 Nächste Schritte, B2 Planname, B6 Feed-Kacheln). Aus Schritt 3
 umgesetzt: B3 Save as program, B5 Startgewicht, B7 Notizen je Übung
-(alle mit 0031). Offen: A4 Textpass.
+(alle mit 0031). A4 Textpass: lange Gedankenstriche raus (Prüfregel in
+check-texte.mjs), „·" in der Übungsauswahl durch Klammer ersetzt.
+Offen: „rote Bar" (Screenshot von Joël).
 
 ## Context
 

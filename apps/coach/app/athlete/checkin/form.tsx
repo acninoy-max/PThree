@@ -72,8 +72,8 @@ function Scale({
           color: "var(--g-dim)",
         }}
       >
-        <span>1 — {s.low}</span>
-        <span>5 — {s.high}</span>
+        <span>1: {s.low}</span>
+        <span>5: {s.high}</span>
       </div>
     </fieldset>
   );
