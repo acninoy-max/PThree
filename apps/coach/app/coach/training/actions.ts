@@ -121,16 +121,33 @@ export async function assignProgramAction(input: {
   programId: string;
   clientId: string;
   startsOn: string;
+  /** Leer = Name des Programms, wie bisher (Standard in 0028). */
+  name?: string;
 }): Promise<IdResult> {
   const t = getT();
   const db = createServerSupabase();
+  const name = input.name?.trim() || null;
   const { data, error } = await db.rpc("assign_template", {
     p_template: input.programId,
     p_client: input.clientId,
     p_starts_on: input.startsOn,
+    p_name: name,
   });
   if (error) return { ok: false, error: dbFehler(t, error.message) };
   if (!data) return { ok: false, error: t.fehler.db.programIncomplete };
+
+  // Nachlesen, ob der Plan mit dem gewünschten Namen dasteht. Der Inhalt
+  // ist in assign_template schon nachgezählt, der Name nicht.
+  if (name) {
+    const { data: plan } = await db
+      .from("plans")
+      .select("name")
+      .eq("id", data as string)
+      .maybeSingle();
+    if (!plan || plan.name !== name) {
+      return { ok: false, error: t.fehler.db.programIncomplete };
+    }
+  }
   revalidatePath(`/coach/clients/${input.clientId}`);
   revalidatePath("/athlete");
   revalidatePath("/athlete/plan");

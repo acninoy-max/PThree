@@ -1,7 +1,8 @@
 # Basis auf 100 % — Umsetzungsplan nach den ersten Tests (15.10. + 20.10.)
 
 **Stand 20.10.2026:** Schritt 1 umgesetzt (A1 Zwischenspeicher, A2
-Supersätze per 0030, B4 Startwerte, A5 Geburtsdatum).
+Supersätze per 0030, B4 Startwerte, A5 Geburtsdatum). Schritt 2
+umgesetzt (B1 Nächste Schritte, B2 Planname, B6 Feed-Kacheln).
 
 ## Context
 

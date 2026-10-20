@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CheckInFields } from "@ptfive/db";
 import { IconX } from "@/app/icons";
@@ -20,9 +20,12 @@ const RHYTHM = [1, 2, 4, 8, 12];
 export function CheckInConfig({
   clientId,
   fields,
+  startOpen = false,
 }: {
   clientId: string;
   fields: CheckInFields;
+  /** Aus „Nächste Schritte" nach dem Anlegen (?einrichten=1). */
+  startOpen?: boolean;
 }) {
   const t = useT();
   const C = t.coach.checkinConfig;
@@ -31,6 +34,15 @@ export function CheckInConfig({
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<CheckInFields>(fields);
+
+  // Erst nach dem Mounten öffnen und den Parameter aus der Adresse
+  // nehmen — sonst öffnet jedes Neuladen den Dialog wieder (wie
+  // startWithPlan in plan.tsx).
+  useEffect(() => {
+    if (!startOpen) return;
+    setOpen(true);
+    window.history.replaceState(null, "", `${window.location.pathname}?tab=checkins`);
+  }, [startOpen]);
 
   function save() {
     setError(null);

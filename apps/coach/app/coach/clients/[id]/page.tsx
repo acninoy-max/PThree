@@ -33,6 +33,7 @@ import { ManageClient } from "./manage";
 import { ClientAppointments } from "./appointments";
 import { ClientPlan } from "./plan";
 import { CheckInConfig } from "./checkin-config";
+import { NaechsteSchritte } from "./naechste-schritte";
 import { getLocale, getT } from "@/app/i18n/server";
 import { ClientPhotos } from "./photos";
 import {
@@ -80,7 +81,7 @@ export default async function ClientDetailPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { neu?: string; tab?: string };
+  searchParams: { neu?: string; tab?: string; plan?: string; einrichten?: string };
 }) {
   const t = getT();
   const A = t.coach.file;
@@ -290,7 +291,11 @@ export default async function ClientDetailPage({
             )}
           </p>
           <div style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
-            <CheckInConfig clientId={client.id} fields={checkInFields} />
+            <CheckInConfig
+              clientId={client.id}
+              fields={checkInFields}
+              startOpen={searchParams.einrichten === "1"}
+            />
             <Link href="/coach/checkins" style={{ fontSize: "var(--pt-fs-base)" }}>
               {A.allCheckins}
             </Link>
@@ -562,6 +567,10 @@ export default async function ClientDetailPage({
           </div>
         </div>
 
+        {searchParams.neu === "1" && (
+          <NaechsteSchritte clientId={client.id} hasPlan={!!activePlan} />
+        )}
+
         <nav className="pt-subtabs" aria-label={A.tabsAria}>
           {CLIENT_TABS.map((tab) => (
             <Link
@@ -616,7 +625,9 @@ export default async function ClientDetailPage({
                 level={client.level}
                 active={activePlan}
                 older={olderPlans}
-                startWithPlan={searchParams.neu === "1" && !activePlan}
+                // Aus der Karte „Nächste Schritte" (?plan=neu), nicht mehr
+                // automatisch nach dem Anlegen.
+                startWithPlan={searchParams.plan === "neu" && !activePlan}
               />
               <ClientAppointments
                 client={{

@@ -67,10 +67,10 @@ export default async function FeedPage() {
             marginBottom: 28,
           }}
         >
-          <StatCard label={F.activeClients} value={activeClients} />
-          <StatCard label={F.urgent} value={urgent} />
-          <StatCard label={F.appointments7} value={appointments.length} />
-          <StatCard label={F.openCheckins} value={checkIns.length} />
+          <StatCard label={F.activeClients} value={activeClients} href="/coach/clients" />
+          <StatCard label={F.urgent} value={urgent} hint={F.urgentHint} href="#hinweise" />
+          <StatCard label={F.appointments7} value={appointments.length} href="/coach/schedule" />
+          <StatCard label={F.openCheckins} value={checkIns.length} href="/coach/checkins" />
         </div>
 
         {/* Klasse statt Inline-Style: Ein `style`-Attribut schlägt jede
@@ -79,7 +79,7 @@ export default async function FeedPage() {
             etwa 120px breit — die Hinweiskarte brach Wort für Wort um
             und der Klientenname wurde abgeschnitten. */}
         <div className="pt-split">
-          <section>
+          <section id="hinweise">
             <p className="pt-label" style={{ marginBottom: 10 }}>
               {F.engineSees}
             </p>

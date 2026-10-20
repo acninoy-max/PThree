@@ -41,11 +41,24 @@ export function AssignDialog({
   const [startsOn, setStartsOn] = useState(dayISO(new Date()));
   const [error, setError] = useState<string | null>(null);
 
+  // Planname: vorbelegt mit „Vorname Programmname" (Wunsch aus dem Test
+  // 20.10.), damit beim Klienten nicht fünfmal „Full Body 2×" steht.
+  // Folgt dem Klientenwechsel, bis der Trainer selbst etwas tippt.
+  const [eigenerName, setEigenerName] = useState<string | null>(null);
+  const vorname = (clients.find((c) => c.id === clientId)?.name ?? "").trim().split(/\s+/)[0] ?? "";
+  const vorschlag = vorname ? `${vorname} ${programName}` : programName;
+  const planName = eigenerName ?? vorschlag;
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     start(async () => {
-      const res = await assignProgramAction({ programId, clientId, startsOn });
+      const res = await assignProgramAction({
+        programId,
+        clientId,
+        startsOn,
+        name: planName.trim() || vorschlag,
+      });
       if (!res.ok) {
         setError(res.error);
         return;
@@ -106,6 +119,14 @@ export function AssignDialog({
                   </option>
                 ))}
               </select>
+            </label>
+            <label style={{ display: "grid", gap: 6 }}>
+              <span className="pt-label">{P.planName}</span>
+              <input
+                value={planName}
+                onChange={(e) => setEigenerName(e.target.value)}
+                maxLength={120}
+              />
             </label>
             <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
               <span className="pt-label">{P.startsOn}</span>

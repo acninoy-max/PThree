@@ -6,6 +6,7 @@ export const coach: Dict["coach"] = {
     title: "Today for you",
     activeClients: "Active clients",
     urgent: "Urgent",
+    urgentHint: "No progress for several sessions",
     appointments7: "Appointments (7 days)",
     openCheckins: "Open check-ins",
     engineSees: "What the engine sees",
@@ -21,6 +22,12 @@ export const coach: Dict["coach"] = {
     answerAll: (n) => `Answer all ${n} →`,
     answerNow: "Answer now →",
     seedHint: "select seed_demo_data('your@mail.com');",
+  },
+  nextSteps: {
+    title: "Client created. What's next?",
+    body: "You can do all of this later from this page.",
+    checkin: "Set up check-in",
+    plan: "Create training plan",
   },
   clients: {
     kicker: "Coaching",
@@ -535,6 +542,7 @@ export const coach: Dict["coach"] = {
       `“${name}” is created as a new plan for the client. Their current plan is deactivated, the history stays.`,
     client: "Client",
     noClients: "You don't have any active clients yet.",
+    planName: "Plan name",
     startsOn: "Start",
     assigning: "Assigning …",
     assignConfirm: "Assign",

@@ -317,12 +317,18 @@ export function EmptyState({
 export function StatCard({
   label,
   value,
+  href,
+  hint,
 }: {
   label: string;
   value: string | number;
+  /** Wohin die Kachel führt. Im Test (20.10.) tippten alle darauf. */
+  href?: string;
+  /** Kleine Zeile unter der Zahl, wenn das Etikett allein nicht reicht. */
+  hint?: string;
 }) {
-  return (
-    <div className="pt-card pt-card--stat">
+  const inhalt = (
+    <>
       <p className="pt-label" style={{ margin: 0 }}>
         {label}
       </p>
@@ -336,6 +342,18 @@ export function StatCard({
           value
         )}
       </p>
-    </div>
+      {hint && (
+        <p style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+          {hint}
+        </p>
+      )}
+    </>
+  );
+  return href ? (
+    <Link href={href} className="pt-card pt-card--stat" style={{ color: "inherit" }}>
+      {inhalt}
+    </Link>
+  ) : (
+    <div className="pt-card pt-card--stat">{inhalt}</div>
   );
 }

@@ -219,6 +219,18 @@ textarea::placeholder {
   padding: 14px 16px;
 }
 
+/* Nächste Schritte nach „Add client": nebeneinander, am Handy untereinander. */
+.pt-naechste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pt-naechste > * {
+  flex: 1 1 180px;
+  text-align: center;
+  text-decoration: none;
+}
+
 .pt-card--empty {
   padding: 40px 24px;
   text-align: center;

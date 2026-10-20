@@ -70,9 +70,9 @@ export async function createClientAction(
 
   revalidatePath("/coach/clients");
   revalidatePath("/coach");
-  // Direkt in die Akte, mit offenem Plan-Dialog: Nach dem Anlegen ist der
-  // Plan der nächste Schritt, und zurück in die Liste hieß, ihn erst
-  // suchen zu müssen (Joëls Test vom 01.10., Punkt 2).
+  // Direkt in die Akte (Joëls Test vom 01.10., Punkt 2). Dort zeigt
+  // `?neu=1` die Karte „Nächste Schritte" — seit 20.10. statt des
+  // Plan-Dialogs, der sich ungefragt öffnete.
   redirect(`/coach/clients/${angelegt.id}?neu=1`);
 }
 

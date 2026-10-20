@@ -5,6 +5,7 @@ export const coach = {
     title: "Heute für dich",
     activeClients: "Aktive Klienten",
     urgent: "Dringend",
+    urgentHint: "Kein Fortschritt seit mehreren Einheiten",
     appointments7: "Termine (7 Tage)",
     openCheckins: "Offene Check-ins",
     engineSees: "Was die Engine sieht",
@@ -20,6 +21,12 @@ export const coach = {
     answerAll: (n: number) => `Alle ${n} beantworten →`,
     answerNow: "Jetzt beantworten →",
     seedHint: "select seed_demo_data('deine@mail.de');",
+  },
+  nextSteps: {
+    title: "Klient angelegt. Wie geht es weiter?",
+    body: "Alles davon geht auch später über diese Seite.",
+    checkin: "Check-in einrichten",
+    plan: "Trainingsplan anlegen",
   },
   clients: {
     kicker: "Betreuung",
@@ -549,6 +556,7 @@ export const coach = {
       `„${name}“ wird als neuer Plan beim Klienten angelegt. Sein bisheriger Plan wird stillgelegt, die Historie bleibt.`,
     client: "Klient",
     noClients: "Du hast noch keine aktiven Klienten.",
+    planName: "Name des Plans",
     startsOn: "Start",
     assigning: "Wird zugewiesen …",
     assignConfirm: "Zuweisen",
