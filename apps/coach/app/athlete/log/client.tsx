@@ -99,6 +99,8 @@ export interface PlanSlotOption {
   targetSets: number;
   targetRepsMin: number;
   targetRepsMax: number;
+  /** Startgewicht aus dem Plan (0031) — steht als Vorschlag im kg-Feld. */
+  targetWeightKg: number | null;
   supersetGroup: string | null;
   tempo: string | null;
   restSeconds: number | null;
@@ -375,7 +377,13 @@ export function LogWorkout({
         key: `${slot.id}-${drafts.length}`,
         exercise,
         plan: slot,
-        sets: Array.from({ length: slot.targetSets }, emptySet),
+        // Startgewicht des Trainers als Vorschlag in jedem Satz; wer
+        // etwas anderes hebt, überschreibt es einfach. Gespeichert wird
+        // ein Satz ohnehin erst mit Wiederholungen.
+        sets: Array.from({ length: slot.targetSets }, () => ({
+          ...emptySet(),
+          weight: slot.targetWeightKg !== null ? t.fmt.num(slot.targetWeightKg) : "",
+        })),
       });
     }
     setDay(chosen);

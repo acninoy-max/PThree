@@ -99,6 +99,12 @@ export function SlotForm({
   const [repsMin, setRepsMin] = useState(slot?.targetRepsMin ?? BLOCK_DEFAULTS.compound.min);
   const [repsMax, setRepsMax] = useState(slot?.targetRepsMax ?? BLOCK_DEFAULTS.compound.max);
   const [note, setNote] = useState(slot?.note ?? "");
+  // Als Text, damit „82,5" stehen bleiben darf, während man tippt.
+  const [weight, setWeight] = useState(
+    slot?.targetWeightKg !== null && slot?.targetWeightKg !== undefined
+      ? t.fmt.num(slot.targetWeightKg)
+      : "",
+  );
   const [superset, setSuperset] = useState(slot?.supersetGroup ?? "");
   const [tempo, setTempo] = useState(slot?.tempo ?? "");
   const [rest, setRest] = useState(
@@ -239,6 +245,12 @@ export function SlotForm({
     e.preventDefault();
     setError(null);
 
+    const kg = weight.trim() === "" ? null : Number(weight.trim().replace(",", "."));
+    if (kg !== null && (!Number.isFinite(kg) || kg < 0 || kg > 1000)) {
+      setError(S.weightInvalid);
+      return;
+    }
+
     const input: SlotInput = {
       muscleGroup: group,
       // Steht eine Übung im Slot, gilt deren Muster: Sie weiss genauer,
@@ -250,6 +262,10 @@ export function SlotForm({
       targetSets: sets,
       targetRepsMin: repsMin,
       targetRepsMax: repsMax,
+      // Nur mitschicken, wenn es etwas zu sagen gibt: Ohne Migration 0031
+      // gibt es die Spalte nicht, und ein mitgeschicktes null würde jedes
+      // Speichern scheitern lassen.
+      targetWeightKg: kg === null && (slot?.targetWeightKg ?? null) === null ? undefined : kg,
       supersetGroup: superset === "" ? null : superset,
       tempo: tempo.trim() === "" ? null : tempo.trim().toUpperCase(),
       restSeconds: rest.trim() === "" ? null : Number(rest),
@@ -628,6 +644,20 @@ export function SlotForm({
               />
             </label>
           </div>
+
+          <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
+            <span className="pt-label">{S.weight}</span>
+            <input
+              className="pt-datefield"
+              inputMode="decimal"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder={S.weightPlaceholder}
+            />
+            <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+              {S.weightHint}
+            </span>
+          </label>
 
           <label style={{ display: "grid", gap: 6 }}>
             <span className="pt-label">{S.note}</span>

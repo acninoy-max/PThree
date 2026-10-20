@@ -381,6 +381,8 @@ export const coach = {
     repsImplausible: "Die Wiederholungen sehen nicht plausibel aus.",
     repsOrder: "Die untere Wiederholungszahl darf nicht über der oberen liegen.",
     tempo: "Tempo braucht vier Zeichen, z. B. 3111 oder 30X0.",
+    slotNotSaved: "Die Übung wurde nicht gespeichert. Bitte Seite neu laden.",
+    weightRange: "Das Startgewicht muss zwischen 0 und 1000 kg liegen.",
     restRange: "Die Pause muss zwischen 0 und 15 Minuten liegen.",
     superset: "Die Supersatz-Gruppe ist ein einzelner Buchstabe.",
     slotNotFound: "Slot nicht gefunden.",
@@ -400,6 +402,11 @@ export const coach = {
     noPlan: "Kein Plan — freies Training",
   },
   track: {
+    addNote: "+ Notiz",
+    editNote: "Notiz bearbeiten",
+    notePlaceholder: "z. B. Handgelenk ab 120 kg, enger greifen",
+    noteTooLong: "Die Notiz darf höchstens 500 Zeichen haben.",
+    noteNotSaved: "Die Notiz wurde nicht gespeichert. Bitte noch einmal versuchen.",
     saved: "Gespeichert",
     savedBody: (saetze: number, name: string, volumen: string, zeit: string | null) =>
       `${saetze} ${saetze === 1 ? "Satz" : "Sätze"} für ${name}, ${volumen}${
@@ -449,6 +456,10 @@ export const coach = {
     supersetHint:
       "Slots mit demselben Buchstaben werden ohne Pause dazwischen ausgeführt. Der Athlet sieht sie als A1, A2, A3.",
     tempo: "Tempo",
+    weight: "Startgewicht (kg)",
+    weightPlaceholder: "z. B. 60",
+    weightHint: "Steht beim Tracken schon im kg-Feld. Leer lassen, wenn offen.",
+    weightInvalid: "Das Startgewicht muss eine Zahl zwischen 0 und 1000 sein.",
     tempoHint: "Ab, unten, auf, oben. X = explosiv.",
     rest: "Pause (Sekunden)",
     restHint: "Leer = keine Vorgabe.",
@@ -463,6 +474,10 @@ export const coach = {
     addButton: "Hinzufügen",
   },
   editor: {
+    saveAsProgram: "Als Programm speichern",
+    saveAsProgramIntro: "Kopiert Tage und Übungen dieses Plans in ein neues Programm unter Training. Der Plan des Klienten bleibt, wie er ist.",
+    programName: "Name des Programms",
+    savingAsProgram: "Wird gespeichert …",
     exerciseFree: "Übung frei",
     reps: "Wdh.",
     up: "Nach oben",

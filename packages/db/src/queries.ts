@@ -192,6 +192,8 @@ interface PlanSlotRow {
   target_sets: number;
   target_reps_min: number;
   target_reps_max: number;
+  /** Fehlt vor 0031 ganz — `select *` liefert dann nichts. numeric kann als Text kommen. */
+  target_weight_kg?: number | string | null;
   superset_group: string | null;
   tempo: string | null;
   rest_seconds: number | null;
@@ -257,6 +259,10 @@ function toDays(rows: PlanDayRow[] | null | undefined, ownerId: string): Plan["d
             targetSets: s.target_sets,
             targetRepsMin: s.target_reps_min,
             targetRepsMax: s.target_reps_max,
+            targetWeightKg:
+              s.target_weight_kg === null || s.target_weight_kg === undefined
+                ? null
+                : Number(s.target_weight_kg),
             supersetGroup: s.superset_group,
             tempo: s.tempo ?? null,
             restSeconds: s.rest_seconds ?? null,

@@ -2,7 +2,9 @@
 
 **Stand 20.10.2026:** Schritt 1 umgesetzt (A1 Zwischenspeicher, A2
 Supersätze per 0030, B4 Startwerte, A5 Geburtsdatum). Schritt 2
-umgesetzt (B1 Nächste Schritte, B2 Planname, B6 Feed-Kacheln).
+umgesetzt (B1 Nächste Schritte, B2 Planname, B6 Feed-Kacheln). Aus Schritt 3
+umgesetzt: B3 Save as program, B5 Startgewicht, B7 Notizen je Übung
+(alle mit 0031). Offen: A4 Textpass.
 
 ## Context
 

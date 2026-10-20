@@ -35,6 +35,7 @@ import {
   type TrainingsEntwurf,
 } from "@/app/training-entwurf";
 import { EntwurfKarte } from "@/app/training-entwurf-karte";
+import { UebungsNotiz } from "./uebungs-notiz";
 import {
   DEFAULT_REST_SECONDS,
   clock,
@@ -91,6 +92,8 @@ export interface TrackPlanSlot {
   targetSets: number;
   targetRepsMin: number;
   targetRepsMax: number;
+  /** Startgewicht aus dem Plan (0031) — steht als Vorschlag im kg-Feld. */
+  targetWeightKg: number | null;
   restSeconds: number | null;
   note: string | null;
 }
@@ -148,6 +151,7 @@ export function TrackWorkout({
   lastEfforts,
   bodyWeightKg,
   entwurfKey,
+  notes,
 }: {
   clientId: string;
   clientName: string;
@@ -161,6 +165,8 @@ export function TrackWorkout({
   bodyWeightKg: number | null;
   /** Zwischenspeicher je Trainer und Klient — siehe training-entwurf.ts. */
   entwurfKey: string;
+  /** Trainer-Notizen je Übung (0031), Schlüssel = Übungs-ID. */
+  notes: Record<string, string>;
 }) {
   const t = useT();
   const R = t.coach.track;
@@ -175,6 +181,7 @@ export function TrackWorkout({
   const [group, setGroup] = useState<MuscleGroup | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const [notizen, setNotizen] = useState<Record<string, string>>(notes);
 
   // ---------- Uhren ----------
   //
@@ -385,7 +392,13 @@ export function TrackWorkout({
         key: `${slot.id}-${drafts.length}`,
         exercise,
         plan: slot,
-        sets: Array.from({ length: slot.targetSets }, emptySet),
+        // Startgewicht des Trainers als Vorschlag in jedem Satz; wer
+        // etwas anderes hebt, überschreibt es einfach. Gespeichert wird
+        // ein Satz ohnehin erst mit Wiederholungen.
+        sets: Array.from({ length: slot.targetSets }, () => ({
+          ...emptySet(),
+          weight: slot.targetWeightKg !== null ? t.fmt.num(slot.targetWeightKg) : "",
+        })),
       });
     }
     setDay(chosen);
@@ -913,6 +926,21 @@ export function TrackWorkout({
                   <IconX size={15} />
                 </button>
               </div>
+
+              <UebungsNotiz
+                key={`${slot.key}-notiz`}
+                clientId={clientId}
+                exerciseId={slot.exercise.id}
+                note={notizen[slot.exercise.id] ?? null}
+                onSaved={(n) =>
+                  setNotizen((prev) => {
+                    const next = { ...prev };
+                    if (n === null) delete next[slot.exercise.id];
+                    else next[slot.exercise.id] = n;
+                    return next;
+                  })
+                }
+              />
 
               {last && (
                 <button

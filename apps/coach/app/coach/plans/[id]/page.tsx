@@ -33,6 +33,14 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
 
   const client = await fetchClient(db, plan.clientId);
 
+  // Notizen aus dem Tracken (0031) — fehlt die Tabelle, bleibt es leer.
+  const { data: notizZeilen } = await db
+    .from("client_exercise_notes")
+    .select("exercise_id, note")
+    .eq("client_id", plan.clientId);
+  const notes: Record<string, string> = {};
+  for (const z of notizZeilen ?? []) notes[z.exercise_id as string] = z.note as string;
+
   return (
     <>
       <Nav coachName={profile?.full_name ?? "Coach"} />
@@ -41,6 +49,7 @@ export default async function PlanPage({ params }: { params: { id: string } }) {
         mode={{
           kind: "plan",
           clientName: client?.fullName ?? getT().coach.feed.unknown,
+          notes,
         }}
         recentIds={recentIds}
         exercises={[...exercises.values()].map((e) => ({

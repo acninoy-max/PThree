@@ -31,6 +31,7 @@ import { Spinner } from "@/app/spinner";
 import type { SimpleResult } from "../actions";
 import { useT } from "@/app/i18n/client";
 import { dictFor } from "@/app/i18n";
+import { AlsProgrammSpeichern } from "./als-programm";
 
 /** Welches Formular gerade offen ist. */
 type Editing =
@@ -42,6 +43,7 @@ function SlotRow({
   slot,
   planId,
   exerciseName,
+  clientNote,
   code,
   first,
   last,
@@ -53,6 +55,8 @@ function SlotRow({
   slot: PlanSlot;
   planId: string;
   exerciseName: string | null;
+  /** Trainer-Notiz zu dieser Übung beim Klienten (0031), aus dem Tracken. */
+  clientNote: string | null;
   /** Supersatz-Code wie A1; null bei einzeln ausgeführten Slots. */
   code: string | null;
   first: boolean;
@@ -97,7 +101,9 @@ function SlotRow({
           {slot.targetSets} × {slot.targetRepsMin}
           {slot.targetRepsMin !== slot.targetRepsMax &&
             `–${slot.targetRepsMax}`}{" "}
-          {E.reps} · {muscleLabel(t, slot.muscleGroup)}
+          {E.reps}
+          {slot.targetWeightKg !== null ? ` · ${t.fmt.num(slot.targetWeightKg)} kg` : ""} ·{" "}
+          {muscleLabel(t, slot.muscleGroup)}
           {/* Eine abweichende Bezeichnung ist eine Entscheidung des
               Trainers und darf nicht verschwinden, nur weil oben jetzt
               die Übung steht. */}
@@ -121,6 +127,11 @@ function SlotRow({
             }}
           >
             {slot.note}
+          </p>
+        )}
+        {clientNote && (
+          <p className="pt-notiz pt-notiz--still">
+            {clientNote}
           </p>
         )}
       </div>
@@ -196,6 +207,7 @@ function DayCard({
   day,
   planId,
   exerciseNames,
+  clientNotes,
   onAddSlot,
   onEditSlot,
   onRenameOpen,
@@ -206,6 +218,7 @@ function DayCard({
   day: PlanDay;
   planId: string;
   exerciseNames: Map<string, string>;
+  clientNotes: Record<string, string>;
   onAddSlot: () => void;
   onEditSlot: (slot: PlanSlot) => void;
   /** Meldet nach oben, ob hier ein Name unbestätigt offen steht. */
@@ -493,6 +506,9 @@ function DayCard({
                   ? (exerciseNames.get(slot.defaultExerciseId) ?? null)
                   : null
               }
+              clientNote={
+                slot.defaultExerciseId ? (clientNotes[slot.defaultExerciseId] ?? null) : null
+              }
               code={codes.get(slot.id) ?? null}
               // Pfeile je Block, wie move_slot_block (0030) verschiebt:
               // A2 oben im ersten Supersatz kann nicht weiter hoch.
@@ -532,7 +548,12 @@ function gleicherBlock(
 }
 
 export type EditorMode =
-  | { kind: "plan"; clientName: string }
+  | {
+      kind: "plan";
+      clientName: string;
+      /** Trainer-Notizen je Übung bei diesem Klienten (0031). */
+      notes: Record<string, string>;
+    }
   | { kind: "program"; kopf: React.ReactNode; backHref: string };
 
 export function PlanEditor({
@@ -556,6 +577,7 @@ export function PlanEditor({
   const [newDay, setNewDay] = useState("");
   const [addingDay, setAddingDay] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [alsProgramm, setAlsProgramm] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<number | null>(null);
   // Welche Tagesnamen gerade offen im Feld stehen. Solange einer offen
@@ -695,6 +717,14 @@ export function PlanEditor({
             <button
               type="button"
               className="pt-btn pt-btn--ghost"
+              disabled={pending || slotCount === 0}
+              onClick={() => setAlsProgramm(true)}
+            >
+              {E.saveAsProgram}
+            </button>
+            <button
+              type="button"
+              className="pt-btn pt-btn--ghost"
               disabled={pending}
               onClick={() => setConfirmDelete(true)}
             >
@@ -702,6 +732,14 @@ export function PlanEditor({
             </button>
           </div>
         </div>
+        {alsProgramm && (
+          <AlsProgrammSpeichern
+            planId={plan.id}
+            planName={plan.name}
+            clientName={clientName}
+            onClose={() => setAlsProgramm(false)}
+          />
+        )}
         </>
       )}
 
@@ -769,6 +807,7 @@ export function PlanEditor({
             day={day}
             planId={plan.id}
             exerciseNames={exerciseNames}
+            clientNotes={mode.kind === "plan" ? mode.notes : {}}
             onAddSlot={() => setEditing({ kind: "new", dayId: day.id })}
             onEditSlot={(slot) =>
               setEditing({ kind: "edit", dayId: day.id, slot })

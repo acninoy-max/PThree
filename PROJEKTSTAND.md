@@ -46,7 +46,7 @@ packages/types       Domänenmodell, reine Typen
 packages/db          Supabase-Anbindung und Abfragen
 packages/coach-engine Rechenlogik: Volumen, 1RM, Verläufe, Hinweise
 packages/tokens      Farben, Abstände, Kontrastrechnung
-supabase/migrations  30 Migrationen, einzeln von Hand eingespielt
+supabase/migrations  31 Migrationen, einzeln von Hand eingespielt
 ```
 
 Rund 27.000 Zeilen TypeScript, 3.900 Zeilen SQL, 77 Übungen in der
@@ -238,7 +238,7 @@ Startanimation.
 
 ## 6. Zustand der Datenbank
 
-30 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
+31 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
 Es gibt keine Migrationsverwaltung — `check_schema.sql` ist der Ersatz
 dafür und sagt, was tatsächlich in der Datenbank steht.
 
@@ -405,6 +405,15 @@ kein Zuweisen.
 - Geburtsdatum als Tag / Monat / Jahr statt Datumswähler.
 - Startwerte je Block: Compound 3×6–8, Isolation 3×10–15,
   Funktional 3×15–20.
+
+**Schritt 2 und 3 (20.10.2026):** Karte „Nächste Schritte" nach Add
+client, Planname beim Zuweisen, Feed-Kacheln klickbar. Mit **0031**:
+Startgewicht je Slot (`target_weight_kg`, beim Tracken vorbefüllt),
+Notizen je Klient und Übung (`client_exercise_notes`, nur Trainer),
+„Save as program" (`plan_to_template`). Alle Kopien laufen über
+`copy_plan_slots` — neue Slot-Spalten nur dort ergänzen. Ohne 0031
+läuft die App weiter; Notizen und „Save as program" melden dann einen
+Fehler.
 
 **Feedback lesen** im SQL-Editor:
 `select f.created_at, p.full_name, f.role, f.message from app_feedback f

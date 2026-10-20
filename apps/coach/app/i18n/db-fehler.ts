@@ -24,6 +24,7 @@ const ANFAENGE: [string, DbKey][] = [
   ["Die Verknuepfung konnte nicht gesetzt werden", "linkFailed"],
   ["Kein Zugriff auf diesen Klienten", "noAccess"],
   ["Programm nicht gefunden", "programNotFound"],
+  ["Plan nicht gefunden", "planNotFound"],
   ["Programm wurde nicht vollstaendig", "programIncomplete"],
   // Reihenfolge zählt: der genauere Anfang vor dem allgemeinen.
   ["move_slot_block: Slot nicht gefunden", "slotNotFound"],

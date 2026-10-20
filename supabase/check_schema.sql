@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0030 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0031 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -584,6 +584,33 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0030', 'move_slot_block liest nach dem Verschieben nach',
          coalesce((select prosrc like '%Nachlesen statt hoffen%'
           from pg_proc where proname = 'move_slot_block'), false)
+
+  -- 0031: Startgewicht, Notizen je Uebung, Plan als Programm
+  union all
+  select 1, '0031', 'plan_slots.target_weight_kg vorhanden',
+         exists (select 1 from information_schema.columns
+                  where table_name = 'plan_slots' and column_name = 'target_weight_kg')
+  union all
+  select 1, '0031', 'Zuweisen und Kopieren nehmen das Startgewicht mit',
+         coalesce((select bool_and(prosrc like '%copy_plan_slots%') from pg_proc
+          where proname in ('assign_template', 'copy_template')), false)
+  union all
+  select 1, '0031', 'copy_plan_slots kopiert target_weight_kg',
+         coalesce((select prosrc like '%target_weight_kg%'
+          from pg_proc where proname = 'copy_plan_slots'), false)
+  union all
+  select 1, '0031', 'plan_to_template vorhanden und nicht fuer anon',
+         coalesce((select not has_function_privilege('anon', p.oid, 'execute')
+                      and has_function_privilege('authenticated', p.oid, 'execute')
+          from pg_proc p where p.proname = 'plan_to_template'), false)
+  union all
+  select 1, '0031', 'client_exercise_notes mit Zeilensicherheit',
+         coalesce((select relrowsecurity from pg_class
+          where relname = 'client_exercise_notes'), false)
+  union all
+  select 1, '0031', 'client_exercise_notes: Regel fuer den Trainer',
+         (select count(*) = 1 from pg_policies
+          where tablename = 'client_exercise_notes')
 
   -- 0007: Check-in-Schutz
   union all

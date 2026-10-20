@@ -49,6 +49,7 @@ export const fehler = {
       "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer — es liegt nicht an dir.",
     noAccess: "Kein Zugriff auf diesen Klienten.",
     programNotFound: "Programm nicht gefunden.",
+    planNotFound: "Plan nicht gefunden.",
     programIncomplete:
       "Das Programm wurde nicht vollständig übernommen — nichts wurde gespeichert. Bitte noch einmal versuchen.",
     slotNotFound: "Diese Übung gibt es im Plan nicht mehr. Seite neu laden.",

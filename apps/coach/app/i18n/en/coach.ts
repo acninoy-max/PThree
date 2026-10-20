@@ -374,6 +374,8 @@ export const coach: Dict["coach"] = {
     repsImplausible: "The reps don't look plausible.",
     repsOrder: "The lower rep count can't be above the upper one.",
     tempo: "Tempo needs four characters, e.g. 3111 or 30X0.",
+    slotNotSaved: "The exercise was not saved. Please reload the page.",
+    weightRange: "The start weight must be between 0 and 1000 kg.",
     restRange: "Rest must be between 0 and 15 minutes.",
     superset: "The superset group is a single letter.",
     slotNotFound: "Slot not found.",
@@ -392,6 +394,11 @@ export const coach: Dict["coach"] = {
     noPlan: "No plan — free training",
   },
   track: {
+    addNote: "+ Note",
+    editNote: "Edit note",
+    notePlaceholder: "e.g. wrist hurts above 120 kg, grip narrower",
+    noteTooLong: "The note can be at most 500 characters.",
+    noteNotSaved: "The note was not saved. Please try again.",
     saved: "Saved",
     savedBody: (sets, name, volume, time) =>
       `${sets} ${sets === 1 ? "set" : "sets"} for ${name}, ${volume}${
@@ -441,6 +448,10 @@ export const coach: Dict["coach"] = {
     supersetHint:
       "Slots with the same letter are done without rest in between. The athlete sees them as A1, A2, A3.",
     tempo: "Tempo",
+    weight: "Start weight (kg)",
+    weightPlaceholder: "e.g. 60",
+    weightHint: "Prefilled in the kg field when tracking. Leave empty if open.",
+    weightInvalid: "The start weight must be a number between 0 and 1000.",
     tempoHint: "Down, bottom, up, top. X = explosive.",
     rest: "Rest (seconds)",
     restHint: "Empty = no target.",
@@ -451,6 +462,10 @@ export const coach: Dict["coach"] = {
     addButton: "Add",
   },
   editor: {
+    saveAsProgram: "Save as program",
+    saveAsProgramIntro: "Copies the days and exercises of this plan into a new program under Training. The client's plan stays as it is.",
+    programName: "Program name",
+    savingAsProgram: "Saving …",
     exerciseFree: "Exercise open",
     reps: "reps",
     up: "Move up",

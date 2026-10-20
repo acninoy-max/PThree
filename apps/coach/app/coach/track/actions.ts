@@ -164,3 +164,60 @@ export async function trackSessionAction(
   revalidatePath("/athlete/progress");
   return { ok: true, id: session.id };
 }
+
+export type NoteResult = { ok: true; note: string | null } | { ok: false; error: string };
+
+/**
+ * Notiz je Klient und Übung speichern (0031). Leer = löschen.
+ *
+ * Danach wird nachgelesen, was wirklich in der Datenbank steht — eine
+ * Notiz wie „Handgelenk ab 120 kg", die nur scheinbar gespeichert ist,
+ * ist schlimmer als keine.
+ */
+export async function saveExerciseNoteAction(
+  clientId: string,
+  exerciseId: string,
+  note: string,
+): Promise<NoteResult> {
+  const t = getT();
+  const db = createServerSupabase();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+
+  const text = note.trim();
+  if (text.length > 500) return { ok: false, error: t.coach.track.noteTooLong };
+
+  if (text === "") {
+    const { error } = await db
+      .from("client_exercise_notes")
+      .delete()
+      .eq("client_id", clientId)
+      .eq("exercise_id", exerciseId)
+      .eq("coach_id", user.id);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    const { error } = await db.from("client_exercise_notes").upsert(
+      { client_id: clientId, exercise_id: exerciseId, coach_id: user.id, note: text },
+      { onConflict: "client_id,exercise_id,coach_id" },
+    );
+    if (error) return { ok: false, error: error.message };
+  }
+
+  const { data: da, error: leseFehler } = await db
+    .from("client_exercise_notes")
+    .select("note")
+    .eq("client_id", clientId)
+    .eq("exercise_id", exerciseId)
+    .eq("coach_id", user.id)
+    .maybeSingle();
+  if (leseFehler) return { ok: false, error: leseFehler.message };
+  const ist = (da?.note as string | undefined) ?? null;
+  if (ist !== (text === "" ? null : text)) {
+    return { ok: false, error: t.coach.track.noteNotSaved };
+  }
+
+  revalidatePath(`/coach/track/${clientId}`);
+  return { ok: true, note: ist };
+}

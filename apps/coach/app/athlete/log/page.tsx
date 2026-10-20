@@ -149,6 +149,7 @@ export default async function LogPage({
         targetSets: s.targetSets,
         targetRepsMin: s.targetRepsMin,
         targetRepsMax: s.targetRepsMax,
+        targetWeightKg: s.targetWeightKg,
         supersetGroup: s.supersetGroup,
         tempo: s.tempo,
         restSeconds: s.restSeconds,

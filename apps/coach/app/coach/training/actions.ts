@@ -116,6 +116,35 @@ export async function copyProgramAction(id: string, name?: string): Promise<IdRe
   return { ok: true, id: data as string };
 }
 
+/**
+ * Plan eines Klienten als eigenes Programm speichern (0031).
+ *
+ * Der Inhalt wird in plan_to_template nachgezählt; hier wird nur
+ * nachgelesen, ob das Programm mit dem Namen in der Liste steht.
+ */
+export async function planToProgramAction(planId: string, name: string): Promise<IdResult> {
+  const t = getT();
+  const sauber = name.trim();
+  if (sauber === "") return { ok: false, error: t.coach.planErrors.planName };
+  const db = createServerSupabase();
+  const { data, error } = await db.rpc("plan_to_template", {
+    p_plan: planId,
+    p_name: sauber,
+  });
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
+  if (!data) return { ok: false, error: t.fehler.db.programIncomplete };
+
+  const { data: tpl } = await db
+    .from("templates")
+    .select("id, name")
+    .eq("id", data as string)
+    .maybeSingle();
+  if (!tpl || tpl.name !== sauber) return { ok: false, error: t.fehler.db.programIncomplete };
+
+  refresh(tpl.id);
+  return { ok: true, id: tpl.id };
+}
+
 /** Programm als neuen aktiven Plan zu einem Klienten kopieren. */
 export async function assignProgramAction(input: {
   programId: string;

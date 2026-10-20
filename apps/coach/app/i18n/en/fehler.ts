@@ -49,6 +49,7 @@ export const fehler: Dict["fehler"] = {
       "The link couldn't be set. Please tell your coach — it's not your fault.",
     noAccess: "No access to this client.",
     programNotFound: "Program not found.",
+    planNotFound: "Plan not found.",
     programIncomplete:
       "The program was not copied completely — nothing was saved. Please try again.",
     slotNotFound: "This exercise is no longer in the plan. Please reload the page.",

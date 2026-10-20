@@ -1001,6 +1001,32 @@ a.pt-card:active {
   text-align: center;
 }
 
+/* Trainer-Notiz an einer Übung beim Tracken (uebungs-notiz.tsx).
+   Auffällig genug, um mitten im Satz gesehen zu werden. */
+.pt-notiz {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: none;
+  border-left: 3px solid var(--pt-action);
+  border-radius: var(--pt-radius-sm);
+  background: var(--pt-sand);
+  text-align: left;
+  font-size: var(--pt-fs-base);
+  line-height: 1.45;
+  color: var(--pt-text);
+  white-space: pre-wrap;
+  cursor: pointer;
+}
+
+/* Im Plan-Editor nur zum Lesen; bearbeitet wird beim Tracken. */
+.pt-notiz--still {
+  cursor: default;
+  font-size: var(--pt-fs-sm);
+  margin-top: 6px;
+}
+
 .pt-chipbtn {
   display: inline-flex;
   align-items: center;

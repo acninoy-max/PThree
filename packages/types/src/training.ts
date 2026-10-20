@@ -145,6 +145,8 @@ export interface PlanSlot {
   targetSets: number;
   targetRepsMin: number;
   targetRepsMax: number;
+  /** Startgewicht als Vorschlag beim Tracken (0031). null = keine Vorgabe. */
+  targetWeightKg: number | null;
   /** Gruppiert Supersätze: gleicher Buchstabe = zusammen ausführen. */
   supersetGroup: string | null;
   /** Vier Ziffern, z. B. "3111": exzentrisch, unten, konzentrisch, oben. */

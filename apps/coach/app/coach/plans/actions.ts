@@ -397,6 +397,11 @@ export interface SlotInput {
   targetSets: number;
   targetRepsMin: number;
   targetRepsMax: number;
+  /**
+   * Startgewicht in kg (0031). undefined = Spalte nicht anfassen — so
+   * läuft das Speichern auch, solange 0031 nicht eingespielt ist.
+   */
+  targetWeightKg?: number | null;
   /** Ein Buchstabe. Gleicher Buchstabe = Supersatz, zusammen ausführen. */
   supersetGroup: string | null;
   /** Vier Ziffern, z. B. "3111". */
@@ -427,6 +432,13 @@ function validateSlot(t: Dict, input: SlotInput): string | null {
   ) {
     return t.coach.planErrors.restRange;
   }
+  if (
+    input.targetWeightKg !== undefined &&
+    input.targetWeightKg !== null &&
+    (input.targetWeightKg < 0 || input.targetWeightKg > 1000)
+  ) {
+    return t.coach.planErrors.weightRange;
+  }
   if (input.supersetGroup !== null && !/^[A-Z]$/.test(input.supersetGroup)) {
     return t.coach.planErrors.superset;
   }
@@ -443,6 +455,9 @@ function slotPayload(input: SlotInput) {
     target_sets: input.targetSets,
     target_reps_min: input.targetRepsMin,
     target_reps_max: input.targetRepsMax,
+    ...(input.targetWeightKg !== undefined
+      ? { target_weight_kg: input.targetWeightKg }
+      : {}),
     superset_group: input.supersetGroup,
     tempo: input.tempo,
     rest_seconds: input.restSeconds,
@@ -468,12 +483,16 @@ export async function addSlotAction(
     .limit(1)
     .maybeSingle();
 
-  const { error } = await db.from("plan_slots").insert({
-    plan_day_id: dayId,
-    position: (last?.position ?? 0) + 1,
-    ...slotPayload(input),
-  });
+  const { data: neu, error } = await db
+    .from("plan_slots")
+    .insert({
+      plan_day_id: dayId,
+      position: (last?.position ?? 0) + 1,
+      ...slotPayload(input),
+    })
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  if (!neu || neu.length !== 1) return { ok: false, error: t.coach.planErrors.slotNotSaved };
 
   refresh(planId);
   return { ok: true };
@@ -489,11 +508,17 @@ export async function updateSlotAction(
   if (problem) return { ok: false, error: problem };
 
   const db = createServerSupabase();
-  const { error } = await db
+  // Zurücklesen: Ein update, das die Zeilensicherheit ausfiltert, ändert
+  // null Zeilen und meldet trotzdem Erfolg.
+  const { data: geaendert, error } = await db
     .from("plan_slots")
     .update(slotPayload(input))
-    .eq("id", slotId);
+    .eq("id", slotId)
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  if (!geaendert || geaendert.length !== 1) {
+    return { ok: false, error: t.coach.planErrors.slotNotSaved };
+  }
 
   refresh(planId);
   return { ok: true };

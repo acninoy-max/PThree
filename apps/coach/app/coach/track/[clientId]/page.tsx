@@ -129,10 +129,20 @@ export default async function TrackClientPage({
         targetSets: s.targetSets,
         targetRepsMin: s.targetRepsMin,
         targetRepsMax: s.targetRepsMax,
+        targetWeightKg: s.targetWeightKg,
         restSeconds: s.restSeconds,
         note: s.note,
       })),
     }));
+
+  // Trainer-Notizen je Übung (0031). Fehlt die Tabelle noch, bleibt es
+  // leer — das Tracken selbst darf daran nicht hängen.
+  const { data: notizZeilen } = await db
+    .from("client_exercise_notes")
+    .select("exercise_id, note")
+    .eq("client_id", client.id);
+  const notes: Record<string, string> = {};
+  for (const z of notizZeilen ?? []) notes[z.exercise_id as string] = z.note as string;
 
   let lastPlanDayId: string | null = null;
   for (const session of sessions) {
@@ -152,6 +162,7 @@ export default async function TrackClientPage({
       lastEfforts={lastEfforts}
       bodyWeightKg={bodyWeightKg}
       entwurfKey={entwurfSchluessel("trainer", user!.id, client.id)}
+      notes={notes}
     />
   );
 }
