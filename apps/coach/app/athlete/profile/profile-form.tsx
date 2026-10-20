@@ -16,6 +16,7 @@ import {
 import { useT } from "@/app/i18n/client";
 import { Sprachwahl } from "@/app/i18n/sprachwahl";
 import { FeedbackForm } from "@/app/feedback";
+import { BirthDateField } from "@/app/birth-date-field";
 import {
   removeAvatarAction,
   saveAvatarAction,
@@ -54,7 +55,8 @@ export function ProfileForm({
 
   const [name, setName] = useState(fullName);
   const [mail, setMail] = useState(email);
-  const [gebdat, setGebdat] = useState(birthDate);
+  // null = halb ausgefüllt; dann bleibt „Speichern" gesperrt.
+  const [gebdat, setGebdat] = useState<string | null>(birthDate);
 
   const dateiFeld = useRef<HTMLInputElement>(null);
 
@@ -221,16 +223,10 @@ export function ProfileForm({
           />
         </label>
 
-        <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
+        <div style={{ display: "grid", gap: 6 }}>
           <span className="gym-label">{p.birthDate}</span>
-          <input
-            className="pt-datefield"
-            type="date"
-            value={gebdat}
-            max={new Date().toISOString().slice(0, 10)}
-            onChange={(e) => setGebdat(e.target.value)}
-          />
-        </label>
+          <BirthDateField defaultValue={birthDate} onChange={setGebdat} />
+        </div>
 
         <label style={{ display: "grid", gap: 6 }}>
           <span className="gym-label">{p.email}</span>
@@ -293,7 +289,7 @@ export function ProfileForm({
           type="button"
           className="gym-btn"
           onClick={speichern}
-          disabled={pending || !geaendert}
+          disabled={pending || !geaendert || gebdat === null}
         >
           {pending ? (
             <Spinner size={15} label={t.common.saving} />

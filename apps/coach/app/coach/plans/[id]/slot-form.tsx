@@ -41,13 +41,17 @@ export interface ExercisePick {
   own?: boolean;
 }
 
-/** Typische Spannen je Block — als Startwert, nicht als Vorschrift. */
+/**
+ * Typische Spannen je Block — als Startwert, nicht als Vorschrift.
+ * Werte von Joël (20.10.2026): Compound 3×6–8, Isolation 3×10–15,
+ * Funktional 3×15–20.
+ */
 const BLOCK_DEFAULTS: Record<
   TrainingBlock,
   { sets: number; min: number; max: number }
 > = {
-  compound: { sets: 4, min: 5, max: 8 },
-  functional: { sets: 3, min: 8, max: 12 },
+  compound: { sets: 3, min: 6, max: 8 },
+  functional: { sets: 3, min: 15, max: 20 },
   isolation: { sets: 3, min: 10, max: 15 },
   core: { sets: 3, min: 12, max: 20 },
 };
@@ -91,9 +95,9 @@ export function SlotForm({
   const [block, setBlock] = useState<TrainingBlock>(slot?.block ?? "compound");
   const [label, setLabel] = useState(slot?.label ?? "");
   const [exerciseId, setExerciseId] = useState(slot?.defaultExerciseId ?? "");
-  const [sets, setSets] = useState(slot?.targetSets ?? 4);
-  const [repsMin, setRepsMin] = useState(slot?.targetRepsMin ?? 5);
-  const [repsMax, setRepsMax] = useState(slot?.targetRepsMax ?? 8);
+  const [sets, setSets] = useState(slot?.targetSets ?? BLOCK_DEFAULTS.compound.sets);
+  const [repsMin, setRepsMin] = useState(slot?.targetRepsMin ?? BLOCK_DEFAULTS.compound.min);
+  const [repsMax, setRepsMax] = useState(slot?.targetRepsMax ?? BLOCK_DEFAULTS.compound.max);
   const [note, setNote] = useState(slot?.note ?? "");
   const [superset, setSuperset] = useState(slot?.supersetGroup ?? "");
   const [tempo, setTempo] = useState(slot?.tempo ?? "");

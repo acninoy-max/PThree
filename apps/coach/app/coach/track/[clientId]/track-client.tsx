@@ -25,6 +25,17 @@ import {
 import { trackSessionAction, type TrackedSlotInput } from "../actions";
 import { useT } from "@/app/i18n/client";
 import {
+  entwurfZuSlots,
+  holeSpeicher,
+  ladeEntwurf,
+  pausenBeimFortsetzen,
+  sichereEntwurf,
+  slotsZuEntwurf,
+  verwirfEntwurf,
+  type TrainingsEntwurf,
+} from "@/app/training-entwurf";
+import { EntwurfKarte } from "@/app/training-entwurf-karte";
+import {
   DEFAULT_REST_SECONDS,
   clock,
   elapsedSeconds,
@@ -136,6 +147,7 @@ export function TrackWorkout({
   bests,
   lastEfforts,
   bodyWeightKg,
+  entwurfKey,
 }: {
   clientId: string;
   clientName: string;
@@ -147,6 +159,8 @@ export function TrackWorkout({
   bests: Record<string, TrackPersonalBest>;
   lastEfforts: Record<string, TrackLastEffort>;
   bodyWeightKg: number | null;
+  /** Zwischenspeicher je Trainer und Klient — siehe training-entwurf.ts. */
+  entwurfKey: string;
 }) {
   const t = useT();
   const R = t.coach.track;
@@ -201,6 +215,60 @@ export function TrackWorkout({
     if (!started) return;
     return keepScreenAwake();
   }, [started]);
+
+  // ---------- Zwischenspeicher ----------
+  //
+  // Wie beim Athleten (log/client.tsx): gelesen nur im Effekt, sonst
+  // Hydration-Fehler; nach bestätigtem Speichern gelöscht.
+  const [offenerEntwurf, setOffenerEntwurf] = useState<TrainingsEntwurf | null>(null);
+  const abgeschlossen = useRef(false);
+
+  useEffect(() => {
+    setOffenerEntwurf(ladeEntwurf(holeSpeicher(), entwurfKey, Date.now()));
+  }, [entwurfKey]);
+
+  useEffect(() => {
+    if (!started || startedAt === null || abgeschlossen.current) return;
+    if (slots.length === 0) {
+      verwirfEntwurf(holeSpeicher(), entwurfKey);
+      return;
+    }
+    sichereEntwurf(holeSpeicher(), entwurfKey, {
+      gespeichertAm: Date.now(),
+      begonnenAm: startedAt,
+      dayId: day?.id ?? null,
+      dayTitle: day?.title ?? null,
+      slots: slotsZuEntwurf(slots),
+      breaks,
+    });
+  }, [started, startedAt, slots, day, breaks, entwurfKey]);
+
+  function fortsetzen(e: TrainingsEntwurf) {
+    const tag = e.dayId ? (days.find((d) => d.id === e.dayId) ?? null) : null;
+    const wieder = entwurfZuSlots(e, exercises, tag?.slots ?? []);
+    const jetzt = Date.now();
+    setDay(tag);
+    setSlots(wieder);
+    setStarted(true);
+    setStartedAt(e.begonnenAm);
+    setBreaks(pausenBeimFortsetzen(e, jetzt));
+    setRest(null);
+    setNow(jetzt);
+    // Schon eingetragene Sätze sollen beim ersten Antippen keine Pause
+    // mehr auslösen — die ist längst vorbei.
+    gestartet.current = new Set(
+      wieder.flatMap((sl) =>
+        sl.sets.flatMap((x, i) => (Number(x.reps) > 0 ? [`${sl.key}:${i}`] : [])),
+      ),
+    );
+    prepareSignal();
+    setOffenerEntwurf(null);
+  }
+
+  function verwerfen() {
+    verwirfEntwurf(holeSpeicher(), entwurfKey);
+    setOffenerEntwurf(null);
+  }
 
   const restLeft = rest ? remainingSeconds(rest, now) : 0;
 
@@ -478,9 +546,12 @@ export function TrackWorkout({
         },
       );
       if (!res.ok) {
+        // Der Entwurf bleibt — er ist das Netz für genau diesen Fall.
         setError(res.error);
         return;
       }
+      abgeschlossen.current = true;
+      verwirfEntwurf(holeSpeicher(), entwurfKey);
       setDone(true);
       router.refresh();
     });
@@ -542,6 +613,23 @@ export function TrackWorkout({
           </div>
         </div>
       </main>
+    );
+  }
+
+  // ---------- Unterbrochenes Training ----------
+  if (!started && offenerEntwurf) {
+    return (
+      <>
+        <TrackBar clientName={clientName} clientId={clientId} />
+        <main className="pt-shell" style={{ paddingTop: 18, maxWidth: 560 }}>
+          <EntwurfKarte
+            entwurf={offenerEntwurf}
+            variante="pt"
+            onWeiter={() => fortsetzen(offenerEntwurf)}
+            onVerwerfen={verwerfen}
+          />
+        </main>
+      </>
     );
   }
 

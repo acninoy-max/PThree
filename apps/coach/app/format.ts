@@ -124,6 +124,8 @@ export interface Formats {
   /** Wochentag nach Index, 0 = Sonntag wie bei `Date.getDay()`. */
   dayShortAt(i: number): string;
   dayLongAt(i: number): string;
+  /** Monatsname nach Index, 0 = Januar wie bei `Date.getMonth()`. */
+  monthLongAt(i: number): string;
   /** „1.234" · „1,234" */
   integer(n: number): string;
   /** „82,5" · „82.5" — feste Stellenzahl, Standard eine. */
@@ -190,6 +192,7 @@ function deFormats(): Formats {
       `${n.dayLong[d.getDay()]}, ${zwei(d.getDate())}. ${n.monthLong[d.getMonth()]}`,
     dayShortAt: (i) => n.dayShort[i]!,
     dayLongAt: (i) => n.dayLong[i]!,
+    monthLongAt: (i) => n.monthLong[i]!,
     integer: (x) => zahl(Math.round(x), 0, ".", ","),
     decimal: (x, digits = 1) => zahl(x, digits, ".", ","),
     num: (x) => zahl(x, stellen(x), ".", ","),
@@ -218,6 +221,7 @@ function enFormats(): Formats {
       `${n.dayLong[d.getDay()]}, ${d.getDate()} ${n.monthLong[d.getMonth()]}`,
     dayShortAt: (i) => n.dayShort[i]!,
     dayLongAt: (i) => n.dayLong[i]!,
+    monthLongAt: (i) => n.monthLong[i]!,
     integer: (x) => zahl(Math.round(x), 0, ",", "."),
     decimal: (x, digits = 1) => zahl(x, digits, ",", "."),
     num: (x) => zahl(x, stellen(x), ",", "."),

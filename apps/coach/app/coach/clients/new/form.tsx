@@ -3,6 +3,7 @@
 import { useFormState, useFormStatus } from "react-dom";
 import { createClientAction, type ActionResult } from "@/app/actions";
 import { useT } from "@/app/i18n/client";
+import { BirthDateField } from "@/app/birth-date-field";
 
 function SubmitButton() {
   const t = useT();
@@ -44,10 +45,10 @@ export function NewClientForm() {
       {/* Aus dem Erstgespräch. Der Athlet kann es später in seinem
           Profil korrigieren — hier steht, was du im Gespräch notiert
           hast. */}
-      <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
+      <div style={{ display: "grid", gap: 6 }}>
         <span className="pt-label">{n.birthDate}</span>
-        <input className="pt-datefield" name="birthDate" type="date" />
-      </label>
+        <BirthDateField name="birthDate" />
+      </div>
 
       <label style={{ display: "grid", gap: 6 }}>
         <span className="pt-label">{n.level}</span>

@@ -8,6 +8,8 @@
 #
 #   app/plan-week.ts            Datumsrechnung (Zeitzonen-Bug 09.09.)
 #   app/format.ts               Datums- und Zahlenformate je Sprache
+#   app/datum-teile.ts          Geburtsdatum aus Tag/Monat/Jahr
+#   app/training-entwurf.ts     Zwischenspeicher fuer laufendes Training
 #   app/i18n/locale.ts          Welche Sprache eine Anfrage bekommt
 #   app/athlete/log/rest.ts     Uhren aus Zeitstempeln
 #   app/coach/clients/[id]/sections.ts
@@ -60,6 +62,10 @@ cat > "$ZIEL/tsconfig.json" <<JSON
   "files": [
     "$HIER/app/format.ts",
     "$HIER/app/format.test.ts",
+    "$HIER/app/datum-teile.ts",
+    "$HIER/app/datum-teile.test.ts",
+    "$HIER/app/training-entwurf.ts",
+    "$HIER/app/training-entwurf.test.ts",
     "$HIER/app/i18n/locale.ts",
     "$HIER/app/i18n/locale.test.ts",
     "$HIER/app/i18n/texte.test.ts",

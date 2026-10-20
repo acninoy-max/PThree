@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0029 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0030 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -570,6 +570,20 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   union all
   select 1, '0029', 'restore_coach_account geloescht',
          (select count(*) = 0 from pg_proc where proname = 'restore_coach_account')
+
+  -- 0030: Supersaetze als Block verschieben
+  union all
+  select 1, '0030', 'move_slot_block vorhanden, nicht fuer anon, fuer Angemeldete',
+         coalesce((select not has_function_privilege('anon', p.oid, 'execute')
+                      and has_function_privilege('authenticated', p.oid, 'execute')
+          from pg_proc p where p.proname = 'move_slot_block'), false)
+  union all
+  select 1, '0030', 'move_slot_block laeuft mit den Rechten des Aufrufers',
+         coalesce((select not prosecdef from pg_proc where proname = 'move_slot_block'), false)
+  union all
+  select 1, '0030', 'move_slot_block liest nach dem Verschieben nach',
+         coalesce((select prosrc like '%Nachlesen statt hoffen%'
+          from pg_proc where proname = 'move_slot_block'), false)
 
   -- 0007: Check-in-Schutz
   union all

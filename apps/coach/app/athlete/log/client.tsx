@@ -39,6 +39,17 @@ import { estimateMinutes } from "@/app/plan-week";
 import { Numpad, type FieldKind } from "./numpad";
 import { CountUp } from "@/app/count-up";
 import { useT } from "@/app/i18n/client";
+import {
+  entwurfZuSlots,
+  holeSpeicher,
+  ladeEntwurf,
+  pausenBeimFortsetzen,
+  sichereEntwurf,
+  slotsZuEntwurf,
+  verwirfEntwurf,
+  type TrainingsEntwurf,
+} from "@/app/training-entwurf";
+import { EntwurfKarte } from "@/app/training-entwurf-karte";
 
 export interface ExerciseOption {
   id: string;
@@ -147,6 +158,7 @@ export function LogWorkout({
   lastVolumes,
   bodyWeightKg,
   startDayId,
+  entwurfKey,
 }: {
   exercises: ExerciseOption[];
   bests: Record<string, PersonalBest>;
@@ -165,6 +177,8 @@ export function LogWorkout({
   bodyWeightKg: number | null;
   /** Aus ?day= — kommt der Athlet direkt aus dem Plan. */
   startDayId: string | null;
+  /** Wo der Zwischenspeicher liegt, je Konto — siehe training-entwurf.ts. */
+  entwurfKey: string;
 }) {
   const t = useT();
   const L = t.athlete.log;
@@ -257,6 +271,55 @@ export function LogWorkout({
     const t = Date.now();
     setNow(t);
     setRest(startRest(slotKey, seconds, t));
+  }
+
+  // ---------- Zwischenspeicher ----------
+  //
+  // Gelesen nur im Effekt: `localStorage` gibt es auf dem Server nicht,
+  // und was der Browser beim ersten Zeichnen anders zeigt als der
+  // Server, ist ein Hydration-Fehler.
+  const [offenerEntwurf, setOffenerEntwurf] = useState<TrainingsEntwurf | null>(null);
+  // Nach dem Speichern darf kein später Effekt den Entwurf neu anlegen.
+  const abgeschlossen = useRef(false);
+
+  useEffect(() => {
+    setOffenerEntwurf(ladeEntwurf(holeSpeicher(), entwurfKey, Date.now()));
+  }, [entwurfKey]);
+
+  useEffect(() => {
+    if (!started || startedAt === null || abgeschlossen.current) return;
+    if (slots.length === 0) {
+      verwirfEntwurf(holeSpeicher(), entwurfKey);
+      return;
+    }
+    sichereEntwurf(holeSpeicher(), entwurfKey, {
+      gespeichertAm: Date.now(),
+      begonnenAm: startedAt,
+      dayId: day?.id ?? null,
+      dayTitle: day?.title ?? null,
+      slots: slotsZuEntwurf(slots),
+      breaks,
+    });
+  }, [started, startedAt, slots, day, breaks, entwurfKey]);
+
+  function fortsetzen(e: TrainingsEntwurf) {
+    const tag = e.dayId ? (planDays.find((d) => d.id === e.dayId) ?? null) : null;
+    const jetzt = Date.now();
+    setDay(tag);
+    setSlots(entwurfZuSlots(e, exercises, tag?.slots ?? []));
+    setStarted(true);
+    setStartedAt(e.begonnenAm);
+    setBreaks(pausenBeimFortsetzen(e, jetzt));
+    setRest(null);
+    setNow(jetzt);
+    prepareSignal();
+    setConfirming(null);
+    setOffenerEntwurf(null);
+  }
+
+  function verwerfen() {
+    verwirfEntwurf(holeSpeicher(), entwurfKey);
+    setOffenerEntwurf(null);
   }
 
   // ---------- Bildschirm ----------
@@ -633,12 +696,31 @@ export function LogWorkout({
         durationSeconds: elapsed,
         isComplete,
       });
-      if (res.ok) router.push("/athlete");
-      else {
+      if (res.ok) {
+        // Erst nach bestätigtem Speichern — die Action liest selbst
+        // zurück. Schlägt sie fehl, bleibt der Entwurf das Netz.
+        abgeschlossen.current = true;
+        verwirfEntwurf(holeSpeicher(), entwurfKey);
+        router.push("/athlete");
+      } else {
         setError(res.error);
         setEnding(false);
       }
     });
+  }
+
+  // ---------- Unterbrochenes Training ----------
+  if (!started && offenerEntwurf) {
+    return (
+      <main className="gym-shell" style={{ paddingTop: 26 }}>
+        <EntwurfKarte
+          entwurf={offenerEntwurf}
+          variante="gym"
+          onWeiter={() => fortsetzen(offenerEntwurf)}
+          onVerwerfen={verwerfen}
+        />
+      </main>
+    );
   }
 
   // ---------- Tagesauswahl ----------

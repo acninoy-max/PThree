@@ -147,6 +147,30 @@ input[type="datetime-local"]::-webkit-date-and-time-value {
   max-width: 100%;
 }
 
+/**
+ * Geburtsdatum aus drei Auswahlfeldern (birth-date-field.tsx).
+ * Nebeneinander, solange Platz ist; am Handy umbrechen statt quetschen.
+ * Der Monat bekommt am meisten Platz, weil dort Namen stehen.
+ */
+.pt-datumteile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: 420px;
+}
+.pt-datumteile select {
+  width: auto;
+  flex: 1 1 80px;
+}
+.pt-datumteile select:nth-child(2) {
+  flex: 2 1 130px;
+}
+.pt-datumteile-hinweis {
+  flex-basis: 100%;
+  font-size: var(--pt-fs-sm);
+  color: var(--pt-action);
+}
+
 textarea {
   /* Nur vertikal ziehbar — horizontales Ziehen sprengt sonst das Raster. */
   resize: vertical;

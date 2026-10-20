@@ -1,5 +1,8 @@
 # Basis auf 100 % — Umsetzungsplan nach den ersten Tests (15.10. + 20.10.)
 
+**Stand 20.10.2026:** Schritt 1 umgesetzt (A1 Zwischenspeicher, A2
+Supersätze per 0030, B4 Startwerte, A5 Geburtsdatum).
+
 ## Context
 
 Die ersten Testtrainer (Shawn, Adri, Joël mit Klienten) sind durch. Die
@@ -98,7 +101,7 @@ Oberfläche fehlt.
 
 ### B3 Plan eines Klienten als Programm speichern  ·  ½ Tag
 Im Plan-Editor ein Knopf „Save as program". SQL-Funktion
-`plan_to_template(plan, name)` in **0030**, gleiche Bauart wie
+`plan_to_template(plan, name)` in **0031**, gleiche Bauart wie
 `copy_template` (0028) inkl. Nachzählen.
 
 ### B4 Startwerte je Block  ·  10 Minuten
@@ -107,10 +110,10 @@ Compound **3×6–8**, Isolation **3×10–15**, Funktional **3×15–20**
 (Rumpf bleibt 3×12–20).
 
 ### B5 Startgewicht im Plan  ·  1 Tag
-Neue Spalte `plan_slots.target_weight_kg` (**0030**, mit Zeilen in
+Neue Spalte `plan_slots.target_weight_kg` (**0031**, mit Zeilen in
 `check_schema.sql`). Feld „Start weight (kg)" im Slot-Formular. Beim
 Athleten und beim Tracken wird es als Vorschlag ins kg-Feld der ersten
-Sätze gesetzt (überschreibbar). Kopierfunktionen in 0028/0030 nehmen
+Sätze gesetzt (überschreibbar). Kopierfunktionen in 0028/0031 nehmen
 die Spalte mit.
 
 ### B6 Feed: Kacheln klickbar  ·  1 Stunde
@@ -122,7 +125,7 @@ sessions") · Appointments → Kalender · Open check-ins → Check-ins.
 ### B7 Notizen beim Tracken  ·  1 Tag
 Kurznotiz **je Klient und Übung** („Handgelenk ab 120 kg"), die beim
 nächsten Mal genau bei dieser Übung oben steht — beim Trainer-Tracking
-und im Plan-Editor. Neue Tabelle `client_exercise_notes` (**0030**) mit
+und im Plan-Editor. Neue Tabelle `client_exercise_notes` (**0031**) mit
 RLS: nur der Trainer des Klienten liest/schreibt. Athlet sieht sie
 vorerst nicht (Trainer-Notiz).
 
@@ -141,13 +144,13 @@ vorerst nicht (Trainer-Notiz).
 - **Übungsnamen überall Englisch**: `localizeExercise`
   (`packages/db/src/queries.ts`) nimmt für globale Übungen immer
   `name_en`; Aufbau/Hinweis bleiben je Sprache.
-- Migration **0031** (Inhalt), Prüfblock wie in 0026.
+- Migration **0032** (Inhalt), Prüfblock wie in 0026.
 
 ### C2 PAR-Q in der Klienten-App  ·  1–2 Tage  ·  ⚠️ Recht
 Beim ersten Öffnen der App (und erreichbar im Profil): die 7 PAR-Q-
 Fragen ja/nein + Freitext bei „ja". Trainer sieht Ergebnis in der Akte
 (Reiter Details), auffällige Antworten markiert. Tabelle
-`par_q_responses` (**0031**), RLS: Klient schreibt eigene, Trainer
+`par_q_responses` (**0032**), RLS: Klient schreibt eigene, Trainer
 liest. **Gesundheitsdaten nach Art. 9 DSGVO** → braucht Einwilligung und
 Datenschutzerklärung wie die Fotos; Fragentext auf Nutzungsrechte
 prüfen (PAR-Q ist urheberrechtlich geschützt, Nutzung meist frei mit
@@ -177,13 +180,14 @@ Trainers, also nur eigene Daten (RLS). Eine Route
 1. **A1** Autosave, **A2** Supersätze, **B4** Startwerte, **A5**
    Geburtsdatum — sofort, das ist der Datenverlust und die Ärgernisse.
 2. **B1, B2, B6** — schnelle Klick-Ersparnis.
-3. **A4** Textpass (nach Screenshot), **B3, B5, B7** mit Migration 0030.
+3. **A4** Textpass (nach Screenshot), **B3, B5, B7** mit Migration 0031.
 4. **C1** sobald Joëls Übungsliste da ist, **C3** Export.
 5. **C2** PAR-Q erst, wenn Datenschutzerklärung steht.
 6. **A3** parallel, sobald die Domain da ist.
 
-Migrationen: **0030** (move_slot_block, plan_to_template,
-target_weight_kg, client_exercise_notes), **0031** (Übungen/Kategorien,
+Migrationen: **0030** (move_slot_block, mit Schritt 1 eingespielt),
+**0031** (plan_to_template, target_weight_kg, client_exercise_notes),
+**0032** (Übungen/Kategorien,
 PAR-Q) — je mit Prüfblock und Zeilen in `check_schema.sql`, Befehle
 als Dateien in `supabase/befehle/`.
 

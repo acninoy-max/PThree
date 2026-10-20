@@ -494,8 +494,10 @@ function DayCard({
                   : null
               }
               code={codes.get(slot.id) ?? null}
-              first={i === 0}
-              last={i === day.slots.length - 1}
+              // Pfeile je Block, wie move_slot_block (0030) verschiebt:
+              // A2 oben im ersten Supersatz kann nicht weiter hoch.
+              first={day.slots.slice(0, i).every((s) => gleicherBlock(s, slot))}
+              last={day.slots.slice(i + 1).every((s) => gleicherBlock(s, slot))}
               onEdit={() => onEditSlot(slot)}
               busy={busy}
               busyKey={busyKey}
@@ -520,6 +522,15 @@ function DayCard({
 }
 
 /** Plan eines Klienten oder Programm (0028) — derselbe Editor. */
+/** Gleicher Supersatz-Buchstabe — dieselbe Regel wie in move_slot_block (0030). */
+function gleicherBlock(
+  a: { supersetGroup: string | null },
+  b: { supersetGroup: string | null },
+): boolean {
+  const x = a.supersetGroup?.trim().toUpperCase();
+  return !!x && x === b.supersetGroup?.trim().toUpperCase();
+}
+
 export type EditorMode =
   | { kind: "plan"; clientName: string }
   | { kind: "program"; kopf: React.ReactNode; backHref: string };

@@ -51,6 +51,9 @@ export const fehler: Dict["fehler"] = {
     programNotFound: "Program not found.",
     programIncomplete:
       "The program was not copied completely — nothing was saved. Please try again.",
+    slotNotFound: "This exercise is no longer in the plan. Please reload the page.",
+    moveFailed: "Moving didn't work. The order is unchanged.",
+    moveMissing: "Moving needs migration 0030 in the database.",
     unknown: (raw) => `That didn't work: ${raw}`,
   },
 };

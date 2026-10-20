@@ -46,7 +46,7 @@ packages/types       Domänenmodell, reine Typen
 packages/db          Supabase-Anbindung und Abfragen
 packages/coach-engine Rechenlogik: Volumen, 1RM, Verläufe, Hinweise
 packages/tokens      Farben, Abstände, Kontrastrechnung
-supabase/migrations  25 Migrationen, einzeln von Hand eingespielt
+supabase/migrations  30 Migrationen, einzeln von Hand eingespielt
 ```
 
 Rund 27.000 Zeilen TypeScript, 3.900 Zeilen SQL, 77 Übungen in der
@@ -238,7 +238,7 @@ Startanimation.
 
 ## 6. Zustand der Datenbank
 
-25 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
+30 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
 Es gibt keine Migrationsverwaltung — `check_schema.sql` ist der Ersatz
 dafür und sagt, was tatsächlich in der Datenbank steht.
 
@@ -394,6 +394,17 @@ Punkt: erreichbar über die Akte, den Feed und die Homescreen-Verknüpfung.
 0026 bleiben die Übungen deutsch, ohne 0027 meldet das Feedback-Feld,
 dass die Migration fehlt, ohne 0028 gibt es keine App-Vorlagen und
 kein Zuweisen.
+
+**Stand 20.10.2026 (Schritt 1 aus `UMSETZUNG-BASIS.md`):**
+- Laufendes Training (Athlet und Trainer-Tracking) liegt bei jeder
+  Eingabe im `localStorage` (`app/training-entwurf.ts`); beim nächsten
+  Öffnen „Weitermachen / Verwerfen", auf „Heute" ein Hinweis.
+- Supersätze bleiben beim Verschieben zusammen: `move_slot_block`
+  (**0030**) ersetzt den Tausch aus der App. Ohne 0030 meldet der
+  Editor beim Verschieben, dass die Migration fehlt.
+- Geburtsdatum als Tag / Monat / Jahr statt Datumswähler.
+- Startwerte je Block: Compound 3×6–8, Isolation 3×10–15,
+  Funktional 3×15–20.
 
 **Feedback lesen** im SQL-Editor:
 `select f.created_at, p.full_name, f.role, f.message from app_feedback f

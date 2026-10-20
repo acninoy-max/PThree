@@ -40,6 +40,23 @@ export const de = {
     noFixedDay: "ohne festen Tag",
     guided: "mit Trainer",
     alone: "allein",
+    day: "Tag",
+    month: "Monat",
+    dateIncomplete: "Bitte ein vollständiges, gültiges Datum wählen.",
+    year: "Jahr",
+  },
+
+  /** Zwischenspeicher eines laufenden Trainings (training-entwurf.ts). */
+  draft: {
+    title: "Nicht beendetes Training",
+    body: (tag: string | null, wann: string, uebungen: number, saetze: number) =>
+      `${tag ?? "Freies Training"}, begonnen ${wann}. ${uebungen} ${
+        uebungen === 1 ? "Übung" : "Übungen"
+      }, ${saetze} ${saetze === 1 ? "Satz" : "Sätze"} eingetragen.`,
+    continue: "Weitermachen",
+    discard: "Verwerfen",
+    discardSure: "Wirklich verwerfen? Nochmal tippen.",
+    banner: "Du hast ein nicht beendetes Training.",
   },
 
   auth,

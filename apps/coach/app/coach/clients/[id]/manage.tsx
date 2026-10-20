@@ -9,6 +9,7 @@ import {
   updateClientAction,
 } from "@/app/actions";
 import type { Client } from "@ptfive/types";
+import { BirthDateField } from "@/app/birth-date-field";
 import { useT } from "@/app/i18n/client";
 
 /**
@@ -264,16 +265,12 @@ export function ManageClient({
             />
           </label>
 
-          <label style={{ display: "grid", gap: 6 }}>
+          <div style={{ display: "grid", gap: 6, alignContent: "start" }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
               {M.birthDate}
             </span>
-            <input
-              name="birthDate"
-              type="date"
-              defaultValue={client.birthDate ?? ""}
-            />
-          </label>
+            <BirthDateField name="birthDate" defaultValue={client.birthDate} />
+          </div>
         </div>
 
         <label style={{ display: "grid", gap: 6 }}>

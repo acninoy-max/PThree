@@ -30,6 +30,22 @@ export const en: Dict = {
     noFixedDay: "no fixed day",
     guided: "with coach",
     alone: "solo",
+    day: "Day",
+    month: "Month",
+    dateIncomplete: "Please choose a complete, valid date.",
+    year: "Year",
+  },
+
+  draft: {
+    title: "Unfinished workout",
+    body: (tag: string | null, wann: string, uebungen: number, saetze: number) =>
+      `${tag ?? "Free workout"}, started ${wann}. ${uebungen} ${
+        uebungen === 1 ? "exercise" : "exercises"
+      }, ${saetze} ${saetze === 1 ? "set" : "sets"} logged.`,
+    continue: "Continue",
+    discard: "Discard",
+    discardSure: "Really discard? Tap again.",
+    banner: "You have an unfinished workout.",
   },
 
   auth,

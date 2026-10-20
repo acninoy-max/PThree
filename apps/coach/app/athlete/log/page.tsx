@@ -20,6 +20,7 @@ import {
   type PersonalBest,
   type PlanDayOption,
 } from "./client";
+import { entwurfSchluessel } from "@/app/training-entwurf";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,9 @@ export default async function LogPage({
 }) {
   const db = createServerSupabase();
   const locale = getLocale();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
 
   const [{ data: rows }, sessions, plan, checkIns] = await Promise.all([
     db
@@ -183,6 +187,7 @@ export default async function LogPage({
       lastVolumes={lastVolumes}
       bodyWeightKg={bodyWeightKg}
       startDayId={searchParams.day ?? null}
+      entwurfKey={entwurfSchluessel("athlet", user?.id ?? "")}
     />
   );
 }

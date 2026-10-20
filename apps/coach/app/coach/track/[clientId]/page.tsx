@@ -10,6 +10,7 @@ import {
 import { bestSet, estimateOneRepMax } from "@ptfive/coach-engine";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { getLocale } from "@/app/i18n/server";
+import { entwurfSchluessel } from "@/app/training-entwurf";
 import {
   TrackWorkout,
   type TrackExercise,
@@ -150,6 +151,7 @@ export default async function TrackClientPage({
       bests={bests}
       lastEfforts={lastEfforts}
       bodyWeightKg={bodyWeightKg}
+      entwurfKey={entwurfSchluessel("trainer", user!.id, client.id)}
     />
   );
 }

@@ -51,6 +51,9 @@ export const fehler = {
     programNotFound: "Programm nicht gefunden.",
     programIncomplete:
       "Das Programm wurde nicht vollständig übernommen — nichts wurde gespeichert. Bitte noch einmal versuchen.",
+    slotNotFound: "Diese Übung gibt es im Plan nicht mehr. Seite neu laden.",
+    moveFailed: "Verschieben hat nicht geklappt. Die Reihenfolge ist unverändert.",
+    moveMissing: "Verschieben braucht Migration 0030 in der Datenbank.",
     unknown: (roh: string) => `Das hat nicht geklappt: ${roh}`,
   },
 };

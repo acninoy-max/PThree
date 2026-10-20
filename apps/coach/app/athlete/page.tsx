@@ -10,6 +10,8 @@ import { muscleLabel } from "@/app/components";
 import { estimateMinutes } from "@/app/plan-week";
 import { IconChevronRight } from "@/app/icons";
 import { getLocale, getT } from "@/app/i18n/server";
+import { EntwurfHinweis } from "./entwurf-hinweis";
+import { entwurfSchluessel } from "@/app/training-entwurf";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +72,8 @@ export default async function AthleteHome() {
       {/* Training — beantwortet zwei Fragen: Was war heute, und was kommt
           als Nächstes. Vorher fiel der Plan nach dem ersten Training aus
           der Karte heraus und wirkte, als wäre er verschwunden. */}
+      <EntwurfHinweis entwurfKey={entwurfSchluessel("athlet", user!.id)} />
+
       <div className="gym-card" style={{ marginBottom: 12 }}>
         <p className="gym-label">{h.training}</p>
 

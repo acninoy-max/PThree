@@ -25,6 +25,11 @@ const ANFAENGE: [string, DbKey][] = [
   ["Kein Zugriff auf diesen Klienten", "noAccess"],
   ["Programm nicht gefunden", "programNotFound"],
   ["Programm wurde nicht vollstaendig", "programIncomplete"],
+  // Reihenfolge zählt: der genauere Anfang vor dem allgemeinen.
+  ["move_slot_block: Slot nicht gefunden", "slotNotFound"],
+  ["move_slot_block:", "moveFailed"],
+  // PostgREST, wenn 0030 noch nicht eingespielt ist.
+  ["Could not find the function public.move_slot_block", "moveMissing"],
 ];
 
 export function dbFehler(t: Dict, meldung: string): string {

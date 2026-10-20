@@ -8,6 +8,7 @@ import type {
   TrainingBlock,
 } from "@ptfive/types";
 import { createServerSupabase } from "@/lib/supabase-server";
+import { dbFehler } from "@/app/i18n/db-fehler";
 import { getT } from "@/app/i18n/server";
 import type { Dict } from "@/app/i18n";
 
@@ -511,11 +512,13 @@ export async function deleteSlotAction(
 }
 
 /**
- * Verschiebt einen Slot um eine Position.
+ * Verschiebt einen Slot — samt seinem Supersatz — um einen Block.
  *
- * Es werden zwei Zeilen getauscht statt alle neu durchnummeriert — das
- * hält die Änderung klein. Eine kurzzeitige Doppelbelegung der Position
- * ist unkritisch, weil die Anzeige ohnehin sortiert.
+ * Die Arbeit macht `move_slot_block` (0030) in einer Transaktion. Bis
+ * dahin tauschte die App zwei Positionen mit zwei einzelnen `update`s:
+ * Supersätze brachen dabei auseinander, und ein halb gelungener Tausch
+ * meldete trotzdem Erfolg. Die Funktion liest selbst nach und wirft,
+ * wenn etwas nicht stimmt; 0 heißt „am Rand, nichts zu tun".
  */
 export async function moveSlotAction(
   slotId: string,
@@ -525,33 +528,11 @@ export async function moveSlotAction(
   const t = getT();
   const db = createServerSupabase();
 
-  const { data: slot } = await db
-    .from("plan_slots")
-    .select("id, plan_day_id, position")
-    .eq("id", slotId)
-    .maybeSingle();
-  if (!slot) return { ok: false, error: t.coach.planErrors.slotNotFound };
-
-  const { data: neighbour } = await db
-    .from("plan_slots")
-    .select("id, position")
-    .eq("plan_day_id", slot.plan_day_id)
-    [direction === "up" ? "lt" : "gt"]("position", slot.position)
-    .order("position", { ascending: direction !== "up" })
-    .limit(1)
-    .maybeSingle();
-
-  // Am Rand angekommen — kein Fehler, es passiert nur nichts.
-  if (!neighbour) return { ok: true };
-
-  await db
-    .from("plan_slots")
-    .update({ position: neighbour.position })
-    .eq("id", slot.id);
-  await db
-    .from("plan_slots")
-    .update({ position: slot.position })
-    .eq("id", neighbour.id);
+  const { error } = await db.rpc("move_slot_block", {
+    p_slot: slotId,
+    p_richtung: direction,
+  });
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
 
   refresh(planId);
   return { ok: true };
