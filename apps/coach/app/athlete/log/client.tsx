@@ -410,6 +410,14 @@ export function LogWorkout({
       );
       setSwapping(null);
     } else {
+      // Ohne Plan gibt es keinen „Los"-Knopf: Die Seite zeigt gleich das
+      // freie Training. Dann startet die erste Übung die Sitzung — sonst
+      // lief die Uhr nie (Dauer 0), der Bildschirm ging aus, und der
+      // Zwischenspeicher sprang nie an (gefunden am 27.10.2026).
+      if (!started) {
+        setStarted(true);
+        beginSession();
+      }
       setSlots((prev) => [
         ...prev,
         {
