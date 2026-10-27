@@ -50,6 +50,7 @@ import {
   type TrainingsEntwurf,
 } from "@/app/training-entwurf";
 import { EntwurfKarte } from "@/app/training-entwurf-karte";
+import { vorherFuer, type LetztesMal } from "@/app/letzte-saetze";
 
 export interface ExerciseOption {
   id: string;
@@ -81,13 +82,8 @@ export interface PersonalBest {
   on: string;
 }
 
-/** Bester Satz der letzten Einheit — Vorlage für die Übernahme. */
-export interface LastEffort {
-  weightKg: number;
-  reps: number;
-  setCount: number;
-  on: string;
-}
+/** Sätze der letzten Einheit je Übung — siehe letzte-saetze.ts. */
+export type LastEffort = LetztesMal;
 
 export interface PlanSlotOption {
   id: string;
@@ -377,12 +373,17 @@ export function LogWorkout({
         key: `${slot.id}-${drafts.length}`,
         exercise,
         plan: slot,
-        // Startgewicht des Trainers als Vorschlag in jedem Satz; wer
-        // etwas anderes hebt, überschreibt es einfach. Gespeichert wird
-        // ein Satz ohnehin erst mit Wiederholungen.
+        // Startgewicht des Trainers als Vorschlag in jedem Satz — aber
+        // nur ohne Vorgeschichte. Gibt es ein letztes Mal, stehen dessen
+        // Werte Satz für Satz grau im Feld (letzte-saetze.ts); ein
+        // festes Startgewicht darüber würde Aufwärmsätze wieder
+        // gleichmachen. Gespeichert wird ein Satz erst mit Wiederholungen.
         sets: Array.from({ length: slot.targetSets }, () => ({
           ...emptySet(),
-          weight: slot.targetWeightKg !== null ? t.fmt.num(slot.targetWeightKg) : "",
+          weight:
+            slot.targetWeightKg !== null && !lastEfforts[exercise.id]
+              ? t.fmt.num(slot.targetWeightKg)
+              : "",
         })),
       });
     }
@@ -533,18 +534,44 @@ export function LogWorkout({
     if (focus?.slotKey === key) setFocus(null);
   }
 
+  /** „40×10, 60×8, 80×6" — die Sätze vom letzten Mal in einer Zeile. */
+  function saetzeText(l: LetztesMal): string {
+    const teile = l.sets
+      .slice(0, 5)
+      .map((v) => (v.weightKg === 0 ? t.athlete.home.reps(v.reps) : `${t.fmt.num(v.weightKg)}×${v.reps}`));
+    return teile.join(", ") + (l.sets.length > 5 ? ", …" : "");
+  }
+
+  /** Grauer Platzhalter für ein leeres Feld: was in diesem Satz stand. */
+  function vorherFeld(
+    l: LetztesMal | undefined,
+    i: number,
+    field: "weight" | "reps" | "rir",
+  ): string | null {
+    const v = vorherFuer(l, i);
+    if (!v) return null;
+    if (field === "weight") return v.weightKg === 0 ? null : t.fmt.num(v.weightKg);
+    if (field === "reps") return String(v.reps);
+    return null;
+  }
+
   function applyLast(key: string, last: LastEffort) {
     setSlots((prev) =>
       prev.map((s) =>
         s.key === key
           ? {
               ...s,
-              sets: s.sets.map((set) => ({
-                ...set,
-                // In der Schreibweise der Sprache: „82,5" statt „82.5".
-                weight: last.weightKg === 0 ? "" : t.fmt.num(last.weightKg),
-                reps: String(last.reps),
-              })),
+              // Satz für Satz, wie letztes Mal — nicht der schwerste Satz
+              // für alle (Aufwärmsätze, Meeting 27.10.).
+              sets: s.sets.map((set, i) => {
+                const v = vorherFuer(last, i)!;
+                return {
+                  ...set,
+                  // In der Schreibweise der Sprache: „82,5" statt „82.5".
+                  weight: v.weightKg === 0 ? "" : t.fmt.num(v.weightKg),
+                  reps: String(v.reps),
+                };
+              }),
             }
           : s,
       ),
@@ -1214,11 +1241,7 @@ export function LogWorkout({
                 className="gym-carry"
                 onClick={() => applyLast(slot.key, last)}
               >
-                <span style={{ fontWeight: 700 }}>
-                  {last.weightKg === 0
-                    ? t.athlete.home.reps(last.reps)
-                    : `${t.fmt.num(last.weightKg)} kg × ${last.reps}`}
-                </span>
+                <span style={{ fontWeight: 700 }}>{saetzeText(last)}</span>
                 <span style={{ color: "var(--g-dim)" }}>
                   {L.carryFrom(t.fmt.dayMonthNumeric(new Date(last.on)))}
                 </span>
@@ -1325,7 +1348,9 @@ export function LogWorkout({
                             setFocus({ slotKey: slot.key, setIndex: i, field })
                           }
                         >
-                          {value === "" ? "–" : value}
+                          {/* Leer: grau, was in diesem Satz letztes Mal
+                              stand. Übernommen wird es erst per Tipp. */}
+                          {value === "" ? (vorherFeld(last, i, field) ?? "–") : value}
                         </button>
                       );
                     })}

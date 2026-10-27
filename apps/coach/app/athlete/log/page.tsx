@@ -21,6 +21,7 @@ import {
   type PlanDayOption,
 } from "./client";
 import { entwurfSchluessel } from "@/app/training-entwurf";
+import { letzteSaetze } from "@/app/letzte-saetze";
 
 export const dynamic = "force-dynamic";
 
@@ -88,11 +89,10 @@ export default async function LogPage({
   const bests: Record<string, PersonalBest> = {};
 
   /**
-   * Der zuletzt geloggte Satz je Übung — Grundlage für die Übernahme
-   * per Fingertipp. Sessions kommen aufsteigend, der letzte Treffer
-   * gewinnt also automatisch.
+   * Die Sätze der letzten Einheit je Übung, in ihrer Reihenfolge —
+   * Grundlage für Platzhalter und Übernahme (letzte-saetze.ts).
    */
-  const lastEfforts: Record<string, LastEffort> = {};
+  const lastEfforts: Record<string, LastEffort> = letzteSaetze(sessions);
 
   for (const session of sessions) {
     for (const slot of session.slots) {
@@ -111,14 +111,6 @@ export default async function LogPage({
         };
       }
 
-      // Für die Übernahme zählt der schwerste Satz der letzten Einheit —
-      // nicht der letzte, denn am Ende stehen oft Abfallsätze.
-      lastEfforts[slot.exerciseId] = {
-        weightKg: best.weightKg,
-        reps: best.reps,
-        setCount: slot.sets.length,
-        on: session.performedAt,
-      };
     }
   }
 

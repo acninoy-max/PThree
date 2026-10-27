@@ -18,6 +18,7 @@ import {
   type TrackPersonalBest,
   type TrackPlanDay,
 } from "./track-client";
+import { letzteSaetze } from "@/app/letzte-saetze";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +86,8 @@ export default async function TrackClientPage({
   })).sort((a, b) => a.name.localeCompare(b.name, locale));
 
   const bests: Record<string, TrackPersonalBest> = {};
-  const lastEfforts: Record<string, TrackLastEffort> = {};
+  // Sätze der letzten Einheit je Übung, in Reihenfolge (letzte-saetze.ts).
+  const lastEfforts: Record<string, TrackLastEffort> = letzteSaetze(sessions);
 
   for (const session of sessions) {
     for (const slot of session.slots) {
@@ -102,12 +104,6 @@ export default async function TrackClientPage({
           on: session.performedAt,
         };
       }
-      lastEfforts[slot.exerciseId] = {
-        weightKg: best.weightKg,
-        reps: best.reps,
-        setCount: slot.sets.length,
-        on: session.performedAt,
-      };
     }
   }
 
