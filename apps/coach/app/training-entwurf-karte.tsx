@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useT } from "@/app/i18n/client";
 import { entwurfUmfang, type TrainingsEntwurf } from "./training-entwurf";
+import { tagISO } from "@/app/zone";
 
 /**
  * Rückfrage „weitermachen oder verwerfen" — für Athlet (gym-*) und
@@ -28,7 +29,7 @@ export function EntwurfKarte({
   const { uebungen, saetze } = entwurfUmfang(entwurf);
 
   const begonnen = new Date(entwurf.begonnenAm);
-  const heute = begonnen.toDateString() === new Date().toDateString();
+  const heute = tagISO(begonnen) === tagISO(new Date());
   const wann = heute ? t.fmt.time(begonnen) : t.fmt.weekdayTime(begonnen);
 
   return (

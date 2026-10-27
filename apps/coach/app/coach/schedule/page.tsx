@@ -6,16 +6,9 @@ import {
 import { createServerSupabase } from "@/lib/supabase-server";
 import { Nav } from "@/app/nav";
 import { ScheduleBoard, type ScheduleView } from "./board";
+import { montagVon, plusTage, tagISO, wand, zeitpunkt } from "@/app/zone";
 
 export const dynamic = "force-dynamic";
-
-/** Montag der Woche, in der das Datum liegt. */
-function mondayOf(d: Date): Date {
-  const m = new Date(d);
-  m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  m.setHours(0, 0, 0, 0);
-  return m;
-}
 
 export default async function SchedulePage({
   searchParams,
@@ -38,31 +31,32 @@ export default async function SchedulePage({
   const offset =
     Number.parseInt(searchParams.o ?? searchParams.w ?? "0", 10) || 0;
 
-  let start: Date;
-  let end: Date;
+  // Raster als Kalendertage in Amsterdam (zone.ts). Vorher rechnete der
+  // Server die Wochengrenzen in UTC, und Termine kurz nach Mitternacht
+  // fielen in die falsche Woche.
+  const heute = tagISO(new Date());
+  let start: string;
+  let end: string;
   let monthISO: string | undefined;
 
   if (view === "month") {
-    const now = new Date();
-    const month = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-    monthISO = month.toISOString();
+    const w = wand(new Date());
+    const erster = new Date(Date.UTC(w.jahr, w.monat + offset, 1));
+    monthISO = erster.toISOString().slice(0, 10);
+    const letzter = new Date(Date.UTC(w.jahr, w.monat + offset + 1, 0)).toISOString().slice(0, 10);
 
     // Das Raster beginnt am Montag vor dem Monatsersten und läuft in
     // vollen Wochen weiter, bis der Monat abgedeckt ist.
-    start = mondayOf(month);
-    const lastOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
-    end = mondayOf(lastOfMonth);
-    end.setDate(end.getDate() + 7);
+    start = montagVon(monthISO);
+    end = plusTage(montagVon(letzter), 7);
   } else {
-    start = mondayOf(new Date());
-    start.setDate(start.getDate() + offset * 7);
-    end = new Date(start);
-    end.setDate(start.getDate() + 7);
+    start = plusTage(montagVon(heute), offset * 7);
+    end = plusTage(start, 7);
   }
 
   const [clients, appointments, unresolved] = await Promise.all([
     fetchClients(db),
-    fetchAppointmentsBetween(db, start, end),
+    fetchAppointmentsBetween(db, zeitpunkt(start, "00:00"), zeitpunkt(end, "00:00")),
     fetchUnresolvedAppointments(db, 14),
   ]);
 
@@ -71,8 +65,8 @@ export default async function SchedulePage({
       <Nav coachName={profile?.full_name ?? "Coach"} />
       <ScheduleBoard
         view={view}
-        rangeStartISO={start.toISOString()}
-        rangeEndISO={end.toISOString()}
+        rangeStartISO={start}
+        rangeEndISO={end}
         monthISO={monthISO}
         offset={offset}
         appointments={appointments}

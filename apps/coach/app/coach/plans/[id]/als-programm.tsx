@@ -33,7 +33,10 @@ export function AlsProgrammSpeichern({
   const [pending, start] = useTransition();
   const vorname = clientName.trim().split(/\s+/)[0] ?? "";
   const [name, setName] = useState(
-    vorname && planName.startsWith(`${vorname} `) ? planName.slice(vorname.length + 1) : planName,
+    // Ohne Groß/Klein-Unterschied: „lisa Fullbody" ist derselbe Vorname.
+    vorname && planName.toLowerCase().startsWith(`${vorname.toLowerCase()} `)
+      ? planName.slice(vorname.length + 1)
+      : planName,
   );
   const [error, setError] = useState<string | null>(null);
 

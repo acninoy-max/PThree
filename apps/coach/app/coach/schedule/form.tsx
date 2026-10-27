@@ -5,6 +5,7 @@ import { createAppointmentAction } from "@/app/actions";
 import { IconX } from "@/app/icons";
 import type { ClientOption } from "./board";
 import { useT } from "@/app/i18n/client";
+import { tagISO } from "@/app/zone";
 
 /** ISO-Wochentage, Montag = 1. Beschriftet über t.time.weekdayShort. */
 const WEEKDAYS = [1, 2, 3, 4, 5, 6, 7];
@@ -12,9 +13,9 @@ const LOCATIONS = ["gym", "park", "home", "online"] as const;
 
 const DURATIONS = [30, 45, 60, 75, 90];
 
+/** Heute in Amsterdam — wie alles, was mit Terminen rechnet (zone.ts). */
 function todayISO(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return tagISO(new Date());
 }
 
 export function NewAppointment({

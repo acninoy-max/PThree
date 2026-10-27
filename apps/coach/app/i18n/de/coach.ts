@@ -64,6 +64,7 @@ export const coach = {
     nameMissing: "Bitte einen Namen eingeben.",
     clientNotCreated: "Der Klient wurde nicht angelegt.",
     invalidTime: "Ungültiger Zeitpunkt.",
+    appointmentsIncomplete: "Nicht alle Termine wurden angelegt. Bitte im Kalender nachsehen.",
     noAppointmentsInRange: "Keine Termine im gewählten Zeitraum.",
     replyEmpty: "Die Antwort ist leer.",
     rhythmRange: "Der Rhythmus muss zwischen 1 und 26 Wochen liegen.",

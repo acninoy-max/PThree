@@ -10,22 +10,22 @@ import { CheckInForm } from "./form";
 import { getT } from "@/app/i18n/server";
 import type { Dict } from "@/app/i18n";
 import { MEASURE_INFO, MEASURE_KEYS, isMeasureWeek } from "./measurements";
+import { montagVon, plusTage, tagISO, zeitpunkt } from "@/app/zone";
 
 export const dynamic = "force-dynamic";
 
-/** Montag der Woche, in der das Datum liegt — lokal, nicht in UTC. */
+/**
+ * Montag der Woche, in der das Datum liegt — in Amsterdam (zone.ts).
+ * „Lokal" hieß auf dem Server UTC: Montag 00:30 zählte noch zur Vorwoche.
+ */
 function mondayOf(d: Date): string {
-  const m = new Date(d);
-  m.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, "0")}-${String(
-    m.getDate(),
-  ).padStart(2, "0")}`;
+  return montagVon(tagISO(d));
 }
 
 function weekLabel(t: Dict, weekOf: string): string {
-  const start = new Date(`${weekOf}T00:00:00`);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
+  // Mittag statt Mitternacht: liegt in jeder Zone am selben Kalendertag.
+  const start = zeitpunkt(weekOf, "12:00");
+  const end = zeitpunkt(plusTage(weekOf, 6), "12:00");
   return `${t.fmt.dayMonthLong(start)} – ${t.fmt.dayMonthLong(end)}`;
 }
 

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { getT } from "@/app/i18n/server";
 import { dbFehler, dbHinweis } from "@/app/i18n/db-fehler";
+import { montagVon, plusTage, zeitpunkt } from "@/app/zone";
 
 /**
  * Schreibende Vorgänge.
@@ -171,7 +172,10 @@ export async function createAppointmentAction(
   } = await db.auth.getUser();
   if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
-  const start = new Date(input.startsAtLocal);
+  // In Amsterdam gelesen, nicht in der Zone des Servers (UTC) — sonst
+  // wird aus 06:00 ein Termin um 08:00 (Fehler vom 27.10.2026, zone.ts).
+  const [datum = "", uhrzeit = ""] = input.startsAtLocal.split("T");
+  const start = zeitpunkt(datum, uhrzeit);
   if (Number.isNaN(start.getTime())) {
     return { ok: false, error: t.coach.actions.invalidTime };
   }
@@ -190,13 +194,12 @@ export async function createAppointmentAction(
     starts.push(start);
   } else {
     // Von der Woche des Startdatums aus die gewählten Wochentage füllen.
-    const monday = new Date(start);
-    monday.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    // Jeder Tag einzeln über zeitpunkt(): Eine Serie über die
+    // Zeitumstellung bleibt so um 06:00, statt eine Stunde zu springen.
+    const montag = montagVon(datum);
     for (let w = 0; w < weeks; w++) {
       for (const wd of weekdays) {
-        const d = new Date(monday);
-        d.setDate(monday.getDate() + w * 7 + (wd - 1));
-        d.setHours(start.getHours(), start.getMinutes(), 0, 0);
+        const d = zeitpunkt(plusTage(montag, w * 7 + (wd - 1)), uhrzeit);
         if (d >= start) starts.push(d);
       }
     }
@@ -220,8 +223,13 @@ export async function createAppointmentAction(
       recurrence_rule: weekdays.length ? `weekly:${weekdays.join(",")}` : null,
     }));
 
-  const { error } = await db.from("appointments").insert(rows);
+  const { data: angelegt, error } = await db.from("appointments").insert(rows).select("id");
   if (error) return { ok: false, error: error.message };
+  // Nachzählen: Eine Serie, von der nur ein Teil ankommt, darf nicht als
+  // Erfolg durchgehen (Regel 3).
+  if ((angelegt?.length ?? 0) !== rows.length) {
+    return { ok: false, error: t.coach.actions.appointmentsIncomplete };
+  }
 
   revalidatePath("/coach/schedule");
   revalidatePath("/coach/clients");

@@ -10,6 +10,7 @@ import { replyToCheckInAction } from "@/app/actions";
 import { toast } from "@/app/toast";
 import { useT } from "@/app/i18n/client";
 import type { Dict } from "@/app/i18n";
+import { plusTage, zeitpunkt } from "@/app/zone";
 
 export interface InboxItem extends CheckInRecord {
   clientName: string;
@@ -18,9 +19,9 @@ export interface InboxItem extends CheckInRecord {
 }
 
 function weekLabel(t: Dict, weekOf: string): string {
-  const start = new Date(`${weekOf}T00:00:00`);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
+  // Mittag statt Mitternacht: liegt in jeder Zone am selben Kalendertag.
+  const start = zeitpunkt(weekOf, "12:00");
+  const end = zeitpunkt(plusTage(weekOf, 6), "12:00");
   return `${t.fmt.dayMonthShort(start)} – ${t.fmt.dayMonthShort(end)}`;
 }
 

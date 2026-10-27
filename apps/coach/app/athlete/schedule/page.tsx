@@ -3,16 +3,15 @@ import { fetchAppointmentsBetween } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { IconChevronLeft, IconClock, IconPin } from "@/app/icons";
 import { getT } from "@/app/i18n/server";
+import { tagISO, zeitpunkt } from "@/app/zone";
 
 export const dynamic = "force-dynamic";
 
-/** Kalendertage bis zum Termin, zwischen lokalen Mitternächten. */
+/** Kalendertage bis zum Termin, in Amsterdam gezählt (zone.ts). */
 function daysUntil(iso: string): number {
-  const target = new Date(iso);
-  target.setHours(0, 0, 0, 0);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  const ziel = Date.parse(`${tagISO(new Date(iso))}T00:00:00Z`);
+  const heute = Date.parse(`${tagISO(new Date())}T00:00:00Z`);
+  return Math.round((ziel - heute) / 86_400_000);
 }
 
 export default async function AthleteSchedulePage() {
@@ -20,8 +19,8 @@ export default async function AthleteSchedulePage() {
   const s = t.athlete.schedule;
   const db = createServerSupabase();
 
-  const from = new Date();
-  from.setHours(0, 0, 0, 0);
+  // Ab heute 00:00 in Amsterdam, nicht ab Mitternacht UTC.
+  const from = zeitpunkt(tagISO(new Date()), "00:00");
   const to = new Date(Date.now() + 120 * 86_400_000);
 
   const past = new Date(Date.now() - 30 * 86_400_000);

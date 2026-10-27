@@ -46,7 +46,13 @@ export function AssignDialog({
   // Folgt dem Klientenwechsel, bis der Trainer selbst etwas tippt.
   const [eigenerName, setEigenerName] = useState<string | null>(null);
   const vorname = (clients.find((c) => c.id === clientId)?.name ?? "").trim().split(/\s+/)[0] ?? "";
-  const vorschlag = vorname ? `${vorname} ${programName}` : programName;
+  // Steht der Vorname schon vorn (Programm aus „Save as program" oder von
+  // Hand so benannt), nicht noch einmal davor: „Lisa Lisa Fullbody"
+  // (Meeting 27.10.).
+  const vorschlag =
+    !vorname || programName.toLowerCase().startsWith(`${vorname.toLowerCase()} `)
+      ? programName
+      : `${vorname} ${programName}`;
   const planName = eigenerName ?? vorschlag;
 
   function submit(e: React.FormEvent) {

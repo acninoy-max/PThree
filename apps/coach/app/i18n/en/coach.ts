@@ -64,6 +64,7 @@ export const coach: Dict["coach"] = {
     nameMissing: "Please enter a name.",
     clientNotCreated: "The client was not created.",
     invalidTime: "Invalid time.",
+    appointmentsIncomplete: "Not all appointments were created. Please check the calendar.",
     noAppointmentsInRange: "No appointments in the selected period.",
     replyEmpty: "The reply is empty.",
     rhythmRange: "The interval must be between 1 and 26 weeks.",

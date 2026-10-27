@@ -21,6 +21,7 @@ import {
 import { Avatar } from "@/app/components";
 import { NewAppointment } from "./form";
 import { useT } from "@/app/i18n/client";
+import { plusTage, tagISO, wand, zeitpunkt } from "@/app/zone";
 
 export interface ClientOption {
   id: string;
@@ -30,11 +31,13 @@ export interface ClientOption {
 
 export type ScheduleView = "week" | "month";
 
-/** Ortsdatum als YYYY-MM-DD — toISOString() würde in die UTC-Zone rutschen. */
-function localISO(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-    d.getDate(),
-  ).padStart(2, "0")}`;
+/**
+ * Tage als „JJJJ-MM-TT" in Amsterdam (zone.ts). Für Formate und Raster
+ * steht jeder Tag als Mittag da: Mittag liegt in jeder Zone sicher am
+ * selben Kalendertag, Mitternacht nicht.
+ */
+function mittag(iso: string): Date {
+  return zeitpunkt(iso, "12:00");
 }
 
 /** Farben je Status. Beschriftung: t.labels.apptStatus. */
@@ -60,11 +63,11 @@ export function ScheduleBoard({
   clients,
 }: {
   view: ScheduleView;
-  /** Erster Tag des Rasters (Montag). */
+  /** Erster Tag des Rasters (Montag), „JJJJ-MM-TT" in Amsterdam. */
   rangeStartISO: string;
-  /** Erster Tag *nach* dem Raster. */
+  /** Erster Tag *nach* dem Raster, „JJJJ-MM-TT". */
   rangeEndISO: string;
-  /** Erster des angezeigten Monats — nur in der Monatsansicht. */
+  /** Erster des angezeigten Monats, „JJJJ-MM-01" — nur in der Monatsansicht. */
   monthISO?: string;
   offset: number;
   appointments: Appointment[];
@@ -79,26 +82,22 @@ export function ScheduleBoard({
   const [creating, setCreating] = useState(false);
   const [prefillDay, setPrefillDay] = useState<string | null>(null);
 
-  const rangeStart = new Date(rangeStartISO);
-  const rangeEnd = new Date(rangeEndISO);
-  const anchorMonth = monthISO ? new Date(monthISO).getMonth() : -1;
+  const rangeStart = mittag(rangeStartISO);
+  const anchorMonth = monthISO ? Number(monthISO.slice(5, 7)) - 1 : -1;
 
   const byId = new Map(clients.map((c) => [c.id, c.name]));
-  const today = new Date().toDateString();
+  const today = tagISO(new Date());
 
   const dayCount = Math.round(
-    (rangeEnd.getTime() - rangeStart.getTime()) / 86_400_000,
+    (Date.parse(`${rangeEndISO}T00:00:00Z`) - Date.parse(`${rangeStartISO}T00:00:00Z`)) /
+      86_400_000,
   );
-  const days = Array.from({ length: dayCount }, (_, i) => {
-    const d = new Date(rangeStart);
-    d.setDate(rangeStart.getDate() + i);
-    return d;
-  });
+  const days = Array.from({ length: dayCount }, (_, i) => mittag(plusTage(rangeStartISO, i)));
 
   const lastDay = days[days.length - 1] ?? rangeStart;
   const title =
     view === "month" && monthISO
-      ? t.fmt.monthYear(new Date(monthISO))
+      ? t.fmt.monthYear(mittag(monthISO))
       : `${t.fmt.dayMonthLong(rangeStart)} – ${t.fmt.dayMonthLong(lastDay)}`;
 
   const step = (delta: number) =>
@@ -106,9 +105,9 @@ export function ScheduleBoard({
 
   /** Termine eines Tages, aufsteigend nach Uhrzeit. */
   function apptsOn(day: Date): Appointment[] {
-    const key = day.toDateString();
+    const key = tagISO(day);
     return appointments
-      .filter((a) => new Date(a.startsAt).toDateString() === key)
+      .filter((a) => tagISO(new Date(a.startsAt)) === key)
       .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   }
 
@@ -294,8 +293,8 @@ export function ScheduleBoard({
         <div className="pt-week">
           {days.map((day) => {
             const dayAppts = apptsOn(day);
-            const isToday = day.toDateString() === today;
-            const iso = localISO(day);
+            const iso = tagISO(day);
+            const isToday = iso === today;
 
             return (
               <div key={iso} className="pt-daycol" data-today={isToday}>
@@ -442,9 +441,9 @@ export function ScheduleBoard({
 
             {days.map((day) => {
               const dayAppts = apptsOn(day);
-              const isToday = day.toDateString() === today;
-              const outside = day.getMonth() !== anchorMonth;
-              const iso = localISO(day);
+              const iso = tagISO(day);
+              const isToday = iso === today;
+              const outside = wand(day).monat !== anchorMonth;
               const shown = dayAppts.slice(0, 3);
 
               return (
@@ -465,7 +464,7 @@ export function ScheduleBoard({
                     aria-label={K.createOn(t.fmt.dayMonthNumeric(day))}
                   />
 
-                  <span className="pt-monthcell__num">{day.getDate()}</span>
+                  <span className="pt-monthcell__num">{wand(day).tag}</span>
 
                   {shown.map((a) => {
                     const s = STATUS_STYLE[a.status];

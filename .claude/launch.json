@@ -4,7 +4,28 @@
     {
       "name": "coach",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@ptfive/coach", "exec", "next", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@ptfive/coach",
+        "exec",
+        "next",
+        "dev"
+      ],
+      "port": 3100,
+      "autoPort": true
+    },
+    {
+      "name": "coach-utc",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "TZ=UTC",
+        "pnpm",
+        "--filter",
+        "@ptfive/coach",
+        "exec",
+        "next",
+        "dev"
+      ],
       "port": 3100,
       "autoPort": true
     }

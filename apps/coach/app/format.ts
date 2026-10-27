@@ -25,6 +25,8 @@
  * welchem Gerät. Der Preis ist diese Datei, und das ist ein guter Preis.
  */
 
+import { wand, type Wanduhr } from "./zone";
+
 /** Die beiden Sprachen der Oberfläche. Steht hier und nicht in i18n/,
  *  weil diese Datei ohne React und Next laufen muss (App-Tests). */
 export type Locale = "en" | "de";
@@ -171,25 +173,34 @@ function stellen(n: number): number {
   return r % 100 === 0 ? 0 : r % 10 === 0 ? 1 : 2;
 }
 
+/**
+ * Uhrzeit und Kalendertag immer in Amsterdam (zone.ts), nie in der Zone
+ * der Laufzeit: Der Server läuft in UTC, und ein Termin um 06:00 stand
+ * dort als 04:00 (Fehler vom 27.10.2026).
+ */
+function w(d: Date): Wanduhr {
+  return wand(d);
+}
+
 function deFormats(): Formats {
   const n = DE;
-  const dayMonthShort = (d: Date) => `${d.getDate()}. ${n.monthShort[d.getMonth()]}`;
-  const time = (d: Date) => `${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
+  const dayMonthShort = (d: Date) => `${w(d).tag}. ${n.monthShort[w(d).monat]}`;
+  const time = (d: Date) => `${zwei(w(d).stunde)}:${zwei(w(d).minute)}`;
   return {
-    dateMedium: (d) => `${d.getDate()}. ${n.monthShort[d.getMonth()]} ${d.getFullYear()}`,
-    dayMonthLong: (d) => `${d.getDate()}. ${n.monthLong[d.getMonth()]}`,
+    dateMedium: (d) => `${w(d).tag}. ${n.monthShort[w(d).monat]} ${w(d).jahr}`,
+    dayMonthLong: (d) => `${w(d).tag}. ${n.monthLong[w(d).monat]}`,
     dayMonthShort,
-    dayMonthNumeric: (d) => `${zwei(d.getDate())}.${zwei(d.getMonth() + 1)}.`,
+    dayMonthNumeric: (d) => `${zwei(w(d).tag)}.${zwei(w(d).monat + 1)}.`,
     time,
-    weekdayTime: (d) => `${n.dayShort[d.getDay()]} ${time(d)}`,
-    weekdayDate: (d) => `${n.dayLong[d.getDay()]}, ${dayMonthShort(d)}`,
-    weekdayDateTime: (d) => `${n.dayShort[d.getDay()]} ${dayMonthShort(d)}, ${time(d)}`,
-    weekdayShort: (d) => n.dayShort[d.getDay()]!,
-    weekdayLong: (d) => n.dayLong[d.getDay()]!,
-    monthYear: (d) => `${n.monthLong[d.getMonth()]} ${d.getFullYear()}`,
-    weekdayTimeLong: (d) => `${n.dayLong[d.getDay()]} ${time(d)}`,
+    weekdayTime: (d) => `${n.dayShort[w(d).wochentag]} ${time(d)}`,
+    weekdayDate: (d) => `${n.dayLong[w(d).wochentag]}, ${dayMonthShort(d)}`,
+    weekdayDateTime: (d) => `${n.dayShort[w(d).wochentag]} ${dayMonthShort(d)}, ${time(d)}`,
+    weekdayShort: (d) => n.dayShort[w(d).wochentag]!,
+    weekdayLong: (d) => n.dayLong[w(d).wochentag]!,
+    monthYear: (d) => `${n.monthLong[w(d).monat]} ${w(d).jahr}`,
+    weekdayTimeLong: (d) => `${n.dayLong[w(d).wochentag]} ${time(d)}`,
     weekdayDayMonthLong: (d) =>
-      `${n.dayLong[d.getDay()]}, ${zwei(d.getDate())}. ${n.monthLong[d.getMonth()]}`,
+      `${n.dayLong[w(d).wochentag]}, ${zwei(w(d).tag)}. ${n.monthLong[w(d).monat]}`,
     dayShortAt: (i) => n.dayShort[i]!,
     dayLongAt: (i) => n.dayLong[i]!,
     monthLongAt: (i) => n.monthLong[i]!,
@@ -202,23 +213,23 @@ function deFormats(): Formats {
 
 function enFormats(): Formats {
   const n = EN;
-  const dayMonthShort = (d: Date) => `${d.getDate()} ${n.monthShort[d.getMonth()]}`;
-  const time = (d: Date) => `${zwei(d.getHours())}:${zwei(d.getMinutes())}`;
+  const dayMonthShort = (d: Date) => `${w(d).tag} ${n.monthShort[w(d).monat]}`;
+  const time = (d: Date) => `${zwei(w(d).stunde)}:${zwei(w(d).minute)}`;
   return {
-    dateMedium: (d) => `${d.getDate()} ${n.monthShort[d.getMonth()]} ${d.getFullYear()}`,
-    dayMonthLong: (d) => `${d.getDate()} ${n.monthLong[d.getMonth()]}`,
+    dateMedium: (d) => `${w(d).tag} ${n.monthShort[w(d).monat]} ${w(d).jahr}`,
+    dayMonthLong: (d) => `${w(d).tag} ${n.monthLong[w(d).monat]}`,
     dayMonthShort,
-    dayMonthNumeric: (d) => `${zwei(d.getDate())}/${zwei(d.getMonth() + 1)}`,
+    dayMonthNumeric: (d) => `${zwei(w(d).tag)}/${zwei(w(d).monat + 1)}`,
     time,
-    weekdayTime: (d) => `${n.dayShort[d.getDay()]} ${time(d)}`,
-    weekdayDate: (d) => `${n.dayLong[d.getDay()]}, ${dayMonthShort(d)}`,
-    weekdayDateTime: (d) => `${n.dayShort[d.getDay()]} ${dayMonthShort(d)}, ${time(d)}`,
-    weekdayShort: (d) => n.dayShort[d.getDay()]!,
-    weekdayLong: (d) => n.dayLong[d.getDay()]!,
-    monthYear: (d) => `${n.monthLong[d.getMonth()]} ${d.getFullYear()}`,
-    weekdayTimeLong: (d) => `${n.dayLong[d.getDay()]} ${time(d)}`,
+    weekdayTime: (d) => `${n.dayShort[w(d).wochentag]} ${time(d)}`,
+    weekdayDate: (d) => `${n.dayLong[w(d).wochentag]}, ${dayMonthShort(d)}`,
+    weekdayDateTime: (d) => `${n.dayShort[w(d).wochentag]} ${dayMonthShort(d)}, ${time(d)}`,
+    weekdayShort: (d) => n.dayShort[w(d).wochentag]!,
+    weekdayLong: (d) => n.dayLong[w(d).wochentag]!,
+    monthYear: (d) => `${n.monthLong[w(d).monat]} ${w(d).jahr}`,
+    weekdayTimeLong: (d) => `${n.dayLong[w(d).wochentag]} ${time(d)}`,
     weekdayDayMonthLong: (d) =>
-      `${n.dayLong[d.getDay()]}, ${d.getDate()} ${n.monthLong[d.getMonth()]}`,
+      `${n.dayLong[w(d).wochentag]}, ${w(d).tag} ${n.monthLong[w(d).monat]}`,
     dayShortAt: (i) => n.dayShort[i]!,
     dayLongAt: (i) => n.dayLong[i]!,
     monthLongAt: (i) => n.monthLong[i]!,

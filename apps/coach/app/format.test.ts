@@ -1,9 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { formats } from "./format";
+import { zeitpunkt } from "./zone";
 
-// Mittwoch, 9. September 2026, 13:05 — lokale Zeit, wie im Browser.
-const d = new Date(2026, 8, 9, 13, 5);
+// Mittwoch, 9. September 2026, 13:05 in Amsterdam. Über zeitpunkt()
+// statt `new Date(2026, 8, 9, 13, 5)`: Das wäre 13:05 in der Zone des
+// Testlaufs, und auf einem Rechner in UTC dann 15:05 in Amsterdam.
+const d = zeitpunkt("2026-09-09", "13:05");
 
 describe("formats — Deutsch", () => {
   const f = formats("de");

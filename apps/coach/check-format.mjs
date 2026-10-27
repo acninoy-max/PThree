@@ -31,8 +31,11 @@ import { dirname } from "node:path";
 const HIER = dirname(fileURLToPath(import.meta.url));
 const APP = join(HIER, "app");
 
-/** Die eine Datei, in der gebietsabhängige Formate stehen dürfen. */
-const ERLAUBT = new Set([join(APP, "format.ts")]);
+/** Die Dateien, in denen gebietsabhängige Formate stehen dürfen. */
+// zone.ts liest mit Intl nur Ziffern (Stunde, Tag in Amsterdam), keine
+// Namen und keine Reihenfolge — genau das, was zwischen Node und Safari
+// gleich ist. Formatiert wird weiter ausschließlich in format.ts.
+const ERLAUBT = new Set([join(APP, "format.ts"), join(APP, "zone.ts")]);
 
 const MUSTER = [
   {

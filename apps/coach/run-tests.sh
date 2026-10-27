@@ -8,6 +8,7 @@
 #
 #   app/plan-week.ts            Datumsrechnung (Zeitzonen-Bug 09.09.)
 #   app/format.ts               Datums- und Zahlenformate je Sprache
+#   app/zone.ts                 Uhrzeit und Kalendertag in Amsterdam
 #   app/datum-teile.ts          Geburtsdatum aus Tag/Monat/Jahr
 #   app/training-entwurf.ts     Zwischenspeicher fuer laufendes Training
 #   app/i18n/locale.ts          Welche Sprache eine Anfrage bekommt
@@ -61,6 +62,8 @@ cat > "$ZIEL/tsconfig.json" <<JSON
   },
   "files": [
     "$HIER/app/format.ts",
+    "$HIER/app/zone.ts",
+    "$HIER/app/zone.test.ts",
     "$HIER/app/format.test.ts",
     "$HIER/app/datum-teile.ts",
     "$HIER/app/datum-teile.test.ts",

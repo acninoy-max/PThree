@@ -12,6 +12,7 @@ import { IconChevronRight } from "@/app/icons";
 import { getLocale, getT } from "@/app/i18n/server";
 import { EntwurfHinweis } from "./entwurf-hinweis";
 import { entwurfSchluessel } from "@/app/training-entwurf";
+import { montagVon, tagISO, wand } from "@/app/zone";
 
 export const dynamic = "force-dynamic";
 
@@ -49,22 +50,22 @@ export default async function AthleteHome() {
   const next = appointments[0];
   const last = sessions[sessions.length - 1];
 
+  // „Heute" und „diese Woche" in Amsterdam, nicht in der Zone des
+  // Servers (UTC) — sonst galt ein Training um 00:30 als gestern.
   const today = new Date();
-  const trainedToday =
-    last && new Date(last.performedAt).toDateString() === today.toDateString();
+  const heute = tagISO(today);
+  const trainedToday = last && tagISO(new Date(last.performedAt)) === heute;
 
   // Offenes Check-in dieser Woche (Montag als Wochenanfang).
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
   const { data: checkIn } = await db
     .from("check_ins")
     .select("id, submitted_at, coach_reply")
-    .eq("week_of", monday.toISOString().slice(0, 10))
+    .eq("week_of", montagVon(heute))
     .maybeSingle();
 
   return (
     <main className="gym-shell" style={{ paddingTop: 26 }}>
-      <p className="gym-label">{h.greeting(today.getHours())}</p>
+      <p className="gym-label">{h.greeting(wand(today).stunde)}</p>
       <h1 style={{ margin: "3px 0 22px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
         {firstName}
       </h1>
