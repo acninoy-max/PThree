@@ -47,6 +47,8 @@ export const fehler: Dict["fehler"] = {
       "This client is already linked to another account. Sign in with the address you used first, or ask your coach to remove the link.",
     linkFailed:
       "The link couldn't be set. Please tell your coach. It's not your fault.",
+    otherCoach: "Your account is already linked to another coach. Ask your previous coach to press “Remove access” in your file, then open this link again.",
+    unlinkFailed: "The link could not be removed. Please try again.",
     noAccess: "No access to this client.",
     programNotFound: "Program not found.",
     coachingTypeOnlyCoach: "Only the coach can change the coaching type.",

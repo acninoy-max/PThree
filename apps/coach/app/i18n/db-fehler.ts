@@ -23,6 +23,8 @@ const ANFAENGE: [string, DbKey][] = [
   ["Dieser Klient ist bereits mit einem anderen Zugang", "clientTaken"],
   ["Die Verknuepfung konnte nicht gesetzt werden", "linkFailed"],
   ["Kein Zugriff auf diesen Klienten", "noAccess"],
+  ["Dein Zugang ist schon bei einem anderen Trainer", "otherCoach"],
+  ["Die Verknuepfung konnte nicht geloest", "unlinkFailed"],
   ["Programm nicht gefunden", "programNotFound"],
   ["Plan nicht gefunden", "planNotFound"],
   ["Einheit ist bestaetigt und gesperrt", "sessionLocked"],

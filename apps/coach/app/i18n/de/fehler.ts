@@ -47,6 +47,8 @@ export const fehler = {
       "Dieser Klient ist bereits mit einem anderen Zugang verknüpft. Melde dich mit der Adresse an, die du zuerst benutzt hast, oder bitte deinen Trainer, die Verknüpfung zu lösen.",
     linkFailed:
       "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer. Es liegt nicht an dir.",
+    otherCoach: "Dein Zugang ist schon bei einem anderen Trainer verknüpft. Bitte deinen bisherigen Trainer, in deiner Akte „Zugang trennen“ zu drücken, und öffne den Link danach noch einmal.",
+    unlinkFailed: "Die Verknüpfung konnte nicht gelöst werden. Bitte noch einmal versuchen.",
     noAccess: "Kein Zugriff auf diesen Klienten.",
     programNotFound: "Programm nicht gefunden.",
     coachingTypeOnlyCoach: "Nur der Trainer kann die Coaching-Art ändern.",

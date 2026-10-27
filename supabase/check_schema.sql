@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0034 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0035 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -645,6 +645,20 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0034', 'Check-in-Schutz kennt Eintraege des Trainers',
          coalesce((select prosrc like '%entered_by%'
           from pg_proc where proname = 'guard_check_in_columns'), false)
+
+  -- 0035: Ein Konto, ein Klient
+  union all
+  select 1, '0035', 'Einladung lehnt Konto mit anderem Trainer ab',
+         coalesce((select prosrc like '%profile_id = auth.uid() and id <> v_client%'
+          from pg_proc where proname = 'accept_client_invite'), false)
+  union all
+  -- Wenn diese Zeile rot ist, haengt ein Konto an zwei Klienten — die
+  -- Athleten-App bricht fuer diesen Nutzer.
+  select 1, '0035', 'kein Konto an mehr als einen Klienten gebunden',
+         (select count(*) = 0 from (
+            select profile_id from clients
+             where profile_id is not null
+             group by profile_id having count(*) > 1) doppelt)
 
   -- 0007: Check-in-Schutz
   union all
