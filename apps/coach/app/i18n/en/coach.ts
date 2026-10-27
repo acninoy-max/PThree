@@ -184,6 +184,8 @@ export const coach: Dict["coach"] = {
     withoutPlan: " · without plan",
     recordedByYou: " · recorded by you",
     bwShort: "BW",
+    weeklyGoal: (ziel, ist, wochen) =>
+      `Goal ${ziel}× a week (this week ${ist}), streak ${wochen} ${wochen === 1 ? "week" : "weeks"}`,
     since: (date) => `client since ${date}`,
     tabsAria: "Client file sections",
     tabs: { track: "Track", checkins: "Check-ins", progress: "Progress" },

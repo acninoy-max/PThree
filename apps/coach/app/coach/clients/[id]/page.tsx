@@ -48,6 +48,7 @@ import {
 } from "./sections";
 import { Fragment, type ReactNode } from "react";
 import { EinheitBestaetigen } from "@/app/coach/track/einheit-bestaetigen";
+import { berechneSerie } from "@/app/serie";
 
 export const dynamic = "force-dynamic";
 
@@ -206,6 +207,9 @@ export default async function ClientDetailPage({
 
   const insights = analyseClient(client, sessions);
   const recent = [...sessions].reverse().slice(0, 6);
+  const serie = client.weeklyGoal
+    ? berechneSerie(sessions, client.weeklyGoal, new Date())
+    : null;
 
   /**
    * Volumen je Trainingstag — vorgerechnet, damit der Block unten nur
@@ -579,6 +583,9 @@ export default async function ClientDetailPage({
             >
               {t.labels.level[client.level]} ·{" "}
               {A.since(t.fmt.dateMedium(parseDay(client.startedOn)))}
+              {/* Ziel und Serie des Klienten (0036): Eine abreißende Serie
+                  ist ein früher Hinweis, dass jemand abspringt. */}
+              {serie && ` · ${A.weeklyGoal(serie.ziel, serie.dieseWoche, serie.wochen)}`}
             </p>
           </div>
         </div>

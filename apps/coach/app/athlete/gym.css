@@ -1161,3 +1161,43 @@
 .gym-verlauf[open] summary::after {
   transform: rotate(90deg);
 }
+
+/* ---------- Wochenziel und Serie (serie-karte.tsx) ---------- */
+.gym-wochenwahl {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.gym-wochenwahl__knopf {
+  padding: 10px 0;
+  border-radius: 10px;
+  border: 1px solid var(--g-border);
+  background: var(--g-surface);
+  color: var(--g-text);
+  font-size: var(--pt-fs-md);
+  font-weight: 700;
+}
+.gym-wochenwahl__knopf[data-active="true"] {
+  background: var(--g-text);
+  color: var(--g-surface);
+  border-color: var(--g-text);
+}
+.gym-flamme {
+  font-size: var(--pt-fs-xl);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.gym-punkte {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.gym-punkte span {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--g-border);
+}
+.gym-punkte span[data-voll="true"] {
+  background: var(--g-accent);
+}

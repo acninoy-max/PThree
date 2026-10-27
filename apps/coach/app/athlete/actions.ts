@@ -381,3 +381,34 @@ export async function setProgressSelectionAction(
   revalidatePath("/athlete/progress");
   return { ok: true };
 }
+
+// ---------- Wochenziel (0036) ----------
+
+/**
+ * Der Klient setzt sein Wochenziel selbst — Grundlage der Serie
+ * (app/serie.ts). Zurückgelesen, ob es angekommen ist (Regel 3).
+ */
+export async function setWeeklyGoalAction(goal: number): Promise<SaveResult> {
+  const t = getT();
+  if (!Number.isInteger(goal) || goal < 1 || goal > 7) {
+    return { ok: false, error: t.athlete.streak.goalRange };
+  }
+  const db = createServerSupabase();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+
+  const { data, error } = await db
+    .from("clients")
+    .update({ weekly_goal: goal })
+    .eq("profile_id", user.id)
+    .select("weekly_goal");
+  if (error) return { ok: false, error: error.message };
+  if (!data || data.length !== 1 || data[0]!.weekly_goal !== goal) {
+    return { ok: false, error: t.athlete.streak.notSaved };
+  }
+
+  revalidatePath("/athlete");
+  return { ok: true };
+}

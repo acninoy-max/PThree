@@ -10,6 +10,7 @@
 #   app/format.ts               Datums- und Zahlenformate je Sprache
 #   app/zone.ts                 Uhrzeit und Kalendertag in Amsterdam
 #   app/letzte-saetze.ts        Was letztes Mal in jedem Satz stand
+#   app/serie.ts                Wochenziel und Serie des Klienten
 #   app/datum-teile.ts          Geburtsdatum aus Tag/Monat/Jahr
 #   app/training-entwurf.ts     Zwischenspeicher fuer laufendes Training
 #   app/i18n/locale.ts          Welche Sprache eine Anfrage bekommt
@@ -65,6 +66,8 @@ cat > "$ZIEL/tsconfig.json" <<JSON
     "$HIER/app/format.ts",
     "$HIER/app/zone.ts",
     "$HIER/app/zone.test.ts",
+    "$HIER/app/serie.ts",
+    "$HIER/app/serie.test.ts",
     "$HIER/app/letzte-saetze.ts",
     "$HIER/app/letzte-saetze.test.ts",
     "$HIER/app/athlete/checkin/rhythmus.ts",

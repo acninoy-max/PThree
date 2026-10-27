@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0035 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0036 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -659,6 +659,12 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
             select profile_id from clients
              where profile_id is not null
              group by profile_id having count(*) > 1) doppelt)
+
+  -- 0036: Wochenziel
+  union all
+  select 1, '0036', 'clients.weekly_goal vorhanden',
+         exists (select 1 from information_schema.columns
+                  where table_name = 'clients' and column_name = 'weekly_goal')
 
   -- 0007: Check-in-Schutz
   union all

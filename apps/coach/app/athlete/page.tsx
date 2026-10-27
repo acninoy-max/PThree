@@ -13,6 +13,8 @@ import { getLocale, getT } from "@/app/i18n/server";
 import { EntwurfHinweis } from "./entwurf-hinweis";
 import { entwurfSchluessel } from "@/app/training-entwurf";
 import { montagVon, tagISO, wand } from "@/app/zone";
+import { SerieKarte } from "./serie-karte";
+import { berechneSerie } from "@/app/serie";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +29,9 @@ export default async function AthleteHome() {
   const [{ data: profile }, sessions, appointments, exercises, plans] =
     await Promise.all([
       db.from("profiles").select("full_name").eq("id", user!.id).maybeSingle(),
-      fetchSessions(db, { sinceDays: 60 }),
+      // Ein Jahr: Die Serie (serie.ts) zählt Wochen zurück, und eine
+      // lange Serie soll nicht an der Abfragegrenze abreißen.
+      fetchSessions(db, { sinceDays: 365 }),
       fetchUpcomingAppointments(db, 14),
       fetchExercises(db, getLocale()),
       fetchPlans(db),
@@ -42,6 +46,15 @@ export default async function AthleteHome() {
   let lastPlanDayId: string | null = null;
   for (const s of sessions) if (s.planDayId) lastPlanDayId = s.planDayId;
   const nextDay = naechsterTag(planDays, lastPlanDayId);
+
+  // Wochenziel und Serie (0036). `*`, damit es vor 0036 nicht bricht.
+  const { data: ich } = await db
+    .from("clients")
+    .select("*")
+    .eq("profile_id", user!.id)
+    .maybeSingle();
+  const ziel = (ich?.weekly_goal as number | null | undefined) ?? null;
+  const serie = ziel ? berechneSerie(sessions, ziel, new Date()) : null;
 
   const firstName = (profile?.full_name ?? "").split(" ")[0] || h.fallbackName;
   const next = appointments[0];
@@ -71,6 +84,9 @@ export default async function AthleteHome() {
           als Nächstes. Vorher fiel der Plan nach dem ersten Training aus
           der Karte heraus und wirkte, als wäre er verschwunden. */}
       <EntwurfHinweis entwurfKey={entwurfSchluessel("athlet", user!.id)} />
+
+      {/* Nur für Klienten mit Trainer — ohne Klientenzeile gibt es kein Ziel. */}
+      {ich && <SerieKarte serie={serie} />}
 
       <div className="gym-card" style={{ marginBottom: 12 }}>
         <p className="gym-label">{h.training}</p>

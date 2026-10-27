@@ -70,6 +70,8 @@ export interface Client {
    * hybrid = beides (0034). Vor 0034: hybrid, das bisherige Verhalten.
    */
   coachingType: CoachingType;
+  /** Trainingstage pro Woche, die der Klient sich vornimmt (0036). null = offen. */
+  weeklyGoal: number | null;
   goal: string | null;
   startedOn: ISODate;
   createdAt: ISODateTime;

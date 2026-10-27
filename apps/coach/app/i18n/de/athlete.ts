@@ -29,6 +29,25 @@ export const athlete = {
     byCoach: " · von deinem Trainer eingetragen",
     reps: (n: number) => `${n} Wdh.`,
   },
+  streak: {
+    label: "Dein Wochenziel",
+    question: "Wie oft willst du pro Woche trainieren?",
+    questionHint: "Setz dir ein Ziel, das du schaffen kannst. Jede Woche, in der du es erreichst, verlängert deine Serie.",
+    thisWeek: (ist: number, ziel: number) => `Diese Woche ${ist} von ${ziel}`,
+    streakAria: (n: number) => `${n} ${n === 1 ? "Woche" : "Wochen"} in Folge`,
+    reached: (n: number) =>
+      `Ziel erreicht. ${n} ${n === 1 ? "Woche" : "Wochen"} in Folge, stark.`,
+    tight: (n: number) =>
+      n === 1
+        ? "Noch 1 Training, dann hält deine Serie."
+        : `Noch ${n} Trainings, dann hält deine Serie. Jeder Tag zählt.`,
+    keepGoing: (n: number, wochen: number) =>
+      `Noch ${n} bis zum Ziel. Deine Serie steht bei ${wochen} ${wochen === 1 ? "Woche" : "Wochen"}.`,
+    start: (n: number) => `Noch ${n} bis zum Ziel. Schaffst du es, beginnt deine Serie.`,
+    change: "Ziel ändern",
+    goalRange: "Das Ziel muss zwischen 1 und 7 Tagen liegen.",
+    notSaved: "Das Ziel wurde nicht gespeichert. Bitte noch einmal versuchen.",
+  },
   plan: {
     confirmedByCoach: "vom Coach bestätigt",
     archive: "Archiv: frühere Pläne",

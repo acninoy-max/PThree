@@ -30,6 +30,24 @@ export const athlete: Dict["athlete"] = {
     byCoach: " · entered by your coach",
     reps: (n) => `${n} reps`,
   },
+  streak: {
+    label: "Your weekly goal",
+    question: "How often do you want to train per week?",
+    questionHint: "Pick a goal you can actually hit. Every week you reach it extends your streak.",
+    thisWeek: (ist, ziel) => `This week ${ist} of ${ziel}`,
+    streakAria: (n) => `${n} ${n === 1 ? "week" : "weeks"} in a row`,
+    reached: (n) => `Goal reached. ${n} ${n === 1 ? "week" : "weeks"} in a row, strong.`,
+    tight: (n) =>
+      n === 1
+        ? "1 more session and your streak holds."
+        : `${n} more sessions and your streak holds. Every day counts.`,
+    keepGoing: (n, wochen) =>
+      `${n} more to your goal. Your streak is at ${wochen} ${wochen === 1 ? "week" : "weeks"}.`,
+    start: (n) => `${n} more to your goal. Hit it and your streak begins.`,
+    change: "Change goal",
+    goalRange: "The goal must be between 1 and 7 days.",
+    notSaved: "The goal was not saved. Please try again.",
+  },
   plan: {
     confirmedByCoach: "confirmed by coach",
     archive: "Archive: earlier plans",

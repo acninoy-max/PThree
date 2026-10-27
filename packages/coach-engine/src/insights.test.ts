@@ -27,6 +27,7 @@ function client(overrides: Partial<Client> = {}): Client {
     status: "active",
     level: "intermediate",
     coachingType: "hybrid",
+    weeklyGoal: null,
     goal: null,
     startedOn: "2026-05-01",
     createdAt: "2026-05-01T09:00:00Z",

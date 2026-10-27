@@ -191,6 +191,8 @@ export const coach = {
     recordedByYou: " · von dir erfasst",
     /** Körpergewicht in der Satzliste: „12×KG". */
     bwShort: "KG",
+    weeklyGoal: (ziel: number, ist: number, wochen: number) =>
+      `Ziel ${ziel}× pro Woche (diese Woche ${ist}), Serie ${wochen} ${wochen === 1 ? "Woche" : "Wochen"}`,
     since: (datum: string) => `dabei seit ${datum}`,
     tabsAria: "Bereiche der Klientenakte",
     tabs: { track: "Tracken", checkins: "Check-ins", progress: "Progress" },
