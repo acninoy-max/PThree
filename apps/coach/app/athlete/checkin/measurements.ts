@@ -1,5 +1,6 @@
 import type { CheckInFields, CheckInRecord } from "@ptfive/db";
 import type { Dict } from "@/app/i18n";
+import { bereichFaellig } from "./rhythmus";
 
 export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh";
 
@@ -97,23 +98,61 @@ export function isMeasureWeek(
   thisWeekOf: string,
 ): boolean {
   if (activeMeasures(fields).length === 0) return false;
-
-  const measured = history
-    .filter((c) => MEASURE_KEYS.some((k) => c[MEASURE_INFO[k].field] !== null))
-    .map((c) => c.weekOf)
-    .sort();
-
-  const last = measured[measured.length - 1];
-  // Noch nie gemessen: gleich beim ersten Mal fragen.
-  if (!last) return true;
-  // In dieser Woche schon gemessen: Felder bleiben sichtbar, damit man
-  // korrigieren kann.
-  if (last === thisWeekOf) return true;
-
-  const weeks = Math.round(
-    (new Date(`${thisWeekOf}T00:00:00`).getTime() -
-      new Date(`${last}T00:00:00`).getTime()) /
-      (7 * 86_400_000),
+  return bereichFaellig(history, thisWeekOf, fields.measureEveryWeeks, (c) =>
+    MEASURE_KEYS.some((k) => c[MEASURE_INFO[k].field] !== null),
   );
-  return weeks >= fields.measureEveryWeeks;
+}
+
+/** Gewicht diese Woche abfragen? (Rhythmus seit 0034) */
+export function isWeightWeek(
+  history: readonly CheckInRecord[],
+  fields: CheckInFields,
+  thisWeekOf: string,
+): boolean {
+  if (!fields.askWeight) return false;
+  return bereichFaellig(history, thisWeekOf, fields.weightEveryWeeks, (c) => c.weightKg !== null);
+}
+
+/** Energie, Schlaf, Stress diese Woche abfragen? (Rhythmus seit 0034) */
+export function isWellbeingWeek(
+  history: readonly CheckInRecord[],
+  fields: CheckInFields,
+  thisWeekOf: string,
+): boolean {
+  if (!fields.askEnergy && !fields.askSleep && !fields.askStress) return false;
+  return bereichFaellig(
+    history,
+    thisWeekOf,
+    fields.wellbeingEveryWeeks,
+    (c) => c.energy !== null || c.sleep !== null || c.stress !== null,
+  );
+}
+
+export interface FaelligeBereiche {
+  weight: boolean;
+  wellbeing: boolean;
+  measures: boolean;
+}
+
+/**
+ * Was der Klient diese Woche selbst ausfüllen soll.
+ *
+ * Eine Stelle für Formular UND Speichern: Das Speichern schreibt nur die
+ * Bereiche, die hier dran sind. Sonst löschte ein abgeschicktes Check-in
+ * die Maße, die der Trainer am Montag im Studio eingetragen hat.
+ *
+ * Personal Training (0034): Maße nimmt der Trainer, der Klient wird
+ * nicht danach gefragt.
+ */
+export function faelligeBereiche(
+  history: readonly CheckInRecord[],
+  fields: CheckInFields,
+  coachingType: "personal" | "online" | "hybrid",
+  thisWeekOf: string,
+): FaelligeBereiche {
+  return {
+    weight: isWeightWeek(history, fields, thisWeekOf),
+    wellbeing: isWellbeingWeek(history, fields, thisWeekOf),
+    measures: coachingType !== "personal" && isMeasureWeek(history, fields, thisWeekOf),
+  };
 }

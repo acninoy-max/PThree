@@ -39,6 +39,11 @@ export const labels = {
     isolation: "Isolation",
     core: "Rumpf",
   } satisfies Record<TrainingBlock, string> as Record<TrainingBlock, string>,
+  coachingType: {
+    personal: "Personal Training: du misst im Studio",
+    online: "Online Coaching: Klient misst selbst",
+    hybrid: "Beides",
+  },
   level: {
     beginner: "Einsteiger",
     intermediate: "Fortgeschritten",

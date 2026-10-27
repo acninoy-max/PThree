@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { getT } from "@/app/i18n/server";
 import { dbFehler, dbHinweis } from "@/app/i18n/db-fehler";
-import { montagVon, plusTage, zeitpunkt } from "@/app/zone";
+import { montagVon, plusTage, tagISO, zeitpunkt } from "@/app/zone";
 
 /**
  * Schreibende Vorgänge.
@@ -29,6 +29,7 @@ export async function createClientAction(
   // Leer heisst leer, nicht 1970: Ein leeres Datumsfeld schickt "".
   const birthDate = String(form.get("birthDate") ?? "").trim();
   const goal = String(form.get("goal") ?? "").trim();
+  const coachingType = String(form.get("coachingType") ?? "personal");
 
   if (fullName.length < 2) {
     return { ok: false, error: t.coach.actions.nameMissing };
@@ -57,6 +58,9 @@ export async function createClientAction(
       email: email || null,
       birth_date: birthDate || null,
       level,
+      coaching_type: ["personal", "online", "hybrid"].includes(coachingType)
+        ? coachingType
+        : "personal",
       goal: goal || null,
     })
     .select("id")
@@ -91,6 +95,7 @@ export async function updateClientAction(
   const status = form.get("status");
   const email = form.get("email");
   const birthDate = form.get("birthDate");
+  const coachingType = form.get("coachingType");
 
   if (typeof fullName === "string" && fullName.trim()) {
     patch.full_name = fullName.trim();
@@ -99,14 +104,26 @@ export async function updateClientAction(
   if (typeof level === "string") patch.level = level;
   if (typeof status === "string") patch.status = status;
   if (typeof email === "string") patch.email = email.trim() || null;
+  if (typeof coachingType === "string" && ["personal", "online", "hybrid"].includes(coachingType)) {
+    patch.coaching_type = coachingType;
+  }
   // Leeres Feld = kein Datum. Ohne diese Zeile schickt der Browser ""
   // und Postgres lehnt es als ungueltiges Datum ab.
   if (typeof birthDate === "string") {
     patch.birth_date = birthDate.trim() || null;
   }
 
-  const { error } = await db.from("clients").update(patch).eq("id", clientId);
-  if (error) return { ok: false, error: error.message };
+  // Zurücklesen: Ein update, das die Zeilensicherheit ausfiltert, meldet
+  // sonst Erfolg (Regel 3).
+  const { data: geaendert, error } = await db
+    .from("clients")
+    .update(patch)
+    .eq("id", clientId)
+    .select("id");
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
+  if (!geaendert || geaendert.length !== 1) {
+    return { ok: false, error: t.coach.actions.clientNotSaved };
+  }
 
   revalidatePath(`/coach/clients/${clientId}`);
   revalidatePath("/coach/clients");
@@ -319,10 +336,13 @@ export async function updateCheckInConfigAction(
     askArm: boolean;
     askThigh: boolean;
     measureEveryWeeks: number;
+    weightEveryWeeks: number;
+    wellbeingEveryWeeks: number;
   },
 ): Promise<ActionResult> {
   const t = getT();
-  if (fields.measureEveryWeeks < 1 || fields.measureEveryWeeks > 26) {
+  const rhythmen = [fields.measureEveryWeeks, fields.weightEveryWeeks, fields.wellbeingEveryWeeks];
+  if (rhythmen.some((w) => !Number.isInteger(w) || w < 1 || w > 26)) {
     return {
       ok: false,
       error: t.coach.actions.rhythmRange,
@@ -344,10 +364,14 @@ export async function updateCheckInConfigAction(
       ask_arm: fields.askArm,
       ask_thigh: fields.askThigh,
       measure_every_weeks: fields.measureEveryWeeks,
+      // Spalten aus 0034. Immer mitschicken — „nur wenn nicht Standard"
+      // hätte ein Zurückstellen auf jede Woche still verschluckt.
+      weight_every_weeks: fields.weightEveryWeeks,
+      wellbeing_every_weeks: fields.wellbeingEveryWeeks,
     },
     { onConflict: "client_id" },
   );
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
 
   revalidatePath(`/coach/clients/${clientId}`);
   revalidatePath("/athlete/checkin");
@@ -409,4 +433,119 @@ export async function unlinkClientAction(
 
   revalidatePath(`/coach/clients/${clientId}`);
   return { ok: true, hinweis: dbHinweis(t, data as string) };
+}
+
+// ---------- Check-in durch den Trainer (0034) ----------
+
+export interface CoachCheckInInput {
+  weightKg: number | null;
+  energy: number | null;
+  sleep: number | null;
+  stress: number | null;
+  /** Spaltenname → Zentimeter. Nur ausgefüllte Maße. */
+  measures: Partial<Record<"shoulders_cm" | "chest_cm" | "waist_cm" | "arm_cm" | "thigh_cm", number>>;
+}
+
+export type CoachCheckInResult =
+  | { ok: true; kept: number }
+  | { ok: false; error: string };
+
+const CM_GRENZEN: Record<keyof CoachCheckInInput["measures"], [number, number]> = {
+  shoulders_cm: [50, 250],
+  chest_cm: [50, 250],
+  waist_cm: [40, 250],
+  arm_cm: [15, 100],
+  thigh_cm: [25, 150],
+};
+
+/**
+ * Der Trainer trägt das Check-in dieser Woche ein — im Studio, mit
+ * Waage und Maßband (Meeting 27.10.).
+ *
+ * Dieselben Regeln wie der Trigger guard_check_in_columns (0034), damit
+ * der Trainer eine Erklärung bekommt statt einer Datenbankmeldung:
+ *   - noch keine Zeile diese Woche: wird seine, er trägt alles ein
+ *   - seine eigene Zeile: er darf alles ändern
+ *   - Zeile des Klienten: nur LEERE Maße ergänzen; alles andere bleibt,
+ *     wie der Klient es angegeben hat (`kept` zählt, was liegen blieb)
+ */
+export async function saveCoachCheckInAction(
+  clientId: string,
+  input: CoachCheckInInput,
+): Promise<CoachCheckInResult> {
+  const t = getT();
+  const db = createServerSupabase();
+  const {
+    data: { user },
+  } = await db.auth.getUser();
+  if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
+
+  if (input.weightKg !== null && (input.weightKg < 25 || input.weightKg > 350)) {
+    return { ok: false, error: t.fehler.action.weightImplausible };
+  }
+  for (const [spalte, wert] of Object.entries(input.measures)) {
+    const [min, max] = CM_GRENZEN[spalte as keyof typeof CM_GRENZEN];
+    if (wert === undefined || wert < min || wert > max) {
+      return { ok: false, error: t.coach.checkinEntry.cmRange };
+    }
+  }
+  const skala = (v: number | null) => (v === null || v < 1 || v > 5 ? null : Math.round(v));
+
+  // Woche nach Amsterdam, wie überall (zone.ts).
+  const woche = montagVon(tagISO(new Date()));
+  const { data: vorhanden, error: leseFehler } = await db
+    .from("check_ins")
+    .select("*")
+    .eq("client_id", clientId)
+    .eq("week_of", woche)
+    .maybeSingle();
+  if (leseFehler) return { ok: false, error: dbFehler(t, leseFehler.message) };
+
+  const alles: Record<string, unknown> = {
+    weight_kg: input.weightKg === null ? null : Math.round(input.weightKg * 100) / 100,
+    energy: skala(input.energy),
+    sleep: skala(input.sleep),
+    stress: skala(input.stress),
+    ...input.measures,
+  };
+
+  let ergebnis;
+  let liegenGeblieben = 0;
+  if (!vorhanden) {
+    ergebnis = await db
+      .from("check_ins")
+      .insert({
+        client_id: clientId,
+        coach_id: user.id,
+        week_of: woche,
+        submitted_at: new Date().toISOString(),
+        ...alles,
+      })
+      .select("id");
+  } else if (vorhanden.entered_by === user.id) {
+    ergebnis = await db.from("check_ins").update(alles).eq("id", vorhanden.id).select("id");
+  } else {
+    // Zeile des Klienten: nur leere Maße ergänzen.
+    const ergaenzen: Record<string, number> = {};
+    for (const [spalte, wert] of Object.entries(input.measures)) {
+      if (wert === undefined) continue;
+      if (vorhanden[spalte] === null || vorhanden[spalte] === undefined) ergaenzen[spalte] = wert;
+      else liegenGeblieben += 1;
+    }
+    for (const spalte of ["weight_kg", "energy", "sleep", "stress"]) {
+      if (alles[spalte] !== null && alles[spalte] !== undefined) liegenGeblieben += 1;
+    }
+    if (Object.keys(ergaenzen).length === 0) {
+      return { ok: true, kept: liegenGeblieben };
+    }
+    ergebnis = await db.from("check_ins").update(ergaenzen).eq("id", vorhanden.id).select("id");
+  }
+
+  if (ergebnis.error) return { ok: false, error: dbFehler(t, ergebnis.error.message) };
+  if (!ergebnis.data || ergebnis.data.length !== 1) {
+    return { ok: false, error: t.coach.checkinEntry.notSaved };
+  }
+
+  revalidatePath(`/coach/clients/${clientId}`);
+  return { ok: true, kept: liegenGeblieben };
 }

@@ -44,6 +44,8 @@ export interface Coach {
 
 export type ClientStatus = "active" | "paused" | "archived";
 
+export type CoachingType = "personal" | "online" | "hybrid";
+
 export interface Client {
   id: UUID;
   coachId: UUID;
@@ -63,6 +65,11 @@ export interface Client {
   avatarPath: string | null;
   status: ClientStatus;
   level: "beginner" | "intermediate" | "pro";
+  /**
+   * personal = Trainer misst im Studio, online = Klient misst selbst,
+   * hybrid = beides (0034). Vor 0034: hybrid, das bisherige Verhalten.
+   */
+  coachingType: CoachingType;
   goal: string | null;
   startedOn: ISODate;
   createdAt: ISODateTime;

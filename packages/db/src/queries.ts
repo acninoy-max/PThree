@@ -30,6 +30,8 @@ interface ClientRow {
   avatar_path: string | null;
   status: Client["status"];
   level: Client["level"];
+  /** Fehlt vor 0034. */
+  coaching_type?: Client["coachingType"];
   goal: string | null;
   started_on: string;
   created_at: string;
@@ -47,6 +49,7 @@ function toClient(row: ClientRow): Client {
     avatarPath: row.avatar_path ?? null,
     status: row.status,
     level: row.level,
+    coachingType: row.coaching_type ?? "hybrid",
     goal: row.goal,
     startedOn: row.started_on,
     createdAt: row.created_at,
@@ -515,14 +518,14 @@ export async function fetchOpenCheckIns(
 ): Promise<OpenCheckIn[]> {
   const { data, error } = await db
     .from("check_ins")
-    .select(
-      "id, client_id, week_of, submitted_at, weight_kg, energy, sleep, stress, client_note",
-    )
+    .select("*")
     .not("submitted_at", "is", null)
     .is("coach_replied_at", null)
     .order("submitted_at", { ascending: false });
   if (error) throw new Error(`Check-ins laden fehlgeschlagen: ${error.message}`);
-  return (data ?? []).map((r) => ({
+  // Was der Trainer selbst eingetragen hat, wartet nicht auf seine
+  // Antwort (0034). Im Code gefiltert, damit es vor 0034 nicht bricht.
+  return (data ?? []).filter((r) => !r.entered_by).map((r) => ({
     id: r.id as string,
     clientId: r.client_id as string,
     weekOf: r.week_of as string,
@@ -555,10 +558,13 @@ export interface CheckInRecord {
   thighCm: number | null;
   coachReply: string | null;
   coachRepliedAt: string | null;
+  /** Vom Trainer eingetragen (0034); null = vom Klienten. */
+  enteredBy: string | null;
 }
 
-const CHECK_IN_FIELDS =
-  "id, client_id, coach_id, week_of, submitted_at, weight_kg, energy, sleep, stress, client_note, shoulders_cm, chest_cm, waist_cm, arm_cm, thigh_cm, coach_reply, coach_replied_at";
+// `*` statt Spaltenliste: Spalten aus späteren Migrationen (entered_by,
+// 0034) dürfen fehlen, ohne dass jede Check-in-Seite bricht.
+const CHECK_IN_FIELDS = "*";
 
 /** numeric kommt als String aus Postgres; null bleibt null. */
 function cmOrNull(v: unknown): number | null {
@@ -585,6 +591,7 @@ function toCheckIn(r: Record<string, unknown>): CheckInRecord {
     thighCm: cmOrNull(r.thigh_cm),
     coachReply: (r.coach_reply as string | null) ?? null,
     coachRepliedAt: (r.coach_replied_at as string | null) ?? null,
+    enteredBy: (r.entered_by as string | null | undefined) ?? null,
   };
 }
 
@@ -660,6 +667,9 @@ export interface CheckInFields {
   askThigh: boolean;
   /** Alle wie viele Wochen das Massband herauskommt. */
   measureEveryWeeks: number;
+  /** Rhythmus für Gewicht und für Befinden (Energie, Schlaf, Stress), 0034. */
+  weightEveryWeeks: number;
+  wellbeingEveryWeeks: number;
 }
 
 /** Gelten, solange der Coach nichts eingestellt hat. */
@@ -678,6 +688,8 @@ export const DEFAULT_CHECK_IN_FIELDS: CheckInFields = {
   askArm: false,
   askThigh: false,
   measureEveryWeeks: 4,
+  weightEveryWeeks: 1,
+  wellbeingEveryWeeks: 1,
 };
 
 export async function fetchCheckInConfig(
@@ -686,9 +698,9 @@ export async function fetchCheckInConfig(
 ): Promise<CheckInFields> {
   const { data, error } = await db
     .from("check_in_configs")
-    .select(
-      "ask_weight, ask_energy, ask_sleep, ask_stress, ask_free_text, due_weekday, ask_shoulders, ask_chest, ask_waist, ask_arm, ask_thigh, measure_every_weeks",
-    )
+    // `*`: Die Rhythmus-Spalten aus 0034 dürfen fehlen. Mit fester
+    // Spaltenliste gäbe es einen Fehler, und die Standards griffen still.
+    .select("*")
     .eq("client_id", clientId)
     .maybeSingle();
   // Eine fehlende Konfiguration ist kein Fehler — dann gelten die Standards.
@@ -706,6 +718,8 @@ export async function fetchCheckInConfig(
     askArm: (data.ask_arm as boolean) ?? false,
     askThigh: (data.ask_thigh as boolean) ?? false,
     measureEveryWeeks: (data.measure_every_weeks as number) ?? 4,
+    weightEveryWeeks: (data.weight_every_weeks as number | undefined) ?? 1,
+    wellbeingEveryWeeks: (data.wellbeing_every_weeks as number | undefined) ?? 1,
   };
 }
 

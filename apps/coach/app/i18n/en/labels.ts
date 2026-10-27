@@ -29,6 +29,11 @@ export const labels: Dict["labels"] = {
     isolation: "Isolation",
     core: "Core",
   },
+  coachingType: {
+    personal: "Personal training: you measure in the gym",
+    online: "Online coaching: client measures themselves",
+    hybrid: "Both",
+  },
   level: {
     beginner: "Beginner",
     intermediate: "Intermediate",

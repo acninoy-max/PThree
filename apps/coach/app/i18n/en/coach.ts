@@ -34,6 +34,21 @@ export const coach: Dict["coach"] = {
     replace: "Replace it. The current plan moves to the archive.",
     alongside: "Keep it. This plan goes alongside, e.g. one with coach and one solo.",
   },
+  checkinEntry: {
+    open: "Record check-in",
+    title: "Record check-in",
+    intro: "For this week, e.g. after weighing and measuring in the gym. Whatever the client already entered this week stays as it is. You only add what's missing.",
+    weight: "Weight (kg)",
+    measures: "Measurements",
+    cmRange: "A measurement is outside the possible range.",
+    notSaved: "The check-in was not saved. Please try again.",
+    kept: (n) => `Saved. The client already entered ${n} ${n === 1 ? "value" : "values"} themselves, ${n === 1 ? "it stays" : "they stay"} unchanged.`,
+    scale: {
+      energy: "Energy",
+      sleep: "Sleep",
+      stress: "Stress",
+    },
+  },
   clients: {
     kicker: "Coaching",
     title: "Clients",
@@ -67,6 +82,7 @@ export const coach: Dict["coach"] = {
   },
   actions: {
     nameMissing: "Please enter a name.",
+    clientNotSaved: "The client details were not saved. Please reload the page.",
     clientNotCreated: "The client was not created.",
     invalidTime: "Invalid time.",
     appointmentsIncomplete: "Not all appointments were created. Please check the calendar.",
@@ -85,6 +101,8 @@ export const coach: Dict["coach"] = {
     emailPlaceholder: "lisa@example.com",
     emailHint: "Optional. Suggested for the invitation.",
     birthDate: "Date of birth",
+    coachingType: "Coaching type",
+    coachingTypeHint: "Decides who takes the measurements. With personal training the app does not ask the client for them.",
     level: "Level",
     levels: {
       beginner: "Beginner: technique and basics",
@@ -195,6 +213,8 @@ export const coach: Dict["coach"] = {
     email: "Email",
     birthDate: "Date of birth",
     goals: "Goals & notes",
+    coachingType: "Coaching type",
+    coachingTypeHint: "Decides who takes the measurements. With personal training the app does not ask the client for them.",
     level: "Level",
     status: "Status",
     pausedHint: "Paused clients no longer trigger inactivity hints.",
@@ -269,6 +289,8 @@ export const coach: Dict["coach"] = {
     tape: "Tape measure",
     tapeHint:
       "The athlete sees instructions for each measurement so they always measure at the same spot.",
+    weightEvery: "Weight every",
+    wellbeingEvery: "Energy, sleep, stress every",
     tapeEvery: "Tape measure every",
     weeks: (n) => `${n} ${n === 1 ? "week" : "weeks"}`,
     summary: (n, measures) => `Tape measure every ${n} weeks: ${measures}`,

@@ -283,6 +283,17 @@ export function ManageClient({
         <div className="pt-cols">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+              {M.coachingType}
+            </span>
+            <select name="coachingType" defaultValue={client.coachingType}>
+              <option value="personal">{t.labels.coachingType.personal}</option>
+              <option value="online">{t.labels.coachingType.online}</option>
+              <option value="hybrid">{t.labels.coachingType.hybrid}</option>
+            </select>
+          </label>
+
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
               {M.level}
             </span>
             <select name="level" defaultValue={client.level}>

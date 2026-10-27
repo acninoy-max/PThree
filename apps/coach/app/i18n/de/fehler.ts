@@ -49,6 +49,8 @@ export const fehler = {
       "Die Verknüpfung konnte nicht gesetzt werden. Bitte melde das deinem Trainer. Es liegt nicht an dir.",
     noAccess: "Kein Zugriff auf diesen Klienten.",
     programNotFound: "Programm nicht gefunden.",
+    coachingTypeOnlyCoach: "Nur der Trainer kann die Coaching-Art ändern.",
+    checkinClientLocked: "Was der Klient selbst angegeben hat, kann der Trainer nicht ändern.",
     sessionLocked: "Diese Einheit ist vom Trainer bestätigt und kann nicht mehr geändert werden.",
     confirmOnlyCoach: "Nur der Trainer kann eine Einheit bestätigen.",
     planNotFound: "Plan nicht gefunden.",

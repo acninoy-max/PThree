@@ -9,6 +9,8 @@ import type {
   TrainingBlock,
 } from "@ptfive/types";
 import type { MeasureKey } from "./checkin/measurements";
+import { fetchCheckInConfig, fetchMyCheckIns } from "@ptfive/db";
+import { faelligeBereiche } from "./checkin/measurements";
 
 export type SimpleResult = { ok: true } | { ok: false; error: string };
 
@@ -221,11 +223,25 @@ export async function saveCheckInAction(
 
   const { data: client } = await db
     .from("clients")
-    .select("id, coach_id")
+    // `*`: coaching_type (0034) darf fehlen.
+    .select("*")
     .eq("profile_id", user.id)
     .maybeSingle();
 
   if (!client) return { ok: false, error: t.fehler.action.noClientProfile };
+
+  // Welche Bereiche diese Woche dran sind, entscheidet der Server — mit
+  // derselben Regel wie das Formular (faelligeBereiche).
+  const [felder, verlauf] = await Promise.all([
+    fetchCheckInConfig(db, client.id as string),
+    fetchMyCheckIns(db, 26),
+  ]);
+  const dran = faelligeBereiche(
+    verlauf,
+    felder,
+    (client.coaching_type as "personal" | "online" | "hybrid" | undefined) ?? "hybrid",
+    input.weekOf,
+  );
 
   const scale = (v: number | null) =>
     v === null || v < 1 || v > 5 ? null : Math.round(v);
@@ -274,16 +290,23 @@ export async function saveCheckInAction(
     coach_id: client.coach_id,
     week_of: input.weekOf,
     submitted_at: existing?.submitted_at ?? new Date().toISOString(),
-    weight_kg: weight,
-    energy: scale(input.energy),
-    sleep: scale(input.sleep),
-    stress: scale(input.stress),
     client_note: note === "" ? null : note,
-    shoulders_cm: cm("shouldersCm"),
-    chest_cm: cm("chestCm"),
-    waist_cm: cm("waistCm"),
-    arm_cm: cm("armCm"),
-    thigh_cm: cm("thighCm"),
+    // Nur fällige Bereiche schreiben. Was nicht dran war, stand nicht im
+    // Formular — und darf nicht als „leer" überschreiben, was etwa der
+    // Trainer diese Woche eingetragen hat (0034).
+    ...(dran.weight ? { weight_kg: weight } : {}),
+    ...(dran.wellbeing
+      ? { energy: scale(input.energy), sleep: scale(input.sleep), stress: scale(input.stress) }
+      : {}),
+    ...(dran.measures
+      ? {
+          shoulders_cm: cm("shouldersCm"),
+          chest_cm: cm("chestCm"),
+          waist_cm: cm("waistCm"),
+          arm_cm: cm("armCm"),
+          thigh_cm: cm("thighCm"),
+        }
+      : {}),
   };
 
   const { error } = existing

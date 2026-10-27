@@ -67,6 +67,8 @@ cat > "$ZIEL/tsconfig.json" <<JSON
     "$HIER/app/zone.test.ts",
     "$HIER/app/letzte-saetze.ts",
     "$HIER/app/letzte-saetze.test.ts",
+    "$HIER/app/athlete/checkin/rhythmus.ts",
+    "$HIER/app/athlete/checkin/rhythmus.test.ts",
     "$HIER/app/format.test.ts",
     "$HIER/app/datum-teile.ts",
     "$HIER/app/datum-teile.test.ts",

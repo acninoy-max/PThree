@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0033 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0034 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -628,6 +628,23 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
          (select count(*) = 3 from pg_trigger
           where tgname in ('sessions_bestaetigung', 'session_slots_gesperrt', 'session_sets_gesperrt')
             and not tgisinternal)
+
+  -- 0034: Check-ins: Coaching-Art, Rhythmus je Bereich, Trainer traegt ein
+  union all
+  select 1, '0034', 'clients.coaching_type vorhanden und nur vom Trainer aenderbar',
+         exists (select 1 from information_schema.columns
+                  where table_name = 'clients' and column_name = 'coaching_type')
+         and exists (select 1 from pg_trigger
+                      where tgname = 'clients_coaching_type_guard' and not tgisinternal)
+  union all
+  select 1, '0034', 'Rhythmus fuer Gewicht und Befinden',
+         (select count(*) = 2 from information_schema.columns
+          where table_name = 'check_in_configs'
+            and column_name in ('weight_every_weeks', 'wellbeing_every_weeks'))
+  union all
+  select 1, '0034', 'Check-in-Schutz kennt Eintraege des Trainers',
+         coalesce((select prosrc like '%entered_by%'
+          from pg_proc where proname = 'guard_check_in_columns'), false)
 
   -- 0007: Check-in-Schutz
   union all

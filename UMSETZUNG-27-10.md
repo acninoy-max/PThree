@@ -1,5 +1,10 @@
 # Umsetzungsplan nach dem Meeting vom 27.10.2026
 
+**Stand:** 1–5 live. 6 (Einheit bestätigen, Trainer) mit 0033 live.
+7a (Coaching-Art, Rhythmus je Bereich, Trainer trägt ein) mit 0034
+gebaut. 7b (tägliche Werte) bleibt zurückgestellt: Check-ins bleiben
+wöchentlich (Entscheidung 27.10.).
+
 Grundlage: Notizen aus dem Meeting mit Joël. Jeder Punkt ist gegen den
 Code geprüft. Was „Befund" heißt, steht so im Code, nicht vermutet.
 

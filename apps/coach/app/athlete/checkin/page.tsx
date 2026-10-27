@@ -9,7 +9,7 @@ import { IconChevronLeft } from "@/app/icons";
 import { CheckInForm } from "./form";
 import { getT } from "@/app/i18n/server";
 import type { Dict } from "@/app/i18n";
-import { MEASURE_INFO, MEASURE_KEYS, isMeasureWeek } from "./measurements";
+import { MEASURE_INFO, MEASURE_KEYS, faelligeBereiche } from "./measurements";
 import { montagVon, plusTage, tagISO, zeitpunkt } from "@/app/zone";
 
 export const dynamic = "force-dynamic";
@@ -39,7 +39,8 @@ export default async function AthleteCheckInPage() {
 
   const { data: client } = await db
     .from("clients")
-    .select("id")
+    // `*`: coaching_type (0034) darf fehlen.
+    .select("*")
     .eq("profile_id", user!.id)
     .maybeSingle();
 
@@ -52,6 +53,12 @@ export default async function AthleteCheckInPage() {
 
   const thisWeek = mondayOf(new Date());
   const current = history.find((c) => c.weekOf === thisWeek) ?? null;
+  const dran = faelligeBereiche(
+    history,
+    fields,
+    (client?.coaching_type as "personal" | "online" | "hybrid" | undefined) ?? "hybrid",
+    thisWeek,
+  );
   const earlier = history.filter((c) => c.weekOf !== thisWeek);
 
   return (
@@ -80,8 +87,15 @@ export default async function AthleteCheckInPage() {
 
       <CheckInForm
         weekOf={thisWeek}
-        fields={fields}
-        measureWeek={isMeasureWeek(history, fields, thisWeek)}
+        // Nur, was diese Woche dran ist (Rhythmus je Bereich, 0034).
+        fields={{
+          ...fields,
+          askWeight: dran.weight,
+          askEnergy: fields.askEnergy && dran.wellbeing,
+          askSleep: fields.askSleep && dran.wellbeing,
+          askStress: fields.askStress && dran.wellbeing,
+        }}
+        measureWeek={dran.measures}
         existing={
           current && {
             weightKg: current.weightKg,

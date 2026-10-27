@@ -33,6 +33,21 @@ export const coach = {
     replace: "Ersetzen. Der bisherige Plan wandert ins Archiv.",
     alongside: "Behalten. Dieser Plan kommt daneben, z. B. einer mit Coach und einer allein.",
   },
+  checkinEntry: {
+    open: "Check-in eintragen",
+    title: "Check-in eintragen",
+    intro: "Für diese Woche, z. B. nach dem Wiegen und Messen im Studio. Was der Klient diese Woche schon selbst angegeben hat, bleibt, wie es ist. Du ergänzt nur, was fehlt.",
+    weight: "Gewicht (kg)",
+    measures: "Maße",
+    cmRange: "Ein Maß liegt außerhalb des möglichen Bereichs.",
+    notSaved: "Das Check-in wurde nicht gespeichert. Bitte noch einmal versuchen.",
+    kept: (n: number) => `Gespeichert. ${n} ${n === 1 ? "Wert hatte" : "Werte hatte"} der Klient schon selbst angegeben, ${n === 1 ? "der bleibt" : "die bleiben"} unverändert.`,
+    scale: {
+      energy: "Energie",
+      sleep: "Schlaf",
+      stress: "Stress",
+    },
+  },
   clients: {
     kicker: "Betreuung",
     title: "Klienten",
@@ -67,6 +82,7 @@ export const coach = {
   },
   actions: {
     nameMissing: "Bitte einen Namen eingeben.",
+    clientNotSaved: "Die Stammdaten wurden nicht gespeichert. Bitte Seite neu laden.",
     clientNotCreated: "Der Klient wurde nicht angelegt.",
     invalidTime: "Ungültiger Zeitpunkt.",
     appointmentsIncomplete: "Nicht alle Termine wurden angelegt. Bitte im Kalender nachsehen.",
@@ -85,6 +101,8 @@ export const coach = {
     emailPlaceholder: "lisa@example.com",
     emailHint: "Optional. Wird für die Einladung vorgeschlagen.",
     birthDate: "Geburtsdatum",
+    coachingType: "Coaching-Art",
+    coachingTypeHint: "Bestimmt, wer die Maße nimmt. Bei Personal Training fragt die App den Klienten nicht danach.",
     level: "Level",
     levels: {
       beginner: "Beginner: Technik und Basis",
@@ -202,6 +220,8 @@ export const coach = {
     email: "E-Mail",
     birthDate: "Geburtsdatum",
     goals: "Ziele & Notizen",
+    coachingType: "Coaching-Art",
+    coachingTypeHint: "Bestimmt, wer die Maße nimmt. Bei Personal Training fragt die App den Klienten nicht danach.",
     level: "Level",
     status: "Status",
     pausedHint: "Pausierte Klienten lösen keine Inaktivitäts-Hinweise mehr aus.",
@@ -276,6 +296,8 @@ export const coach = {
     tape: "Maßband",
     tapeHint:
       "Der Athlet bekommt zu jedem Maß eine Anleitung eingeblendet, damit er immer an derselben Stelle misst.",
+    weightEvery: "Gewicht alle",
+    wellbeingEvery: "Energie, Schlaf, Stress alle",
     tapeEvery: "Maßband alle",
     weeks: (n: number) => `${n} ${n === 1 ? "Woche" : "Wochen"}`,
     summary: (n: number, masse: string) => `Maßband alle ${n} Wochen: ${masse}`,

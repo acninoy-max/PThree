@@ -26,6 +26,8 @@ const ANFAENGE: [string, DbKey][] = [
   ["Programm nicht gefunden", "programNotFound"],
   ["Plan nicht gefunden", "planNotFound"],
   ["Einheit ist bestaetigt und gesperrt", "sessionLocked"],
+  ["Nur der Trainer kann die Coaching-Art", "coachingTypeOnlyCoach"],
+  ["Die Angaben des Klienten sind fuer den Coach", "checkinClientLocked"],
   ["Nur der Trainer kann eine Einheit bestaetigen", "confirmOnlyCoach"],
   ["Programm wurde nicht vollstaendig", "programIncomplete"],
   // Reihenfolge zählt: der genauere Anfang vor dem allgemeinen.

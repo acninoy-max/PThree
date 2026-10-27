@@ -34,6 +34,7 @@ import { ClientAppointments } from "./appointments";
 import { ClientPlan } from "./plan";
 import { CheckInConfig } from "./checkin-config";
 import { NaechsteSchritte } from "./naechste-schritte";
+import { CheckInEintragen } from "./checkin-eintragen";
 import { getLocale, getT } from "@/app/i18n/server";
 import { ClientPhotos } from "./photos";
 import {
@@ -193,7 +194,8 @@ export default async function ClientDetailPage({
     return { ...c, clientName: client.fullName, deltaKg };
   });
 
-  const openCheckIns = checkInItems.filter((c) => !c.coachReply);
+  // Was der Trainer selbst eingetragen hat, wartet nicht auf seine Antwort.
+  const openCheckIns = checkInItems.filter((c) => !c.coachReply && !c.enteredBy);
   // Dieselben Reihen wie in der Athleten-App — eine Quelle, ein Bild.
   const bodySeries = buildSeries(t, checkIns);
 
@@ -294,7 +296,8 @@ export default async function ClientDetailPage({
               </span>
             )}
           </p>
-          <div style={{ display: "flex", gap: 14, alignItems: "baseline" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "baseline", flexWrap: "wrap" }}>
+            <CheckInEintragen clientId={client.id} fields={checkInFields} />
             <CheckInConfig
               clientId={client.id}
               fields={checkInFields}

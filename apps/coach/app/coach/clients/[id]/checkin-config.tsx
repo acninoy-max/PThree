@@ -159,6 +159,41 @@ export function CheckInConfig({
                     </label>
                   ))}
                 </div>
+
+                {/* Rhythmus je Bereich (Meeting 27.10.): nicht nur das
+                    Maßband, auch Gewicht und Befinden. */}
+                {(
+                  [
+                    ["weightEveryWeeks", C.weightEvery],
+                    ["wellbeingEveryWeeks", C.wellbeingEvery],
+                  ] as const
+                ).map(([key, label]) => (
+                  <div key={key} style={{ marginTop: 12 }}>
+                    <span
+                      style={{
+                        display: "block",
+                        marginBottom: 6,
+                        fontSize: "var(--pt-fs-sm)",
+                        color: "var(--pt-text-dim)",
+                      }}
+                    >
+                      {label}
+                    </span>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {RHYTHM.slice(0, 3).map((w) => (
+                        <button
+                          key={w}
+                          type="button"
+                          className="pt-toggle"
+                          data-active={draft[key] === w}
+                          onClick={() => setDraft((d) => ({ ...d, [key]: w }))}
+                        >
+                          {C.weeks(w)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div>

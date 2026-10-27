@@ -49,6 +49,8 @@ export const fehler: Dict["fehler"] = {
       "The link couldn't be set. Please tell your coach. It's not your fault.",
     noAccess: "No access to this client.",
     programNotFound: "Program not found.",
+    coachingTypeOnlyCoach: "Only the coach can change the coaching type.",
+    checkinClientLocked: "The coach can't change what the client entered themselves.",
     sessionLocked: "This session was confirmed by the coach and can no longer be changed.",
     confirmOnlyCoach: "Only the coach can confirm a session.",
     planNotFound: "Plan not found.",

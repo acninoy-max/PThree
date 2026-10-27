@@ -46,7 +46,7 @@ packages/types       Domänenmodell, reine Typen
 packages/db          Supabase-Anbindung und Abfragen
 packages/coach-engine Rechenlogik: Volumen, 1RM, Verläufe, Hinweise
 packages/tokens      Farben, Abstände, Kontrastrechnung
-supabase/migrations  32 Migrationen, einzeln von Hand eingespielt
+supabase/migrations  34 Migrationen, einzeln von Hand eingespielt
 ```
 
 Rund 27.000 Zeilen TypeScript, 3.900 Zeilen SQL, 77 Übungen in der
@@ -238,7 +238,7 @@ Startanimation.
 
 ## 6. Zustand der Datenbank
 
-32 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
+34 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
 Es gibt keine Migrationsverwaltung — `check_schema.sql` ist der Ersatz
 dafür und sagt, was tatsächlich in der Datenbank steht.
 
@@ -423,6 +423,13 @@ aktive Pläne** je Klient (**0032**: `assign_template` mit
 `p_ersetzen`); stillgelegte Pläne stehen im Archiv und bleiben
 startbar. `fetchActivePlan` wird nicht mehr benutzt — wer „den" Plan
 braucht, nimmt `fetchPlans` und filtert `isActive`.
+**0033** Einheit bestätigen: `sessions.confirmed_at`, Trigger sperren
+bestätigte Einheiten samt Sätzen für die API (auch für den Klienten);
+Kaskaden und SQL-Editor bleiben erlaubt. **0034** Check-ins:
+`clients.coaching_type` (personal/online/hybrid), Rhythmus für Gewicht
+und Befinden, `check_ins.entered_by` — der Trainer trägt ein, ergänzt
+beim Klienten aber nur leere Maße. Welche Bereiche fällig sind,
+entscheidet `faelligeBereiche()` für Formular UND Speichern.
 
 **Feedback lesen** im SQL-Editor:
 `select f.created_at, p.full_name, f.role, f.message from app_feedback f

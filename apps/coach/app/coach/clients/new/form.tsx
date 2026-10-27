@@ -51,6 +51,18 @@ export function NewClientForm() {
       </div>
 
       <label style={{ display: "grid", gap: 6 }}>
+        <span className="pt-label">{n.coachingType}</span>
+        <select name="coachingType" defaultValue="personal">
+          <option value="personal">{t.labels.coachingType.personal}</option>
+          <option value="online">{t.labels.coachingType.online}</option>
+          <option value="hybrid">{t.labels.coachingType.hybrid}</option>
+        </select>
+        <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+          {n.coachingTypeHint}
+        </span>
+      </label>
+
+      <label style={{ display: "grid", gap: 6 }}>
         <span className="pt-label">{n.level}</span>
         <select name="level" defaultValue="beginner">
           <option value="beginner">{n.levels.beginner}</option>
