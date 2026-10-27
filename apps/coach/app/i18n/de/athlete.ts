@@ -5,6 +5,7 @@ export const athlete = {
       hour < 11 ? "Guten Morgen" : hour < 18 ? "Hey 👋" : "Guten Abend",
     fallbackName: "Athlet",
     training: "Training",
+    seeToday: "Ansehen, was du gemacht hast",
     doneToday: "Heute erledigt",
     exercises: (n: number) => `${n} ${n === 1 ? "Übung" : "Übungen"}`,
     sets: (n: number) => `${n} ${n === 1 ? "Satz" : "Sätze"}`,
@@ -29,6 +30,14 @@ export const athlete = {
     reps: (n: number) => `${n} Wdh.`,
   },
   plan: {
+    tabsAria: "Plan oder Verlauf",
+    tabWeek: "Woche",
+    tabHistory: "Verlauf",
+    historyTitle: "Dein Verlauf",
+    historyEmpty: "Noch keine Einheiten. Sobald du trainierst, steht hier jede Einheit mit allen Sätzen.",
+    withCoach: "mit Coach",
+    incomplete: "unvollständig",
+    unknownExercise: "Übung",
     yourPlan: "Dein Plan",
     noPlan: "Noch kein Plan",
     noPlanBody:

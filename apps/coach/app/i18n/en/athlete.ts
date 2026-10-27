@@ -6,6 +6,7 @@ export const athlete: Dict["athlete"] = {
       hour < 11 ? "Good morning" : hour < 18 ? "Hey 👋" : "Good evening",
     fallbackName: "Athlete",
     training: "Training",
+    seeToday: "See what you did",
     doneToday: "Done for today",
     exercises: (n) => `${n} ${n === 1 ? "exercise" : "exercises"}`,
     sets: (n) => `${n} ${n === 1 ? "set" : "sets"}`,
@@ -30,6 +31,14 @@ export const athlete: Dict["athlete"] = {
     reps: (n) => `${n} reps`,
   },
   plan: {
+    tabsAria: "Plan or history",
+    tabWeek: "Week",
+    tabHistory: "History",
+    historyTitle: "Your history",
+    historyEmpty: "No sessions yet. Once you train, every session shows up here with all its sets.",
+    withCoach: "with coach",
+    incomplete: "incomplete",
+    unknownExercise: "Exercise",
     yourPlan: "Your plan",
     noPlan: "No plan yet",
     noPlanBody:

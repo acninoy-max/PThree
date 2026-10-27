@@ -1112,3 +1112,52 @@
   font-variant-numeric: tabular-nums;
   color: #ad2415;
 }
+
+/* ---------- Reiter Woche / Verlauf (athlete/plan) ---------- */
+.gym-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: var(--g-surface);
+  border: 1px solid var(--g-border);
+}
+.gym-seg a {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: 9px;
+  text-align: center;
+  font-size: var(--pt-fs-md);
+  font-weight: 600;
+  color: var(--g-dim);
+  text-decoration: none;
+}
+.gym-seg a[data-active="true"] {
+  background: var(--g-text);
+  color: var(--g-surface);
+}
+
+/* Verlauf: aufklappbare Einheit. Eigener Pfeil statt des Browser-
+   Dreiecks, das in Safari anders aussieht als überall sonst. */
+.gym-verlauf summary {
+  list-style: none;
+  cursor: pointer;
+  position: relative;
+  padding-right: 24px;
+}
+.gym-verlauf summary::-webkit-details-marker {
+  display: none;
+}
+.gym-verlauf summary::after {
+  content: "›";
+  position: absolute;
+  right: 4px;
+  top: 0;
+  font-size: var(--pt-fs-xl);
+  color: var(--g-dim);
+  transition: transform 0.15s ease;
+}
+.gym-verlauf[open] summary::after {
+  transform: rotate(90deg);
+}

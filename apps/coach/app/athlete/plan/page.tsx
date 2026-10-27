@@ -5,18 +5,58 @@ import { muscleLabel, restLabel, supersetCodes } from "@/app/components";
 import { IconCheck, IconClock } from "@/app/icons";
 import { buildWeek, estimateMinutes, flexibleDays } from "@/app/plan-week";
 import { getLocale, getT } from "@/app/i18n/server";
+import type { Dict } from "@/app/i18n";
+import { TrainingsHistorie } from "./history";
 
 export const dynamic = "force-dynamic";
 
-export default async function AthletePlanPage() {
+/**
+ * Zwei Reiter: die Woche nach Plan und der Verlauf. Über die Adresse
+ * (?v=history), damit „Zurück" funktioniert und der Server rendert.
+ */
+function Reiter({ t, aktiv }: { t: Dict; aktiv: "week" | "history" }) {
+  const p = t.athlete.plan;
+  return (
+    <nav className="gym-seg" aria-label={p.tabsAria}>
+      <Link href="/athlete/plan" data-active={aktiv === "week"}>
+        {p.tabWeek}
+      </Link>
+      <Link href="/athlete/plan?v=history" data-active={aktiv === "history"}>
+        {p.tabHistory}
+      </Link>
+    </nav>
+  );
+}
+
+export default async function AthletePlanPage({
+  searchParams,
+}: {
+  searchParams: { v?: string };
+}) {
   const t = getT();
   const p = t.athlete.plan;
   const db = createServerSupabase();
+  const verlauf = searchParams.v === "history";
   const [plan, sessions, exercises] = await Promise.all([
     fetchActivePlan(db),
-    fetchSessions(db, { sinceDays: 30 }),
+    // Für den Verlauf ein Jahr, für die Woche reicht ein Monat.
+    fetchSessions(db, { sinceDays: verlauf ? 365 : 30 }),
     fetchExercises(db, getLocale()),
   ]);
+
+  if (verlauf) {
+    const names = new Map([...exercises.values()].map((e) => [e.id, e.name]));
+    return (
+      <main className="gym-shell" style={{ paddingTop: 26 }}>
+        <p className="gym-label">{plan?.name ?? p.yourPlan}</p>
+        <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
+          {p.historyTitle}
+        </h1>
+        <Reiter t={t} aktiv="history" />
+        <TrainingsHistorie t={t} sessions={sessions} names={names} />
+      </main>
+    );
+  }
 
   const days = (plan?.days ?? []).filter((d) => d.slots.length > 0);
   const week = buildWeek(days, sessions);
@@ -26,9 +66,10 @@ export default async function AthletePlanPage() {
     return (
       <main className="gym-shell" style={{ paddingTop: 26 }}>
         <p className="gym-label">{p.yourPlan}</p>
-        <h1 style={{ margin: "3px 0 20px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
+        <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
           {p.noPlan}
         </h1>
+        <Reiter t={t} aktiv="week" />
         <div className="gym-card">
           <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", lineHeight: 1.6 }}>
             {p.noPlanBody}
@@ -48,9 +89,10 @@ export default async function AthletePlanPage() {
   return (
     <main className="gym-shell" style={{ paddingTop: 26 }}>
       <p className="gym-label">{plan.name}</p>
-      <h1 style={{ margin: "3px 0 18px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
+      <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
         {p.yourWeek}
       </h1>
+      <Reiter t={t} aktiv="week" />
 
       {/* Wochenleiste. Erledigt zählt nach Wochentag, nicht nach Plantag —
           wer Tag B am Dienstag macht, war trotzdem im Studio. */}

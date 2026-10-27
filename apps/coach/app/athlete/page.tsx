@@ -89,6 +89,20 @@ export default async function AthleteHome() {
               {last!.title} · {h.exercises(last!.slots.length)} ·{" "}
               {h.sets(last!.slots.reduce((n, s) => n + s.sets.length, 0))}
             </p>
+            {/* „Das haben wir heute gemacht" (Meeting 27.10.): alle Sätze
+                stehen im Verlauf, die neueste Einheit oben. */}
+            <Link
+              href="/athlete/plan?v=history"
+              style={{
+                display: "inline-block",
+                marginTop: 8,
+                fontSize: "var(--pt-fs-md)",
+                fontWeight: 600,
+                color: "var(--g-accent)",
+              }}
+            >
+              {h.seeToday}
+            </Link>
           </>
         ) : (
           <>
