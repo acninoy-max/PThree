@@ -402,6 +402,11 @@ export const coach: Dict["coach"] = {
     noPlan: "No plan, free training",
   },
   track: {
+    confirm: "Confirm session",
+    confirmSure: "Confirm? It will be locked.",
+    confirmedOn: (date) => `Confirmed on ${date}`,
+    confirmFailed: "The session was not confirmed. Please try again.",
+    confirmHint: "Confirmed sessions are locked and later serve as the basis for billing.",
     archive: (n) => `Archive (${n} ${n === 1 ? "day" : "days"})`,
     addNote: "+ Note",
     editNote: "Edit note",

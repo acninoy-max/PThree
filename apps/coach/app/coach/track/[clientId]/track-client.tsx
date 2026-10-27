@@ -55,6 +55,7 @@ import {
 } from "@/app/athlete/log/signal";
 import { vorherFuer, type LetztesMal } from "@/app/letzte-saetze";
 import { naechsterTag } from "@/app/plan-week";
+import { EinheitBestaetigen } from "../einheit-bestaetigen";
 
 export interface TrackExercise {
   id: string;
@@ -184,6 +185,8 @@ export function TrackWorkout({
   const [group, setGroup] = useState<MuscleGroup | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // ID der gespeicherten Einheit — für „Einheit bestätigen" (0033).
+  const [gespeichertId, setGespeichertId] = useState<string | null>(null);
   const [notizen, setNotizen] = useState<Record<string, string>>(notes);
 
   // ---------- Uhren ----------
@@ -602,6 +605,7 @@ export function TrackWorkout({
       }
       abgeschlossen.current = true;
       verwirfEntwurf(holeSpeicher(), entwurfKey);
+      setGespeichertId(res.id);
       setDone(true);
       router.refresh();
     });
@@ -645,6 +649,16 @@ export function TrackWorkout({
               elapsed > 0 ? clock(elapsed) : null,
             )}
           </p>
+          {/* Meeting 27.10.: Der Abschluss sieht gut aus, muss aber
+              bestätigt werden, weil er später die Rechnung trägt. */}
+          {gespeichertId && (
+            <div style={{ display: "grid", gap: 6, justifyItems: "center", marginTop: 16 }}>
+              <EinheitBestaetigen sessionId={gespeichertId} clientId={clientId} confirmedAt={null} />
+              <p style={{ margin: 0, fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)", lineHeight: 1.45 }}>
+                {R.confirmHint}
+              </p>
+            </div>
+          )}
           <div style={{ display: "grid", gap: 8, marginTop: 20 }}>
             <Link
               href={`/coach/clients/${clientId}`}

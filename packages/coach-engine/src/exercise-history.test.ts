@@ -60,6 +60,7 @@ function session(id: string, on: string, slots: SessionSlot[]): Session {
     recordedBy: null,
     durationSeconds: null,
     isComplete: true,
+    confirmedAt: null,
     notes: null,
     slots,
   };

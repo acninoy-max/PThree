@@ -46,6 +46,7 @@ import {
   type SectionKey,
 } from "./sections";
 import { Fragment, type ReactNode } from "react";
+import { EinheitBestaetigen } from "@/app/coach/track/einheit-bestaetigen";
 
 export const dynamic = "force-dynamic";
 
@@ -480,6 +481,15 @@ export default async function ClientDetailPage({
                     {s.isSelfDirected ? A.withoutPlan : ""}
                     {s.recordedBy ? A.recordedByYou : ""}
                   </span>
+                </div>
+                {/* Bestätigen (0033): Grundlage der späteren Abrechnung,
+                    danach gesperrt. Nur der Trainer sieht den Knopf. */}
+                <div style={{ marginBottom: 8 }}>
+                  <EinheitBestaetigen
+                    sessionId={s.id}
+                    clientId={client.id}
+                    confirmedAt={s.confirmedAt}
+                  />
                 </div>
                 {s.slots.map((slot) => (
                   // Klasse statt Inline-Layout: Am Handy bricht die Zeile

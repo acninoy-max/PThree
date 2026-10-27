@@ -1027,6 +1027,16 @@ a.pt-card:active {
   margin-top: 6px;
 }
 
+/* Bestätigte Einheit (0033): ruhig, aber eindeutig. */
+.pt-bestaetigt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--pt-fs-sm);
+  font-weight: 600;
+  color: #3b6d11;
+}
+
 .pt-chipbtn {
   display: inline-flex;
   align-items: center;

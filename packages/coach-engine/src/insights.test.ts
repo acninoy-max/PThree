@@ -86,6 +86,7 @@ function session(daysAgo: number, slots: SessionSlot[], id = `s-${daysAgo}`): Se
     recordedBy: null,
     durationSeconds: null,
     isComplete: true,
+    confirmedAt: null,
     notes: null,
     slots,
   };

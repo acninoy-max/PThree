@@ -55,6 +55,7 @@ function session(
     recordedBy: null,
     durationSeconds: null,
     isComplete: true,
+    confirmedAt: null,
     notes: null,
     slots: [
       {

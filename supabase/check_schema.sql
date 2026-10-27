@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0032 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0033 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -617,6 +617,17 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0032', 'assign_template mit Wahl ersetzen/daneben, genau einmal',
          (select count(*) = 1 and bool_and(pronargs = 5) from pg_proc
           where proname = 'assign_template')
+
+  -- 0033: Einheit bestaetigen und sperren
+  union all
+  select 1, '0033', 'sessions.confirmed_at vorhanden',
+         exists (select 1 from information_schema.columns
+                  where table_name = 'sessions' and column_name = 'confirmed_at')
+  union all
+  select 1, '0033', 'drei Sperr-Trigger aktiv (Einheit, Uebungen, Saetze)',
+         (select count(*) = 3 from pg_trigger
+          where tgname in ('sessions_bestaetigung', 'session_slots_gesperrt', 'session_sets_gesperrt')
+            and not tgisinternal)
 
   -- 0007: Check-in-Schutz
   union all

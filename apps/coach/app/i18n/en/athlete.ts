@@ -31,6 +31,7 @@ export const athlete: Dict["athlete"] = {
     reps: (n) => `${n} reps`,
   },
   plan: {
+    confirmedByCoach: "confirmed by coach",
     archive: "Archive: earlier plans",
     tabsAria: "Plan or history",
     tabWeek: "Week",

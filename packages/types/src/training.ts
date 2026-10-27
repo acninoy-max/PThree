@@ -279,6 +279,11 @@ export interface Session {
    * für ein Qualitätswerkzeug darf man das nicht vermischen.
    */
   isComplete: boolean;
+  /**
+   * Vom Trainer bestätigt (0033) — danach gesperrt, Grundlage für die
+   * Abrechnung. null = offen.
+   */
+  confirmedAt: ISODateTime | null;
   notes: string | null;
   slots: SessionSlot[];
 }

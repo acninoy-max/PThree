@@ -25,6 +25,8 @@ const ANFAENGE: [string, DbKey][] = [
   ["Kein Zugriff auf diesen Klienten", "noAccess"],
   ["Programm nicht gefunden", "programNotFound"],
   ["Plan nicht gefunden", "planNotFound"],
+  ["Einheit ist bestaetigt und gesperrt", "sessionLocked"],
+  ["Nur der Trainer kann eine Einheit bestaetigen", "confirmOnlyCoach"],
   ["Programm wurde nicht vollstaendig", "programIncomplete"],
   // Reihenfolge zählt: der genauere Anfang vor dem allgemeinen.
   ["move_slot_block: Slot nicht gefunden", "slotNotFound"],

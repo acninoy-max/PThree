@@ -8,6 +8,7 @@ import type {
 } from "@ptfive/types";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { getT } from "@/app/i18n/server";
+import { dbFehler } from "@/app/i18n/db-fehler";
 import type { Dict } from "@/app/i18n";
 
 export type TrackResult =
@@ -220,4 +221,33 @@ export async function saveExerciseNoteAction(
 
   revalidatePath(`/coach/track/${clientId}`);
   return { ok: true, note: ist };
+}
+
+export type ConfirmResult = { ok: true; confirmedAt: string } | { ok: false; error: string };
+
+/**
+ * Einheit bestätigen (0033). Danach ist sie gesperrt.
+ *
+ * Den Zeitpunkt setzt die Datenbank (Trigger), der Wert hier ist nur das
+ * Signal. Nachgelesen wird, ob wirklich ein Zeitpunkt dasteht — ein
+ * `update`, das die Zeilensicherheit ausfiltert, meldet sonst Erfolg.
+ */
+export async function confirmSessionAction(
+  sessionId: string,
+  clientId: string,
+): Promise<ConfirmResult> {
+  const t = getT();
+  const db = createServerSupabase();
+  const { data, error } = await db
+    .from("sessions")
+    .update({ confirmed_at: new Date().toISOString() })
+    .eq("id", sessionId)
+    .select("confirmed_at");
+  if (error) return { ok: false, error: dbFehler(t, error.message) };
+  const zeit = data?.[0]?.confirmed_at as string | null | undefined;
+  if (!zeit) return { ok: false, error: t.coach.track.confirmFailed };
+
+  revalidatePath(`/coach/clients/${clientId}`);
+  revalidatePath("/athlete/plan");
+  return { ok: true, confirmedAt: zeit };
 }

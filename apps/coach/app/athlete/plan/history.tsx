@@ -61,6 +61,7 @@ export function TrainingsHistorie({
                   t.athlete.home.sets(saetze),
                   volumen > 0 ? t.engine.volume(volumen) : null,
                   s.recordedBy ? p.withCoach : null,
+                  s.confirmedAt ? p.confirmedByCoach : null,
                   s.isComplete ? null : p.incomplete,
                 ]
                   .filter(Boolean)

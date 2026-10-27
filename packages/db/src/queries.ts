@@ -87,6 +87,8 @@ interface SessionRow {
   recorded_by: string | null;
   duration_seconds: number | null;
   is_complete: boolean;
+  /** Fehlt vor 0033 — `select *` liefert die Spalte dann nicht. */
+  confirmed_at?: string | null;
   notes: string | null;
   session_slots: {
     id: string;
@@ -127,6 +129,7 @@ function toSession(row: SessionRow): Session {
     recordedBy: row.recorded_by ?? null,
     durationSeconds: row.duration_seconds ?? null,
     isComplete: row.is_complete ?? true,
+    confirmedAt: row.confirmed_at ?? null,
     notes: row.notes,
     slots: [...row.session_slots]
       .sort((a, b) => a.position - b.position)

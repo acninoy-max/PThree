@@ -410,6 +410,11 @@ export const coach = {
     noPlan: "Kein Plan, freies Training",
   },
   track: {
+    confirm: "Einheit bestätigen",
+    confirmSure: "Bestätigen? Danach gesperrt.",
+    confirmedOn: (datum: string) => `Bestätigt am ${datum}`,
+    confirmFailed: "Die Einheit wurde nicht bestätigt. Bitte noch einmal versuchen.",
+    confirmHint: "Bestätigte Einheiten sind gesperrt und später die Grundlage der Abrechnung.",
     archive: (n: number) => `Archiv (${n} ${n === 1 ? "Tag" : "Tage"})`,
     addNote: "+ Notiz",
     editNote: "Notiz bearbeiten",

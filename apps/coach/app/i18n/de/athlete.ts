@@ -30,6 +30,7 @@ export const athlete = {
     reps: (n: number) => `${n} Wdh.`,
   },
   plan: {
+    confirmedByCoach: "vom Coach bestätigt",
     archive: "Archiv: frühere Pläne",
     tabsAria: "Plan oder Verlauf",
     tabWeek: "Woche",
