@@ -181,7 +181,9 @@ export function CheckInCard({
             >
               {I.week(weekLabel(t, item.weekOf))}
               {item.submittedAt &&
-                I.sentAt(t.fmt.weekdayTime(new Date(item.submittedAt)))}
+                (item.enteredBy ? I.recordedAt : I.sentAt)(
+                  t.fmt.weekdayTime(new Date(item.submittedAt)),
+                )}
             </p>
           </div>
         </div>
@@ -191,7 +193,10 @@ export function CheckInCard({
           {I.week(weekLabel(t, item.weekOf))}
           {item.submittedAt && (
             <span style={{ fontWeight: 400, color: "var(--pt-text-dim)" }}>
-              {I.sentAt(t.fmt.weekdayTime(new Date(item.submittedAt)))}
+              {/* Vom Trainer eingetragen (0034): nicht „abgeschickt". */}
+              {(item.enteredBy ? I.recordedAt : I.sentAt)(
+                t.fmt.weekdayTime(new Date(item.submittedAt)),
+              )}
             </span>
           )}
         </p>

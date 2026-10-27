@@ -278,7 +278,7 @@ export const coach: Dict["coach"] = {
   },
   checkinConfig: {
     title: "Set up check-in",
-    weekly: "Every week",
+    weekly: "What the check-in asks",
     fields: {
       askWeight: "Weight",
       askEnergy: "Energy",
@@ -331,6 +331,7 @@ export const coach: Dict["coach"] = {
     noneBody:
       "As soon as a client sends their weekly check-in, it lands here with weight trend, wellbeing and note.",
     week: (range) => `Week ${range}`,
+    recordedAt: (when) => ` · recorded by you ${when}`,
     sentAt: (when) => ` · sent ${when}`,
     sentReply: "Reply sent",
     yourReply: "Your reply",

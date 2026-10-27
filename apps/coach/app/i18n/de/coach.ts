@@ -285,7 +285,7 @@ export const coach = {
   },
   checkinConfig: {
     title: "Check-in einstellen",
-    weekly: "Jede Woche",
+    weekly: "Was das Check-in abfragt",
     fields: {
       askWeight: "Gewicht",
       askEnergy: "Energie",
@@ -338,6 +338,7 @@ export const coach = {
     noneBody:
       "Sobald ein Klient sein wöchentliches Check-in abschickt, landet es hier, mit Gewichtsverlauf, Befinden und Notiz.",
     week: (range: string) => `Woche ${range}`,
+    recordedAt: (wann: string) => ` · von dir eingetragen ${wann}`,
     sentAt: (wann: string) => ` · abgeschickt ${wann}`,
     sentReply: "Antwort geschickt",
     yourReply: "Deine Antwort",
