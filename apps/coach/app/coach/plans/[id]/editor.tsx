@@ -714,6 +714,28 @@ export function PlanEditor({
                 )}
               </button>
             )}
+            {/* Stilllegen ist seit 27.10. ein eigener Schritt: Aktivieren
+                legt die anderen Pläne nicht mehr still, mehrere dürfen
+                laufen. Archivierte bleiben einseh- und startbar. */}
+            {plan.isActive && (
+              <button
+                type="button"
+                className="pt-btn pt-btn--ghost"
+                disabled={pending || busyKey !== null}
+                onClick={() =>
+                  run("archive", () => updatePlanAction(plan.id, { isActive: false }))
+                }
+              >
+                {busyKey === "archive" ? (
+                  <>
+                    <Spinner size={15} />
+                    {E.archiving}
+                  </>
+                ) : (
+                  E.archive
+                )}
+              </button>
+            )}
             <button
               type="button"
               className="pt-btn pt-btn--ghost"

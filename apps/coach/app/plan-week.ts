@@ -135,3 +135,25 @@ export function buildWeek(
 export function flexibleDays(days: readonly PlanDay[]): PlanDay[] {
   return days.filter((d) => d.weekdays.length === 0);
 }
+
+/**
+ * Welcher Plantag als Nächstes dran ist — bei mehreren aktiven Plänen.
+ *
+ * Seit 27.10.2026 darf ein Klient mehrere Pläne gleichzeitig haben (z. B.
+ * mit Coach und allein). „Nach Tag A kommt Tag B" gilt dann innerhalb
+ * des Plans, aus dem der zuletzt gemachte Tag stammt. Gehört der letzte
+ * Tag zu keinem aktiven Plan mehr, beginnt der erste aktive Plan vorn.
+ *
+ * `tage` in Anzeigereihenfolge (Plan für Plan, Tag für Tag).
+ */
+export function naechsterTag<T extends { id: string; planId: string }>(
+  tage: readonly T[],
+  letzterTagId: string | null,
+): T | null {
+  if (tage.length === 0) return null;
+  const letzter = tage.find((d) => d.id === letzterTagId);
+  if (!letzter) return tage[0]!;
+  const imPlan = tage.filter((d) => d.planId === letzter.planId);
+  const i = imPlan.findIndex((d) => d.id === letzter.id);
+  return imPlan[(i + 1) % imPlan.length] ?? imPlan[0]!;
+}

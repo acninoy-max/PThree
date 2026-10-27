@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { fetchActivePlan, fetchExercises, fetchSessions } from "@ptfive/db";
+import { Fragment } from "react";
+import { fetchExercises, fetchPlans, fetchSessions } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel, restLabel, supersetCodes } from "@/app/components";
 import { IconCheck, IconClock } from "@/app/icons";
@@ -37,18 +38,22 @@ export default async function AthletePlanPage({
   const p = t.athlete.plan;
   const db = createServerSupabase();
   const verlauf = searchParams.v === "history";
-  const [plan, sessions, exercises] = await Promise.all([
-    fetchActivePlan(db),
+  const [plans, sessions, exercises] = await Promise.all([
+    fetchPlans(db),
     // Für den Verlauf ein Jahr, für die Woche reicht ein Monat.
     fetchSessions(db, { sinceDays: verlauf ? 365 : 30 }),
     fetchExercises(db, getLocale()),
   ]);
 
+  const aktive = plans.filter((pl) => pl.isActive);
+  const archiv = plans.filter((pl) => !pl.isActive).slice(0, 5);
+  const planNamen = aktive.length > 0 ? aktive.map((pl) => pl.name).join(", ") : null;
+
   if (verlauf) {
     const names = new Map([...exercises.values()].map((e) => [e.id, e.name]));
     return (
       <main className="gym-shell" style={{ paddingTop: 26 }}>
-        <p className="gym-label">{plan?.name ?? p.yourPlan}</p>
+        <p className="gym-label">{planNamen ?? p.yourPlan}</p>
         <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
           {p.historyTitle}
         </h1>
@@ -58,11 +63,15 @@ export default async function AthletePlanPage({
     );
   }
 
-  const days = (plan?.days ?? []).filter((d) => d.slots.length > 0);
+  // Alle aktiven Pläne zusammen (Meeting 27.10.: mehrere erlaubt). Die
+  // Woche zählt Einheiten aus allen, die Liste zeigt Tag für Tag.
+  const days = aktive.flatMap((pl) => pl.days.filter((d) => d.slots.length > 0));
+  const mehrerePlaene = aktive.filter((pl) => pl.days.some((d) => d.slots.length > 0)).length > 1;
+  const planName = new Map(aktive.map((pl) => [pl.id, pl.name]));
   const week = buildWeek(days, sessions);
   const flexible = flexibleDays(days);
 
-  if (!plan || days.length === 0) {
+  if (days.length === 0) {
     return (
       <main className="gym-shell" style={{ paddingTop: 26 }}>
         <p className="gym-label">{p.yourPlan}</p>
@@ -88,7 +97,7 @@ export default async function AthletePlanPage({
 
   return (
     <main className="gym-shell" style={{ paddingTop: 26 }}>
-      <p className="gym-label">{plan.name}</p>
+      <p className="gym-label">{planNamen}</p>
       <h1 style={{ margin: "3px 0 14px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
         {p.yourWeek}
       </h1>
@@ -140,13 +149,20 @@ export default async function AthletePlanPage({
 
       {/* Alle Trainingstage als lesbare Liste. */}
       <div style={{ display: "grid", gap: 12 }}>
-        {days.map((day) => {
+        {days.map((day, i) => {
           const codes = supersetCodes(day.slots);
+          const neuerPlan = mehrerePlaene && days[i - 1]?.planId !== day.planId;
           const minutes = estimateMinutes(day.slots);
           const doneThisWeek = week.some((s) => s.doneDayIds.includes(day.id));
 
           return (
-            <div key={day.id} className="gym-card">
+            <Fragment key={day.id}>
+            {neuerPlan && (
+              <p className="gym-label" style={{ margin: i === 0 ? 0 : "6px 0 0" }}>
+                {planName.get(day.planId)}
+              </p>
+            )}
+            <div className="gym-card">
               <div
                 style={{
                   display: "flex",
@@ -269,9 +285,38 @@ export default async function AthletePlanPage({
                 {t.athlete.home.startDay(day.title)}
               </Link>
             </div>
+            </Fragment>
           );
         })}
       </div>
+
+      {/* Archiv: stillgelegte Pläne, weiter einsehbar und startbar
+          (Meeting 27.10.). Starten führt in die Trainingsmaske. */}
+      {archiv.length > 0 && (
+        <details className="gym-card gym-verlauf" style={{ marginTop: 16 }}>
+          <summary className="gym-label">{p.archive}</summary>
+          <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
+            {archiv.map((pl) => (
+              <div key={pl.id}>
+                <p style={{ margin: 0, fontSize: "var(--pt-fs-md)", fontWeight: 600 }}>{pl.name}</p>
+                <div style={{ display: "grid", gap: 4, marginTop: 4 }}>
+                  {pl.days
+                    .filter((d) => d.slots.length > 0)
+                    .map((d) => (
+                      <Link
+                        key={d.id}
+                        href={`/athlete/log?day=${d.id}`}
+                        style={{ fontSize: "var(--pt-fs-md)", color: "var(--g-accent)" }}
+                      >
+                        {d.title}
+                      </Link>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
 
       {flexible.length > 0 && flexible.length < days.length && (
         <p

@@ -29,6 +29,11 @@ export const coach: Dict["coach"] = {
     checkin: "Set up check-in",
     plan: "Create training plan",
   },
+  planChoice: {
+    legend: "What happens to the current plan?",
+    replace: "Replace it. The current plan moves to the archive.",
+    alongside: "Keep it. This plan goes alongside, e.g. one with coach and one solo.",
+  },
   clients: {
     kicker: "Coaching",
     title: "Clients",
@@ -122,6 +127,7 @@ export const coach: Dict["coach"] = {
     creating: "Creating …",
     createAndFill: "Create and fill slots",
     plan: "Training plan",
+    plans: "Training plans",
     newPlan: "Create new plan",
     summary: (from, since, days, slots) =>
       `from ${from}${since ? ` · ${since}` : ""} · ${days} ${
@@ -130,7 +136,7 @@ export const coach: Dict["coach"] = {
     createdOn: (date) => `Created on ${date}. The start date can be changed in the plan.`,
     noSlots:
       "No slots yet. The plan only appears to the athlete once at least one is filled.",
-    earlierPlans: "Earlier plans",
+    earlierPlans: "Archive",
     noPlan:
       "No plan yet. Without a plan the athlete trains freely; the pattern history still runs.",
     createPlan: "Create plan",
@@ -362,6 +368,7 @@ export const coach: Dict["coach"] = {
   planErrors: {
     planName: "The plan needs a name.",
     oneDay: "At least one training day is required.",
+    planNotSaved: "The plan was not saved. Please reload the page.",
     planNotCreated: "The plan couldn't be created.",
     nameEmpty: "The name can't be empty.",
     exerciseName: "The exercise needs a name.",
@@ -395,6 +402,7 @@ export const coach: Dict["coach"] = {
     noPlan: "No plan, free training",
   },
   track: {
+    archive: (n) => `Archive (${n} ${n === 1 ? "day" : "days"})`,
     addNote: "+ Note",
     editNote: "Edit note",
     notePlaceholder: "e.g. wrist hurts above 120 kg, grip narrower",
@@ -500,6 +508,8 @@ export const coach: Dict["coach"] = {
     inactive: " · inactive",
     summary: (from, days, slots) =>
       `from ${from} · ${days} ${days === 1 ? "day" : "days"} · ${slots} slots`,
+    archive: "Archive",
+    archiving: "Archiving …",
     activating: "Activating …",
     activate: "Activate",
     deletePlan: "Delete plan",
@@ -555,7 +565,7 @@ export const coach: Dict["coach"] = {
     assign: "Assign to client",
     assignTitle: "Assign program",
     assignIntro: (name) =>
-      `“${name}” is created as a new plan for the client. Their current plan is deactivated, the history stays.`,
+      `“${name}” is created as a new plan for the client. The history stays.`,
     client: "Client",
     noClients: "You don't have any active clients yet.",
     planName: "Plan name",

@@ -152,6 +152,8 @@ export async function assignProgramAction(input: {
   startsOn: string;
   /** Leer = Name des Programms, wie bisher (Standard in 0028). */
   name?: string;
+  /** true = andere aktive Pläne stilllegen, false = daneben (0032). */
+  replace?: boolean;
 }): Promise<IdResult> {
   const t = getT();
   const db = createServerSupabase();
@@ -161,6 +163,9 @@ export async function assignProgramAction(input: {
     p_client: input.clientId,
     p_starts_on: input.startsOn,
     p_name: name,
+    // Ohne 0032 kennt die Funktion den Parameter nicht. Wer ersetzt
+    // (Standard), schickt ihn deshalb gar nicht erst mit.
+    ...(input.replace === false ? { p_ersetzen: false } : {}),
   });
   if (error) return { ok: false, error: dbFehler(t, error.message) };
   if (!data) return { ok: false, error: t.fehler.db.programIncomplete };

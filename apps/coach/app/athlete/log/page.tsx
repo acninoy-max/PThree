@@ -1,5 +1,5 @@
 import {
-  fetchActivePlan,
+  fetchPlans,
   fetchMyCheckIns,
   fetchSessions,
   localizeExercise,
@@ -36,14 +36,14 @@ export default async function LogPage({
     data: { user },
   } = await db.auth.getUser();
 
-  const [{ data: rows }, sessions, plan, checkIns] = await Promise.all([
+  const [{ data: rows }, sessions, plans, checkIns] = await Promise.all([
     db
       .from("exercises")
       // `*` statt Spaltenliste: Die englischen Spalten aus 0026 dürfen
       // fehlen, ohne dass die Seite bricht — siehe localizeExercise.
       .select("*"),
     fetchSessions(db, { sinceDays: 365 }),
-    fetchActivePlan(db),
+    fetchPlans(db),
     // Für die wirksame Last bei Körpergewichtsübungen. Zwölf reichen —
     // gesucht ist der jüngste Eintrag mit einem Gewicht.
     fetchMyCheckIns(db, 12),
@@ -123,11 +123,19 @@ export default async function LogPage({
     if (recent.length >= 8) break;
   }
 
-  // Nur Tage mit Slots anbieten — ein leerer Tag wäre eine Sackgasse.
-  const planDays: PlanDayOption[] = (plan?.days ?? [])
+  // Alle aktiven Pläne (Meeting 27.10.: mehrere erlaubt), danach die fünf
+  // jüngsten archivierten — die bleiben startbar. Nur Tage mit Slots: ein
+  // leerer Tag wäre eine Sackgasse.
+  const aktive = plans.filter((p) => p.isActive);
+  const archiv = plans.filter((p) => !p.isActive).slice(0, 5);
+  const planDays: PlanDayOption[] = [...aktive, ...archiv].flatMap((plan) =>
+    plan.days
     .filter((d) => d.slots.length > 0)
     .map((d) => ({
       id: d.id,
+      planId: plan.id,
+      planName: plan.name,
+      archived: !plan.isActive,
       title: d.title,
       isGuided: d.isGuided,
       weekdays: d.weekdays,
@@ -147,7 +155,8 @@ export default async function LogPage({
         restSeconds: s.restSeconds,
         note: s.note,
       })),
-    }));
+    })),
+  );
 
   /**
    * Das zuletzt bewegte Volumen je Trainingstag.
@@ -173,8 +182,8 @@ export default async function LogPage({
       bests={bests}
       lastEfforts={lastEfforts}
       recentExerciseIds={recent}
-      planId={plan?.id ?? null}
-      planName={plan?.name ?? null}
+      planId={aktive[0]?.id ?? null}
+      planName={aktive.length > 0 ? aktive.map((p) => p.name).join(", ") : null}
       planDays={planDays}
       lastPlanDayId={lastPlanDayId}
       lastVolumes={lastVolumes}

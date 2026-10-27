@@ -1,5 +1,5 @@
 import {
-  fetchActivePlan,
+  fetchPlans,
   fetchExercises,
   fetchMyCheckIns,
   fetchPhotoConsent,
@@ -52,12 +52,14 @@ export default async function ProgressPage() {
     .eq("profile_id", user?.id ?? "")
     .maybeSingle();
 
-  const [sessions, exercises, checkIns, plan, gewaehlt] = await Promise.all([
+  const [sessions, exercises, checkIns, plans, gewaehlt] = await Promise.all([
     fetchSessions(db, { sinceDays: 365 }),
     fetchExercises(db, getLocale()),
     // Ein Jahr reicht: Die Zeitraumwahl im Diagramm greift darauf zu.
     fetchMyCheckIns(db, 60),
-    fetchActivePlan(db),
+    // Alle Pläne, auch archivierte: Der Verlauf eines Tages soll seinen
+    // Namen behalten, wenn der Plan stillgelegt ist.
+    fetchPlans(db),
     // Die eigene Liste des Athleten — der Trainer hat für denselben
     // Klienten seine eigene.
     me && user
@@ -120,7 +122,8 @@ export default async function ProgressPage() {
   const dayVolumes = [...volumeByDay(sessions)]
     .map(([dayId, points]) => ({
       dayId,
-      title: plan?.days.find((d) => d.id === dayId)?.title ?? points[0]!.title,
+      title:
+        plans.flatMap((p) => p.days).find((d) => d.id === dayId)?.title ?? points[0]!.title,
       points,
     }))
     .filter((d) => d.points.length >= 2)

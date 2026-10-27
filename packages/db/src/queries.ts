@@ -352,15 +352,19 @@ export async function fetchProgram(
   return data ? toProgram(data as TemplateRow) : null;
 }
 
-/** Alle Pläne eines Klienten, aktive zuerst, danach nach Startdatum. */
+/**
+ * Alle Pläne eines Klienten, aktive zuerst, danach nach Startdatum.
+ *
+ * Ohne clientId liefert RLS genau die des angemeldeten Athleten — der Weg
+ * der Athleten-App, seit ein Klient mehrere aktive Pläne haben darf.
+ */
 export async function fetchPlans(
   db: SupabaseClient,
-  clientId: string,
+  clientId?: string,
 ): Promise<Plan[]> {
-  const { data, error } = await db
-    .from("plans")
-    .select(PLAN_SELECT)
-    .eq("client_id", clientId)
+  let q = db.from("plans").select(PLAN_SELECT);
+  if (clientId) q = q.eq("client_id", clientId);
+  const { data, error } = await q
     .order("is_active", { ascending: false })
     .order("starts_on", { ascending: false });
   if (error) throw new Error(`Pläne laden fehlgeschlagen: ${error.message}`);

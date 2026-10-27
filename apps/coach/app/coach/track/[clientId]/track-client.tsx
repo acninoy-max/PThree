@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type {
   MovementPattern,
   MuscleGroup,
@@ -54,6 +54,7 @@ import {
   signalRestOver,
 } from "@/app/athlete/log/signal";
 import { vorherFuer, type LetztesMal } from "@/app/letzte-saetze";
+import { naechsterTag } from "@/app/plan-week";
 
 export interface TrackExercise {
   id: string;
@@ -97,6 +98,11 @@ export interface TrackPlanSlot {
 
 export interface TrackPlanDay {
   id: string;
+  /** Plan, zu dem der Tag gehört — es können mehrere sein (Meeting 27.10.). */
+  planId: string;
+  planName: string;
+  /** Aus einem stillgelegten Plan: startbar, aber nicht vorgeschlagen. */
+  archived: boolean;
   title: string;
   isGuided: boolean;
   weekdays: number[];
@@ -354,11 +360,15 @@ export function TrackWorkout({
   }
 
   /** Vorschlag: der Tag nach dem zuletzt gemachten. */
-  const suggested = useMemo(() => {
-    if (days.length === 0) return null;
-    const i = days.findIndex((d) => d.id === lastPlanDayId);
-    return days[(i + 1) % days.length] ?? days[0]!;
-  }, [days, lastPlanDayId]);
+  // Vorgeschlagen wird nur aus aktiven Plänen, der Tag nach dem zuletzt
+  // gemachten im selben Plan (plan-week.ts).
+  const aktiveTage = useMemo(() => days.filter((d) => !d.archived), [days]);
+  const suggested = useMemo(
+    () => naechsterTag(aktiveTage, lastPlanDayId),
+    [aktiveTage, lastPlanDayId],
+  );
+  const mehrerePlaene = new Set(aktiveTage.map((d) => d.planId)).size > 1;
+  const archivTage = days.filter((d) => d.archived);
 
   function bodyLoad(ex: TrackExercise): number | null {
     if (ex.bodyweightFactor === null || bodyWeightKg === null) return null;
@@ -577,7 +587,7 @@ export function TrackWorkout({
         // des Trainers.
         day?.title ?? "",
         {
-          planId: day ? planId : null,
+          planId: day ? day.planId : null,
           planDayId: day?.id ?? null,
           // Reine Trainingszeit, ohne die Zeiträume, in denen der Trainer
           // die Uhr angehalten hat. Bisher stand hier nichts — eine vom
@@ -689,13 +699,20 @@ export function TrackWorkout({
               color: "var(--pt-text-dim)",
             }}
           >
-            {planName ? planName : R.noActivePlan}
+            {planName ?? R.noActivePlan}
           </p>
 
           <div style={{ display: "grid", gap: 8 }}>
-            {days.map((d) => (
+            {aktiveTage.map((d, i) => (
+              <Fragment key={d.id}>
+              {/* Bei mehreren aktiven Plänen steht der Planname über
+                  seinen Tagen, sonst wüsste man nicht, welcher Tag A. */}
+              {mehrerePlaene && aktiveTage[i - 1]?.planId !== d.planId && (
+                <p className="pt-label" style={{ margin: i === 0 ? 0 : "8px 0 0" }}>
+                  {d.planName}
+                </p>
+              )}
               <button
-                key={d.id}
                 type="button"
                 className="pt-pickrow"
                 onClick={() => startDay(d)}
@@ -725,13 +742,14 @@ export function TrackWorkout({
                 </span>
                 <IconChevronRight size={17} />
               </button>
+              </Fragment>
             ))}
 
             <button
               type="button"
               className="pt-pickrow"
               onClick={startFree}
-              style={{ marginTop: days.length > 0 ? 6 : 0 }}
+              style={{ marginTop: aktiveTage.length > 0 ? 6 : 0 }}
             >
               <span>
                 <span style={{ display: "block", fontWeight: 600 }}>
@@ -750,6 +768,42 @@ export function TrackWorkout({
               </span>
               <IconChevronRight size={17} />
             </button>
+
+            {/* Archiv: stillgelegte Pläne bleiben startbar (Meeting 27.10.),
+                stehen aber zugeklappt unten, damit sie nicht stören. */}
+            {archivTage.length > 0 && (
+              <details style={{ marginTop: 10 }}>
+                <summary className="pt-label" style={{ cursor: "pointer" }}>
+                  {R.archive(archivTage.length)}
+                </summary>
+                <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                  {archivTage.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      className="pt-pickrow"
+                      onClick={() => startDay(d)}
+                      style={{ opacity: 0.75 }}
+                    >
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: "block", fontWeight: 600 }}>{d.title}</span>
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: "var(--pt-fs-sm)",
+                            color: "var(--pt-text-dim)",
+                            marginTop: 2,
+                          }}
+                        >
+                          {d.planName}, {L.exercises(d.slots.length)}
+                        </span>
+                      </span>
+                      <IconChevronRight size={17} />
+                    </button>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
         </main>
       </>

@@ -31,6 +31,7 @@ export const athlete: Dict["athlete"] = {
     reps: (n) => `${n} reps`,
   },
   plan: {
+    archive: "Archive: earlier plans",
     tabsAria: "Plan or history",
     tabWeek: "Week",
     tabHistory: "History",
@@ -229,6 +230,7 @@ export const athlete: Dict["athlete"] = {
     },
   },
   log: {
+    archive: (n) => `Archive (${n} ${n === 1 ? "day" : "days"})`,
     needOneSet: "Enter at least one set with reps.",
     whatsUp: "What's on today?",
     coachPrepared:

@@ -168,8 +168,11 @@ export default async function ClientDetailPage({
     .filter((k) => k.points.length > 0);
 
   const plans = await fetchPlans(db, params.id);
-  const activePlan = plans.find((p) => p.isActive) ?? null;
-  const olderPlans = plans.filter((p) => !p.isActive).slice(0, 3);
+  // Mehrere aktive Pläne sind erlaubt (Meeting 27.10.). activePlan bleibt
+  // für die Stellen, die nur wissen wollen, ob überhaupt einer läuft.
+  const activePlans = plans.filter((p) => p.isActive);
+  const activePlan = activePlans[0] ?? null;
+  const olderPlans = plans.filter((p) => !p.isActive).slice(0, 5);
 
   // Check-ins kommen absteigend; für die Veränderung zur Vorwoche braucht
   // es den Nachbarn in der Zeit, nicht in der Liste.
@@ -623,7 +626,7 @@ export default async function ClientDetailPage({
               <ClientPlan
                 clientId={client.id}
                 level={client.level}
-                active={activePlan}
+                active={activePlans}
                 older={olderPlans}
                 // Aus der Karte „Nächste Schritte" (?plan=neu), nicht mehr
                 // automatisch nach dem Anlegen.

@@ -35,10 +35,11 @@ export default async function TrackPage() {
   const plans = await Promise.all(
     clients.map(async (c) => ({
       clientId: c.id,
-      plan: (await fetchPlans(db, c.id)).find((p) => p.isActive) ?? null,
+      // Alle aktiven Pläne zählen — es dürfen mehrere sein (Meeting 27.10.).
+      plans: (await fetchPlans(db, c.id)).filter((p) => p.isActive),
     })),
   );
-  const planOf = new Map(plans.map((p) => [p.clientId, p.plan]));
+  const planOf = new Map(plans.map((p) => [p.clientId, p.plans]));
 
   return (
     <>
@@ -71,8 +72,8 @@ export default async function TrackPage() {
         ) : (
           <div style={{ display: "grid", gap: 8, maxWidth: 560 }}>
             {clients.map((c) => {
-              const plan = planOf.get(c.id) ?? null;
-              const tage = plan?.days.filter((d) => d.slots.length > 0) ?? [];
+              const aktive = planOf.get(c.id) ?? [];
+              const tage = aktive.flatMap((p) => p.days.filter((d) => d.slots.length > 0));
               return (
                 <Link
                   key={c.id}
@@ -101,7 +102,7 @@ export default async function TrackPage() {
                         }}
                       >
                         {tage.length > 0
-                          ? P.planDays(plan!.name, tage.length)
+                          ? P.planDays(aktive.map((p) => p.name).join(", "), tage.length)
                           : P.noPlan}
                       </span>
                     </span>

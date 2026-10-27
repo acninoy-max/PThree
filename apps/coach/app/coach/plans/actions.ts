@@ -43,6 +43,8 @@ export async function createPlanAction(input: {
   level: ExperienceLevel;
   startsOn: string;
   dayTitles: string[];
+  /** true = andere aktive Pläne stilllegen; false = daneben (0032). */
+  replace?: boolean;
 }): Promise<PlanResult> {
   const t = getT();
   const name = input.name.trim();
@@ -59,11 +61,16 @@ export async function createPlanAction(input: {
   } = await db.auth.getUser();
   if (!user) return { ok: false, error: t.fehler.action.notSignedIn };
 
-  await db
-    .from("plans")
-    .update({ is_active: false })
-    .eq("client_id", input.clientId)
-    .eq("is_active", true);
+  // Mehrere aktive Pläne sind erlaubt (Meeting 27.10.). Nur wer
+  // „ersetzen" wählt, legt die anderen still.
+  if (input.replace ?? true) {
+    const { error: stillFehler } = await db
+      .from("plans")
+      .update({ is_active: false })
+      .eq("client_id", input.clientId)
+      .eq("is_active", true);
+    if (stillFehler) return { ok: false, error: stillFehler.message };
+  }
 
   const { data: plan, error } = await db
     .from("plans")
@@ -111,21 +118,9 @@ export async function updatePlanAction(
   const t = getT();
   const db = createServerSupabase();
 
-  // Aktivieren heißt: die anderen stilllegen.
-  if (patch.isActive === true) {
-    const { data: plan } = await db
-      .from("plans")
-      .select("client_id")
-      .eq("id", planId)
-      .maybeSingle();
-    if (plan) {
-      await db
-        .from("plans")
-        .update({ is_active: false })
-        .eq("client_id", plan.client_id)
-        .neq("id", planId);
-    }
-  }
+  // Aktivieren legt die anderen NICHT mehr still: Ein Klient darf
+  // mehrere aktive Pläne haben (Meeting 27.10.). Stilllegen ist ein
+  // eigener Schritt („Archive").
 
   const update: Record<string, unknown> = {};
   if (patch.name !== undefined) {
@@ -137,8 +132,15 @@ export async function updatePlanAction(
   if (patch.startsOn !== undefined) update.starts_on = patch.startsOn;
   if (patch.isActive !== undefined) update.is_active = patch.isActive;
 
-  const { error } = await db.from("plans").update(update).eq("id", planId);
+  const { data: geaendert, error } = await db
+    .from("plans")
+    .update(update)
+    .eq("id", planId)
+    .select("id");
   if (error) return { ok: false, error: error.message };
+  if (!geaendert || geaendert.length !== 1) {
+    return { ok: false, error: t.coach.planErrors.planNotSaved };
+  }
 
   refresh(planId);
   return { ok: true };

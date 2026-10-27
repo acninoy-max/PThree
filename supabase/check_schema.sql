@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0031 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0032 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -611,6 +611,12 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0031', 'client_exercise_notes: Regel fuer den Trainer',
          (select count(*) = 1 from pg_policies
           where tablename = 'client_exercise_notes')
+
+  -- 0032: Mehrere aktive Plaene
+  union all
+  select 1, '0032', 'assign_template mit Wahl ersetzen/daneben, genau einmal',
+         (select count(*) = 1 and bool_and(pronargs = 5) from pg_proc
+          where proname = 'assign_template')
 
   -- 0007: Check-in-Schutz
   union all

@@ -6,6 +6,7 @@ import { IconX } from "@/app/icons";
 import { useT } from "@/app/i18n/client";
 import { dayISO } from "@/app/plan-week";
 import { assignProgramAction } from "../../actions";
+import { ErsetzenWahl } from "@/app/coach/plans/ersetzen-wahl";
 
 export interface ClientPick {
   id: string;
@@ -40,6 +41,7 @@ export function AssignDialog({
   // Klick gemountet, läuft also im Browser.
   const [startsOn, setStartsOn] = useState(dayISO(new Date()));
   const [error, setError] = useState<string | null>(null);
+  const [ersetzen, setErsetzen] = useState(true);
 
   // Planname: vorbelegt mit „Vorname Programmname" (Wunsch aus dem Test
   // 20.10.), damit beim Klienten nicht fünfmal „Full Body 2×" steht.
@@ -64,6 +66,7 @@ export function AssignDialog({
         clientId,
         startsOn,
         name: planName.trim() || vorschlag,
+        replace: ersetzen,
       });
       if (!res.ok) {
         setError(res.error);
@@ -134,6 +137,7 @@ export function AssignDialog({
                 maxLength={120}
               />
             </label>
+            <ErsetzenWahl ersetzen={ersetzen} onChange={setErsetzen} />
             <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
               <span className="pt-label">{P.startsOn}</span>
               <input

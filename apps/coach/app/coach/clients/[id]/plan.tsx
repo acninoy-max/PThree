@@ -8,6 +8,7 @@ import { IconChevronRight, IconPlus, IconX } from "@/app/icons";
 import { createPlanAction } from "@/app/coach/plans/actions";
 import { dayISO, daysSince, parseDay } from "@/app/plan-week";
 import { useT } from "@/app/i18n/client";
+import { ErsetzenWahl } from "@/app/coach/plans/ersetzen-wahl";
 
 /*
   Startvorlagen — ein Klick füllt die Tagesliste, die danach frei
@@ -33,12 +34,15 @@ function NewPlan({
   clientId,
   level,
   justCreated,
+  hasActive,
   onClose,
 }: {
   clientId: string;
   level: ExperienceLevel;
   /** Direkt nach dem Anlegen des Klienten geöffnet, nicht per Klick. */
   justCreated: boolean;
+  /** Gibt es schon aktive Pläne? Dann die Wahl ersetzen / daneben. */
+  hasActive: boolean;
   onClose: () => void;
 }) {
   const t = useT();
@@ -53,6 +57,7 @@ function NewPlan({
   const [startsOn, setStartsOn] = useState(todayISO());
   const [planLevel, setPlanLevel] = useState<ExperienceLevel>(level);
   const [error, setError] = useState<string | null>(null);
+  const [ersetzen, setErsetzen] = useState(true);
 
   function applyPreset(i: number) {
     setPreset(i);
@@ -89,6 +94,7 @@ function NewPlan({
         level: planLevel,
         startsOn,
         dayTitles: filled,
+        replace: ersetzen,
       });
       if (!result.ok) {
         setError(result.error);
@@ -275,6 +281,8 @@ function NewPlan({
             </label>
           </div>
 
+          {hasActive && <ErsetzenWahl ersetzen={ersetzen} onChange={setErsetzen} />}
+
           {error && (
             <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-action)" }}>
               {error}
@@ -308,7 +316,8 @@ export function ClientPlan({
 }: {
   clientId: string;
   level: ExperienceLevel;
-  active: Plan | null;
+  /** Alle aktiven Pläne — seit 27.10. dürfen es mehrere sein. */
+  active: Plan[];
   older: Plan[];
   /** Klient gerade angelegt, noch ohne Plan: Dialog gleich öffnen. */
   startWithPlan?: boolean;
@@ -341,10 +350,7 @@ export function ClientPlan({
   const [today, setToday] = useState<Date | null>(null);
   useEffect(() => setToday(new Date()), []);
 
-  const slotCount = active?.days.reduce((n, d) => n + d.slots.length, 0) ?? 0;
-
-  // createdAt ist ein Zeitstempel — für den Vergleich zählt der lokale Tag.
-  const createdDay = active ? dayISO(new Date(active.createdAt)) : null;
+  const hatAktive = active.length > 0;
 
   return (
     <>
@@ -359,9 +365,9 @@ export function ClientPlan({
           }}
         >
           <p className="pt-label" style={{ margin: 0 }}>
-            {P.plan}
+            {active.length > 1 ? P.plans : P.plan}
           </p>
-          {active && (
+          {hatAktive && (
             <button
               type="button"
               className="pt-iconbtn"
@@ -374,111 +380,86 @@ export function ClientPlan({
           )}
         </div>
 
-        {active ? (
+        {hatAktive ? (
           <>
-            <Link
-              href={`/coach/plans/${active.id}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 8,
-                color: "var(--pt-text)",
-              }}
-            >
-              <span style={{ fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
-                {active.name}
-              </span>
-              <span style={{ color: "var(--pt-text-dim)", display: "flex" }}>
-                <IconChevronRight size={16} />
-              </span>
-            </Link>
-            <p
-              style={{
-                margin: "3px 0 0",
-                fontSize: "var(--pt-fs-sm)",
-                color: "var(--pt-text-dim)",
-              }}
-            >
-              {P.summary(
-                t.fmt.dateMedium(parseDay(active.startsOn)),
-                today ? t.time.since(daysSince(active.startsOn, today)) : null,
-                active.days.length,
-                slotCount,
-              )}
-            </p>
-
-            {/*
-              Startdatum und Anlagedatum sind zwei verschiedene Dinge. Meist
-              fallen sie zusammen und dann schweigt die Zeile. Weichen sie ab
-              — bewusst, weil der Plan erst nächste Woche greift, oder aus
-              Versehen — dann ist genau das die Information, die fehlt.
-            */}
-            {createdDay && createdDay !== active.startsOn && (
-              <p
-                style={{
-                  margin: "3px 0 0",
-                  fontSize: "var(--pt-fs-sm)",
-                  color: "var(--pt-text-dim)",
-                  opacity: 0.85,
-                }}
-              >
-                {P.createdOn(t.fmt.dateMedium(parseDay(createdDay)))}
-              </p>
-            )}
-
-            {slotCount === 0 && (
-              <p
-                style={{
-                  margin: "8px 0 0",
-                  fontSize: "var(--pt-fs-sm)",
-                  color: "var(--pt-action)",
-                  lineHeight: 1.45,
-                }}
-              >
-                {P.noSlots}
-              </p>
-            )}
-
-            {older.length > 0 && (
-              <div
-                style={{
-                  marginTop: 12,
-                  paddingTop: 10,
-                  borderTop: "1px solid var(--pt-border)",
-                }}
-              >
-                <p
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "var(--pt-fs-xs)",
-                    fontWeight: 600,
-                    color: "var(--pt-text-dim)",
-                  }}
+            {active.map((plan, idx) => {
+              const slotCount = plan.days.reduce((n, d) => n + d.slots.length, 0);
+              // createdAt ist ein Zeitstempel — für den Vergleich zählt der Tag.
+              const createdDay = dayISO(new Date(plan.createdAt));
+              return (
+                <div
+                  key={plan.id}
+                  style={
+                    idx > 0
+                      ? { marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--pt-border)" }
+                      : undefined
+                  }
                 >
-                  {P.earlierPlans}
-                </p>
-                {older.map((p) => (
                   <Link
-                    key={p.id}
-                    href={`/coach/plans/${p.id}`}
+                    href={`/coach/plans/${plan.id}`}
                     style={{
                       display: "flex",
+                      alignItems: "center",
                       justifyContent: "space-between",
                       gap: 8,
-                      fontSize: "var(--pt-fs-base)",
-                      padding: "3px 0",
+                      color: "var(--pt-text)",
+                    }}
+                  >
+                    <span style={{ fontSize: "var(--pt-fs-lg)", fontWeight: 600 }}>
+                      {plan.name}
+                    </span>
+                    <span style={{ color: "var(--pt-text-dim)", display: "flex" }}>
+                      <IconChevronRight size={16} />
+                    </span>
+                  </Link>
+                  <p
+                    style={{
+                      margin: "3px 0 0",
+                      fontSize: "var(--pt-fs-sm)",
                       color: "var(--pt-text-dim)",
                     }}
                   >
-                    <span>{p.name}</span>
-                    <span style={{ whiteSpace: "nowrap" }}>
-                      {t.fmt.dateMedium(parseDay(p.startsOn))}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
+                    {P.summary(
+                      t.fmt.dateMedium(parseDay(plan.startsOn)),
+                      today ? t.time.since(daysSince(plan.startsOn, today)) : null,
+                      plan.days.length,
+                      slotCount,
+                    )}
+                  </p>
+
+                  {/*
+                    Startdatum und Anlagedatum sind zwei verschiedene Dinge.
+                    Meist fallen sie zusammen und dann schweigt die Zeile.
+                    Weichen sie ab, ist genau das die Information, die fehlt.
+                  */}
+                  {createdDay !== plan.startsOn && (
+                    <p
+                      style={{
+                        margin: "3px 0 0",
+                        fontSize: "var(--pt-fs-sm)",
+                        color: "var(--pt-text-dim)",
+                        opacity: 0.85,
+                      }}
+                    >
+                      {P.createdOn(t.fmt.dateMedium(parseDay(createdDay)))}
+                    </p>
+                  )}
+
+                  {slotCount === 0 && (
+                    <p
+                      style={{
+                        margin: "8px 0 0",
+                        fontSize: "var(--pt-fs-sm)",
+                        color: "var(--pt-action)",
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      {P.noSlots}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </>
         ) : (
           <>
@@ -503,6 +484,48 @@ export function ClientPlan({
             </button>
           </>
         )}
+
+        {/* Archiv: stillgelegte Pläne bleiben erreichbar und startbar,
+            sie werden nur nicht mehr vorgeschlagen. */}
+        {older.length > 0 && (
+          <div
+            style={{
+              marginTop: 12,
+              paddingTop: 10,
+              borderTop: "1px solid var(--pt-border)",
+            }}
+          >
+            <p
+              style={{
+                margin: "0 0 6px",
+                fontSize: "var(--pt-fs-xs)",
+                fontWeight: 600,
+                color: "var(--pt-text-dim)",
+              }}
+            >
+              {P.earlierPlans}
+            </p>
+            {older.map((p) => (
+              <Link
+                key={p.id}
+                href={`/coach/plans/${p.id}`}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 8,
+                  fontSize: "var(--pt-fs-base)",
+                  padding: "3px 0",
+                  color: "var(--pt-text-dim)",
+                }}
+              >
+                <span>{p.name}</span>
+                <span style={{ whiteSpace: "nowrap" }}>
+                  {t.fmt.dateMedium(parseDay(p.startsOn))}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
 
       {creating && (
@@ -510,6 +533,7 @@ export function ClientPlan({
           clientId={clientId}
           level={level}
           justCreated={startWithPlan}
+          hasActive={hatAktive}
           onClose={() => setCreating(false)}
         />
       )}

@@ -28,6 +28,11 @@ export const coach = {
     checkin: "Check-in einrichten",
     plan: "Trainingsplan anlegen",
   },
+  planChoice: {
+    legend: "Was passiert mit dem aktuellen Plan?",
+    replace: "Ersetzen. Der bisherige Plan wandert ins Archiv.",
+    alongside: "Behalten. Dieser Plan kommt daneben, z. B. einer mit Coach und einer allein.",
+  },
   clients: {
     kicker: "Betreuung",
     title: "Klienten",
@@ -127,6 +132,7 @@ export const coach = {
     creating: "Wird angelegt …",
     createAndFill: "Anlegen und Slots füllen",
     plan: "Trainingsplan",
+    plans: "Trainingspläne",
     newPlan: "Neuen Plan anlegen",
     summary: (ab: string, seit: string | null, tage: number, slots: number) =>
       `ab ${ab}${seit ? ` · ${seit}` : ""} · ${tage} ${
@@ -136,7 +142,7 @@ export const coach = {
       `Angelegt am ${datum}. Startdatum im Plan änderbar.`,
     noSlots:
       "Noch keine Slots. Der Plan erscheint dem Athleten erst, wenn mindestens einer gefüllt ist.",
-    earlierPlans: "Frühere Pläne",
+    earlierPlans: "Archiv",
     noPlan:
       "Noch kein Plan. Ohne Plan trainiert der Athlet frei. Die Musterhistorie läuft trotzdem.",
     createPlan: "Plan anlegen",
@@ -369,6 +375,7 @@ export const coach = {
   planErrors: {
     planName: "Der Plan braucht einen Namen.",
     oneDay: "Mindestens ein Trainingstag ist nötig.",
+    planNotSaved: "Der Plan wurde nicht gespeichert. Bitte Seite neu laden.",
     planNotCreated: "Plan konnte nicht angelegt werden.",
     nameEmpty: "Der Name darf nicht leer sein.",
     exerciseName: "Die Übung braucht einen Namen.",
@@ -403,6 +410,7 @@ export const coach = {
     noPlan: "Kein Plan, freies Training",
   },
   track: {
+    archive: (n: number) => `Archiv (${n} ${n === 1 ? "Tag" : "Tage"})`,
     addNote: "+ Notiz",
     editNote: "Notiz bearbeiten",
     notePlaceholder: "z. B. Handgelenk ab 120 kg, enger greifen",
@@ -513,6 +521,8 @@ export const coach = {
     inactive: " · stillgelegt",
     summary: (ab: string, tage: number, slots: number) =>
       `ab ${ab} · ${tage} ${tage === 1 ? "Tag" : "Tage"} · ${slots} Slots`,
+    archive: "Archivieren",
+    archiving: "Wird archiviert …",
     activating: "Wird aktiviert …",
     activate: "Aktivieren",
     deletePlan: "Plan löschen",
@@ -569,7 +579,7 @@ export const coach = {
     assign: "Klient zuweisen",
     assignTitle: "Programm zuweisen",
     assignIntro: (name: string) =>
-      `„${name}“ wird als neuer Plan beim Klienten angelegt. Sein bisheriger Plan wird stillgelegt, die Historie bleibt.`,
+      `„${name}“ wird als neuer Plan beim Klienten angelegt. Die Historie bleibt.`,
     client: "Klient",
     noClients: "Du hast noch keine aktiven Klienten.",
     planName: "Name des Plans",

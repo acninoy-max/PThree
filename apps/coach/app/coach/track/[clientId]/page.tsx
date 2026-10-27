@@ -107,11 +107,18 @@ export default async function TrackClientPage({
     }
   }
 
-  const plan = plans.find((p) => p.isActive) ?? null;
-  const days: TrackPlanDay[] = (plan?.days ?? [])
+  // Alle aktiven Pläne (es dürfen mehrere sein, Meeting 27.10.), danach
+  // die fünf jüngsten archivierten. fetchPlans liefert aktive zuerst.
+  const aktive = plans.filter((p) => p.isActive);
+  const archiv = plans.filter((p) => !p.isActive).slice(0, 5);
+  const days: TrackPlanDay[] = [...aktive, ...archiv].flatMap((plan) =>
+    plan.days
     .filter((d) => d.slots.length > 0)
     .map((d) => ({
       id: d.id,
+      planId: plan.id,
+      planName: plan.name,
+      archived: !plan.isActive,
       title: d.title,
       isGuided: d.isGuided,
       weekdays: d.weekdays,
@@ -129,7 +136,8 @@ export default async function TrackClientPage({
         restSeconds: s.restSeconds,
         note: s.note,
       })),
-    }));
+    })),
+  );
 
   // Trainer-Notizen je Übung (0031). Fehlt die Tabelle noch, bleibt es
   // leer — das Tracken selbst darf daran nicht hängen.
@@ -149,8 +157,8 @@ export default async function TrackClientPage({
     <TrackWorkout
       clientId={client.id}
       clientName={client.fullName}
-      planId={plan?.id ?? null}
-      planName={plan?.name ?? null}
+      planId={aktive[0]?.id ?? null}
+      planName={aktive.length > 0 ? aktive.map((p) => p.name).join(", ") : null}
       days={days}
       lastPlanDayId={lastPlanDayId}
       exercises={exercises}

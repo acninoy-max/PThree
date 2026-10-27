@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   DEFAULT_REST_SECONDS,
   elapsedSeconds,
@@ -51,6 +51,7 @@ import {
 } from "@/app/training-entwurf";
 import { EntwurfKarte } from "@/app/training-entwurf-karte";
 import { vorherFuer, type LetztesMal } from "@/app/letzte-saetze";
+import { naechsterTag } from "@/app/plan-week";
 
 export interface ExerciseOption {
   id: string;
@@ -105,6 +106,11 @@ export interface PlanSlotOption {
 
 export interface PlanDayOption {
   id: string;
+  /** Plan des Tages — ein Klient darf mehrere haben (Meeting 27.10.). */
+  planId: string;
+  planName: string;
+  /** Aus einem stillgelegten Plan: startbar, aber nicht vorgeschlagen. */
+  archived: boolean;
   title: string;
   isGuided: boolean;
   /** ISO-Wochentag 1–7, null = ohne festen Tag. */
@@ -331,11 +337,13 @@ export function LogWorkout({
    * Vorschlag: der Tag nach dem zuletzt gemachten. Nach Tag A kommt B,
    * nach dem letzten wieder der erste.
    */
-  const suggestedDay = useMemo(() => {
-    if (planDays.length === 0) return null;
-    const i = planDays.findIndex((d) => d.id === lastPlanDayId);
-    return planDays[(i + 1) % planDays.length] ?? planDays[0]!;
-  }, [planDays, lastPlanDayId]);
+  const aktiveTage = useMemo(() => planDays.filter((d) => !d.archived), [planDays]);
+  const archivTage = planDays.filter((d) => d.archived);
+  const mehrerePlaene = new Set(aktiveTage.map((d) => d.planId)).size > 1;
+  const suggestedDay = useMemo(
+    () => naechsterTag(aktiveTage, lastPlanDayId),
+    [aktiveTage, lastPlanDayId],
+  );
 
   const recent = useMemo(
     () =>
@@ -734,7 +742,7 @@ export function LogWorkout({
       // Ohne Plantag kein Titel — den Standard setzt die Action in der
       // Sprache des Nutzers.
       const res = await saveSessionAction(payload, day?.title ?? "", {
-        planId: day ? planId : null,
+        planId: day ? day.planId : null,
         planDayId: day?.id ?? null,
         durationSeconds: elapsed,
         isComplete,
@@ -770,7 +778,7 @@ export function LogWorkout({
   if (!started && planDays.length > 0) {
     return (
       <main className="gym-shell" style={{ paddingTop: 26 }}>
-        <p className="gym-label">{planName}</p>
+        <p className="gym-label">{planName ?? L.freeTraining}</p>
         <h1 style={{ margin: "3px 0 6px", fontSize: "var(--pt-fs-3xl)", fontWeight: 700 }}>
           {L.whatsUp}
         </h1>
@@ -779,9 +787,16 @@ export function LogWorkout({
         </p>
 
         <div style={{ display: "grid", gap: 10 }}>
-          {planDays.map((d) => (
+          {aktiveTage.map((d, i) => (
+            <Fragment key={d.id}>
+            {/* Bei zwei Plänen (mit Coach, allein) steht der Name über
+                seinen Tagen — sonst gäbe es zweimal „Tag A". */}
+            {mehrerePlaene && aktiveTage[i - 1]?.planId !== d.planId && (
+              <p className="gym-label" style={{ margin: i === 0 ? 0 : "8px 0 0" }}>
+                {d.planName}
+              </p>
+            )}
             <button
-              key={d.id}
               type="button"
               onClick={() => setConfirming(d)}
               className="gym-card"
@@ -845,6 +860,7 @@ export function LogWorkout({
                 {d.slots.map((s) => s.label).join(", ")}
               </span>
             </button>
+            </Fragment>
           ))}
         </div>
 
@@ -856,6 +872,28 @@ export function LogWorkout({
         >
           {L.freeTraining}
         </button>
+
+        {/* Archiv: stillgelegte Pläne bleiben startbar (Meeting 27.10.),
+            zugeklappt, damit sie die Auswahl nicht überladen. */}
+        {archivTage.length > 0 && (
+          <details className="gym-card gym-verlauf" style={{ marginTop: 16 }}>
+            <summary className="gym-label">{L.archive(archivTage.length)}</summary>
+            <div style={{ display: "grid", gap: 8, marginTop: 12 }}>
+              {archivTage.map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setConfirming(d)}
+                  className="gym-btn gym-btn--ghost"
+                  style={{ textAlign: "left", justifyContent: "space-between" }}
+                >
+                  <span>{d.title}</span>
+                  <span style={{ color: "var(--g-dim)", fontWeight: 400 }}>{d.planName}</span>
+                </button>
+              ))}
+            </div>
+          </details>
+        )}
 
         {confirming && (
           <div
@@ -1108,7 +1146,7 @@ export function LogWorkout({
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <p className="gym-label">{day ? planName : L.freeTraining}</p>
+          <p className="gym-label">{day ? day.planName : L.freeTraining}</p>
           <h1 style={{ margin: "2px 0 0", fontSize: "var(--pt-fs-2xl)", fontWeight: 700 }}>
             {day ? day.title : L.today}
           </h1>

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import {
-  fetchActivePlan,
   fetchExercises,
+  fetchPlans,
   fetchSessions,
   fetchUpcomingAppointments,
 } from "@ptfive/db";
 import { createServerSupabase } from "@/lib/supabase-server";
 import { muscleLabel } from "@/app/components";
-import { estimateMinutes } from "@/app/plan-week";
+import { estimateMinutes, naechsterTag } from "@/app/plan-week";
 import { IconChevronRight } from "@/app/icons";
 import { getLocale, getT } from "@/app/i18n/server";
 import { EntwurfHinweis } from "./entwurf-hinweis";
@@ -24,27 +24,24 @@ export default async function AthleteHome() {
     data: { user },
   } = await db.auth.getUser();
 
-  const [{ data: profile }, sessions, appointments, exercises, plan] =
+  const [{ data: profile }, sessions, appointments, exercises, plans] =
     await Promise.all([
       db.from("profiles").select("full_name").eq("id", user!.id).maybeSingle(),
       fetchSessions(db, { sinceDays: 60 }),
       fetchUpcomingAppointments(db, 14),
       fetchExercises(db, getLocale()),
-      fetchActivePlan(db),
+      fetchPlans(db),
     ]);
 
   // Welcher Plantag als Nächstes dran ist — derselbe Vorschlag wie auf
   // der Logseite, damit die Angabe hier nicht abweicht.
-  const planDays = (plan?.days ?? []).filter((d) => d.slots.length > 0);
+  // Aus allen aktiven Plänen, innerhalb des zuletzt benutzten (plan-week.ts).
+  const planDays = plans
+    .filter((p) => p.isActive)
+    .flatMap((p) => p.days.filter((d) => d.slots.length > 0));
   let lastPlanDayId: string | null = null;
   for (const s of sessions) if (s.planDayId) lastPlanDayId = s.planDayId;
-  const nextDay =
-    planDays.length > 0
-      ? planDays[
-          (planDays.findIndex((d) => d.id === lastPlanDayId) + 1) %
-            planDays.length
-        ]
-      : null;
+  const nextDay = naechsterTag(planDays, lastPlanDayId);
 
   const firstName = (profile?.full_name ?? "").split(" ")[0] || h.fallbackName;
   const next = appointments[0];
@@ -150,7 +147,7 @@ export default async function AthleteHome() {
                 ? h.startDay(nextDay.title)
                 : h.startTraining}
           </Link>
-          {plan && (
+          {plans.some((p) => p.isActive) && (
             <Link
               href="/athlete/plan"
               className="gym-btn gym-btn--ghost"

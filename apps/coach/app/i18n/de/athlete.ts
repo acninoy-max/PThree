@@ -30,6 +30,7 @@ export const athlete = {
     reps: (n: number) => `${n} Wdh.`,
   },
   plan: {
+    archive: "Archiv: frühere Pläne",
     tabsAria: "Plan oder Verlauf",
     tabWeek: "Woche",
     tabHistory: "Verlauf",
@@ -231,6 +232,7 @@ export const athlete = {
     },
   },
   log: {
+    archive: (n: number) => `Archiv (${n} ${n === 1 ? "Tag" : "Tage"})`,
     needOneSet: "Trag mindestens einen Satz mit Wiederholungen ein.",
     whatsUp: "Was steht an?",
     coachPrepared:

@@ -46,7 +46,7 @@ packages/types       Domänenmodell, reine Typen
 packages/db          Supabase-Anbindung und Abfragen
 packages/coach-engine Rechenlogik: Volumen, 1RM, Verläufe, Hinweise
 packages/tokens      Farben, Abstände, Kontrastrechnung
-supabase/migrations  31 Migrationen, einzeln von Hand eingespielt
+supabase/migrations  32 Migrationen, einzeln von Hand eingespielt
 ```
 
 Rund 27.000 Zeilen TypeScript, 3.900 Zeilen SQL, 77 Übungen in der
@@ -238,7 +238,7 @@ Startanimation.
 
 ## 6. Zustand der Datenbank
 
-31 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
+32 Migrationen, **einzeln von Hand im Supabase-SQL-Editor eingespielt**.
 Es gibt keine Migrationsverwaltung — `check_schema.sql` ist der Ersatz
 dafür und sagt, was tatsächlich in der Datenbank steht.
 
@@ -414,6 +414,15 @@ Notizen je Klient und Übung (`client_exercise_notes`, nur Trainer),
 `copy_plan_slots` — neue Slot-Spalten nur dort ergänzen. Ohne 0031
 läuft die App weiter; Notizen und „Save as program" melden dann einen
 Fehler.
+
+**Meeting 27.10.2026** (`UMSETZUNG-27-10.md`): Alle Uhrzeiten und
+Kalendertage rechnen in `Europe/Amsterdam` (`app/zone.ts`; der Server
+läuft in UTC, Dev-Server „coach-utc" zum Nachstellen). „Last time" je
+Satz (`letzte-saetze.ts`). Verlauf für Klienten unter Plan. **Mehrere
+aktive Pläne** je Klient (**0032**: `assign_template` mit
+`p_ersetzen`); stillgelegte Pläne stehen im Archiv und bleiben
+startbar. `fetchActivePlan` wird nicht mehr benutzt — wer „den" Plan
+braucht, nimmt `fetchPlans` und filtert `isActive`.
 
 **Feedback lesen** im SQL-Editor:
 `select f.created_at, p.full_name, f.role, f.message from app_feedback f
