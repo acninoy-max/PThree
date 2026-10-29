@@ -66,7 +66,8 @@ export const labels: Dict["labels"] = {
       how: "At the widest point of the buttocks, feet together.",
     },
   },
-  bodyFatEstimated: "Body fat (estimated)",
+  bodyFatNavy: "Body fat (Navy, est.)",
+  bodyFatYmca: "Body fat (YMCA, est.)",
   weight: "Weight",
   pose: { front: "Front", side: "Side", back: "Back" },
   location: {

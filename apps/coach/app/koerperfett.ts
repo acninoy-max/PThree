@@ -95,3 +95,39 @@ export function schaetzeKoerperfett(w: KoerperfettWerte): Schaetzung | null {
   if (ymca !== null) return { wert: ymca, methode: "ymca" };
   return null;
 }
+
+/**
+ * Zwei saubere Verläufe statt einer gemischten Linie.
+ *
+ * Test vom 29.10.2026: Gewicht −1 kg, Taille −1 cm, aber Körperfett
+ * +1,4 Punkte — nur weil die erste Woche nach YMCA (ohne Hals) und die
+ * zweite nach Navy (mit Hals) gerechnet war. Die Formeln liegen beim
+ * selben Menschen auseinander; gemischt in einer Linie entsteht ein
+ * Anstieg, den es nicht gibt.
+ *
+ * Deshalb:
+ *   - Gibt es mindestens zwei Navy-Wochen, ist Navy der Verlauf ab der
+ *     ersten Navy-Woche. YMCA bleibt als eigene Linie für die Zeit
+ *     davor — ohne Verbindung zur Navy-Linie.
+ *   - Sonst gibt es nur YMCA, über alle Wochen. Eine einzelne Navy-
+ *     Messung wartet, bis eine zweite einen Verlauf ergibt.
+ * Veränderungen werden so immer innerhalb derselben Methode gerechnet.
+ */
+export function koerperfettVerlaeufe(
+  wochen: readonly { on: string; werte: KoerperfettWerte }[],
+): { navy: { on: string; value: number }[]; ymca: { on: string; value: number }[] } {
+  const sortiert = [...wochen].sort((a, b) => a.on.localeCompare(b.on));
+  const navy: { on: string; value: number }[] = [];
+  const ymca: { on: string; value: number }[] = [];
+  for (const w of sortiert) {
+    const n = koerperfettNavy(w.werte.tailleCm, w.werte.halsCm, w.werte.huefteCm, w.werte.groesseCm, w.werte.geschlecht);
+    if (n !== null) navy.push({ on: w.on, value: n });
+    const y = koerperfettYmca(w.werte.tailleCm, w.werte.gewichtKg, w.werte.geschlecht);
+    if (y !== null) ymca.push({ on: w.on, value: y });
+  }
+  if (navy.length >= 2) {
+    const start = navy[0]!.on;
+    return { navy, ymca: ymca.filter((p) => p.on < start) };
+  }
+  return { navy: [], ymca };
+}

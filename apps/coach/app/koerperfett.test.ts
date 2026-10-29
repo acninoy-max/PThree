@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { koerperfettNavy, koerperfettYmca, schaetzeKoerperfett } from "./koerperfett";
+import { koerperfettNavy, koerperfettVerlaeufe, koerperfettYmca, schaetzeKoerperfett } from "./koerperfett";
 
 describe("Körperfett nach YMCA", () => {
   it("Mann, 90 cm Taille, 85 kg: 17,7 %", () => {
@@ -51,5 +51,38 @@ describe("Körperfett nach Navy und Auswahl der Methode", () => {
   it("ohne Taille oder Geschlecht: gar nichts", () => {
     assert.equal(schaetzeKoerperfett({ tailleCm: null, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: "male" }), null);
     assert.equal(schaetzeKoerperfett({ tailleCm: 90, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: null }), null);
+  });
+});
+
+describe("Körperfett-Verläufe ohne Methodenmischung", () => {
+  const mann = (taille: number, kg: number, hals: number | null) => ({
+    tailleCm: taille, halsCm: hals, huefteCm: null, gewichtKg: kg, groesseCm: 180, geschlecht: "male" as const,
+  });
+  it("eine Navy-Woche allein: nur YMCA, über alle Wochen", () => {
+    const v = koerperfettVerlaeufe([
+      { on: "2026-10-19", werte: mann(90, 85, null) },
+      { on: "2026-10-26", werte: mann(89, 84, 38) },
+    ]);
+    assert.equal(v.navy.length, 0);
+    assert.deepEqual(v.ymca.map((p) => p.on), ["2026-10-19", "2026-10-26"]);
+    // Gewicht und Taille sinken — YMCA sinkt mit, kein Scheinanstieg
+    assert.ok(v.ymca[1]!.value < v.ymca[0]!.value);
+  });
+  it("ab zwei Navy-Wochen: Navy ab Start, YMCA nur davor", () => {
+    const v = koerperfettVerlaeufe([
+      { on: "2026-10-12", werte: mann(91, 86, null) },
+      { on: "2026-10-19", werte: mann(90, 85, null) },
+      { on: "2026-10-26", werte: mann(89, 84, 38) },
+      { on: "2026-11-02", werte: mann(88, 83, 38) },
+    ]);
+    assert.deepEqual(v.navy.map((p) => p.on), ["2026-10-26", "2026-11-02"]);
+    assert.deepEqual(v.ymca.map((p) => p.on), ["2026-10-12", "2026-10-19"]);
+  });
+  it("Reihenfolge der Eingabe egal", () => {
+    const v = koerperfettVerlaeufe([
+      { on: "2026-11-02", werte: mann(88, 83, 38) },
+      { on: "2026-10-26", werte: mann(89, 84, 38) },
+    ]);
+    assert.deepEqual(v.navy.map((p) => p.on), ["2026-10-26", "2026-11-02"]);
   });
 });

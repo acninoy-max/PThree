@@ -1,7 +1,7 @@
 import type { CheckInFields, CheckInRecord } from "@ptfive/db";
 import type { Dict } from "@/app/i18n";
 import { bereichFaellig } from "./rhythmus";
-import { schaetzeKoerperfett, type FormelGeschlecht } from "@/app/koerperfett";
+import { koerperfettVerlaeufe, type FormelGeschlecht } from "@/app/koerperfett";
 
 export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh" | "neck" | "hip";
 
@@ -37,6 +37,8 @@ export const MEASURE_INFO: Record<
 export const WEIGHT_COLOR = "#c42d1a";
 /** Körperfett (geschätzt) — eigene Farbe, nah am Gewicht. */
 export const BODYFAT_COLOR = "#b45309";
+/** YMCA heller: die gröbere Schätzung, oft nur noch für die Zeit davor. */
+export const BODYFAT_YMCA_COLOR = "#d97706";
 
 /**
  * Baut die Reihen für das Verlaufsdiagramm aus den Check-ins.
@@ -81,31 +83,38 @@ export function buildSeries(
     };
   });
 
-  // Körperfett, geschätzt aus den Werten derselben Woche
-  // (koerperfett.ts): Navy, wenn Hals und Größe (bei Frauen Hüfte) da
-  // sind, sonst YMCA aus Taille und Gewicht.
-  const koerperfett = {
-    key: "bodyfat",
-    label: t.labels.bodyFatEstimated,
+  // Körperfett, geschätzt (koerperfett.ts). Zwei Linien statt einer
+  // gemischten: Navy und YMCA liegen beim selben Menschen auseinander,
+  // gemischt entstand ein Scheinanstieg (Test 29.10.).
+  const verlaeufe = koerperfettVerlaeufe(
+    sorted.map((c) => ({
+      on: c.weekOf,
+      werte: {
+        tailleCm: c.waistCm,
+        halsCm: c.neckCm,
+        huefteCm: c.hipCm,
+        gewichtKg: c.weightKg,
+        groesseCm: heightCm,
+        geschlecht: formulaSex,
+      },
+    })),
+  );
+  const koerperfettNavy = {
+    key: "bodyfat-navy",
+    label: t.labels.bodyFatNavy,
     unit: "%",
     color: BODYFAT_COLOR,
-    points: sorted
-      .map((c) => ({
-        on: c.weekOf,
-        value:
-          schaetzeKoerperfett({
-            tailleCm: c.waistCm,
-            halsCm: c.neckCm,
-            huefteCm: c.hipCm,
-            gewichtKg: c.weightKg,
-            groesseCm: heightCm,
-            geschlecht: formulaSex,
-          })?.wert ?? null,
-      }))
-      .filter((p): p is { on: string; value: number } => p.value !== null),
+    points: verlaeufe.navy,
+  };
+  const koerperfettYmca = {
+    key: "bodyfat-ymca",
+    label: t.labels.bodyFatYmca,
+    unit: "%",
+    color: BODYFAT_YMCA_COLOR,
+    points: verlaeufe.ymca,
   };
 
-  return [weight, koerperfett, ...measures].filter((s) => s.points.length > 0);
+  return [weight, koerperfettNavy, koerperfettYmca, ...measures].filter((s) => s.points.length > 0);
 }
 
 /** Welche Maße der Coach für diesen Klienten eingeschaltet hat. */

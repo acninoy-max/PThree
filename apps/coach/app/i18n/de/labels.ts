@@ -83,7 +83,8 @@ export const labels = {
       how: "An der breitesten Stelle des Gesäßes, Füße zusammen.",
     },
   },
-  bodyFatEstimated: "Körperfett (geschätzt)",
+  bodyFatNavy: "Körperfett (Navy, geschätzt)",
+  bodyFatYmca: "Körperfett (YMCA, geschätzt)",
   weight: "Gewicht",
   pose: { front: "Vorne", side: "Seite", back: "Hinten" },
   location: {
