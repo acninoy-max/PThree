@@ -74,6 +74,8 @@ export interface Client {
   weeklyGoal: number | null;
   /** Nur für die Körperfett-Formel (0037). null = nicht angegeben. */
   formulaSex: "male" | "female" | null;
+  /** Körpergröße in cm, für die Navy-Formel (0038). */
+  heightCm: number | null;
   goal: string | null;
   startedOn: ISODate;
   createdAt: ISODateTime;

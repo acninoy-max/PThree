@@ -189,6 +189,8 @@ export interface CheckInInput {
   waistCm?: number | null;
   armCm?: number | null;
   thighCm?: number | null;
+  neckCm?: number | null;
+  hipCm?: number | null;
 }
 
 /** Grenzen wie die Datenbank-Constraints, nur mit lesbarer Meldung. */
@@ -198,6 +200,8 @@ const CM_RANGE: Record<string, [number, number, MeasureKey]> = {
   waistCm: [40, 250, "waist"],
   armCm: [15, 100, "arm"],
   thighCm: [25, 150, "thigh"],
+  neckCm: [20, 70, "neck"],
+  hipCm: [50, 200, "hip"],
 };
 
 /**
@@ -305,6 +309,8 @@ export async function saveCheckInAction(
           waist_cm: cm("waistCm"),
           arm_cm: cm("armCm"),
           thigh_cm: cm("thighCm"),
+          neck_cm: cm("neckCm"),
+          hip_cm: cm("hipCm"),
         }
       : {}),
   };

@@ -74,6 +74,14 @@ export const labels = {
       label: "Oberschenkel",
       how: "Rechtes Bein, eine Handbreit unter dem Schritt.",
     },
+    neck: {
+      label: "Hals",
+      how: "Direkt unter dem Kehlkopf, Band leicht nach vorn geneigt.",
+    },
+    hip: {
+      label: "Hüfte",
+      how: "An der breitesten Stelle des Gesäßes, Füße zusammen.",
+    },
   },
   bodyFatEstimated: "Körperfett (geschätzt)",
   weight: "Gewicht",

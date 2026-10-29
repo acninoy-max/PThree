@@ -1,9 +1,9 @@
 import type { CheckInFields, CheckInRecord } from "@ptfive/db";
 import type { Dict } from "@/app/i18n";
 import { bereichFaellig } from "./rhythmus";
-import { koerperfettYmca, type FormelGeschlecht } from "@/app/koerperfett";
+import { schaetzeKoerperfett, type FormelGeschlecht } from "@/app/koerperfett";
 
-export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh";
+export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh" | "neck" | "hip";
 
 export const MEASURE_KEYS: readonly MeasureKey[] = [
   "shoulders",
@@ -11,6 +11,9 @@ export const MEASURE_KEYS: readonly MeasureKey[] = [
   "waist",
   "arm",
   "thigh",
+  // 0038 — für die Körperfett-Schätzung nach Navy
+  "neck",
+  "hip",
 ] as const;
 
 /**
@@ -26,6 +29,8 @@ export const MEASURE_INFO: Record<
   waist: { field: "waistCm", color: "#1d4ed8" },
   arm: { field: "armCm", color: "#854d0e" },
   thigh: { field: "thighCm", color: "#3b6d11" },
+  neck: { field: "neckCm", color: "#be185d" },
+  hip: { field: "hipCm", color: "#0369a1" },
 };
 
 /** Gewicht ist keine Maßband-Größe, gehört aber in dieselbe Kurve. */
@@ -42,6 +47,8 @@ export function buildSeries(
   history: readonly CheckInRecord[],
   /** Für die Körperfett-Schätzung (0037). null = keine Kurve dafür. */
   formulaSex: FormelGeschlecht | null = null,
+  /** Körpergröße für die Navy-Formel (0038); null = nur YMCA. */
+  heightCm: number | null = null,
 ): {
   key: string;
   label: string;
@@ -74,15 +81,27 @@ export function buildSeries(
     };
   });
 
-  // Körperfett, geschätzt aus Taille und Gewicht derselben Woche
-  // (koerperfett.ts). Nur Wochen mit beidem bekommen einen Punkt.
+  // Körperfett, geschätzt aus den Werten derselben Woche
+  // (koerperfett.ts): Navy, wenn Hals und Größe (bei Frauen Hüfte) da
+  // sind, sonst YMCA aus Taille und Gewicht.
   const koerperfett = {
     key: "bodyfat",
     label: t.labels.bodyFatEstimated,
     unit: "%",
     color: BODYFAT_COLOR,
     points: sorted
-      .map((c) => ({ on: c.weekOf, value: koerperfettYmca(c.waistCm, c.weightKg, formulaSex) }))
+      .map((c) => ({
+        on: c.weekOf,
+        value:
+          schaetzeKoerperfett({
+            tailleCm: c.waistCm,
+            halsCm: c.neckCm,
+            huefteCm: c.hipCm,
+            gewichtKg: c.weightKg,
+            groesseCm: heightCm,
+            geschlecht: formulaSex,
+          })?.wert ?? null,
+      }))
       .filter((p): p is { on: string; value: number } => p.value !== null),
   };
 
@@ -97,6 +116,8 @@ export function activeMeasures(fields: CheckInFields): MeasureKey[] {
     waist: fields.askWaist,
     arm: fields.askArm,
     thigh: fields.askThigh,
+    neck: fields.askNeck,
+    hip: fields.askHip,
   };
   return MEASURE_KEYS.filter((k) => on[k]);
 }

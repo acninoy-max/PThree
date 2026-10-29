@@ -36,6 +36,8 @@ interface ClientRow {
   weekly_goal?: number | null;
   /** Fehlt vor 0037. */
   formula_sex?: "male" | "female" | null;
+  /** Fehlt vor 0038. numeric kann als Text kommen. */
+  height_cm?: number | string | null;
   goal: string | null;
   started_on: string;
   created_at: string;
@@ -56,6 +58,7 @@ function toClient(row: ClientRow): Client {
     coachingType: row.coaching_type ?? "hybrid",
     weeklyGoal: row.weekly_goal ?? null,
     formulaSex: row.formula_sex ?? null,
+    heightCm: row.height_cm === null || row.height_cm === undefined ? null : Number(row.height_cm),
     goal: row.goal,
     startedOn: row.started_on,
     createdAt: row.created_at,
@@ -562,6 +565,9 @@ export interface CheckInRecord {
   waistCm: number | null;
   armCm: number | null;
   thighCm: number | null;
+  /** Hals und Hüfte (0038), für die Körperfett-Schätzung nach Navy. */
+  neckCm: number | null;
+  hipCm: number | null;
   coachReply: string | null;
   coachRepliedAt: string | null;
   /** Vom Trainer eingetragen (0034); null = vom Klienten. */
@@ -595,6 +601,8 @@ function toCheckIn(r: Record<string, unknown>): CheckInRecord {
     waistCm: cmOrNull(r.waist_cm),
     armCm: cmOrNull(r.arm_cm),
     thighCm: cmOrNull(r.thigh_cm),
+    neckCm: cmOrNull(r.neck_cm),
+    hipCm: cmOrNull(r.hip_cm),
     coachReply: (r.coach_reply as string | null) ?? null,
     coachRepliedAt: (r.coach_replied_at as string | null) ?? null,
     enteredBy: (r.entered_by as string | null | undefined) ?? null,
@@ -671,6 +679,8 @@ export interface CheckInFields {
   askWaist: boolean;
   askArm: boolean;
   askThigh: boolean;
+  askNeck: boolean;
+  askHip: boolean;
   /** Alle wie viele Wochen das Massband herauskommt. */
   measureEveryWeeks: number;
   /** Rhythmus für Gewicht und für Befinden (Energie, Schlaf, Stress), 0034. */
@@ -693,6 +703,8 @@ export const DEFAULT_CHECK_IN_FIELDS: CheckInFields = {
   askWaist: true,
   askArm: false,
   askThigh: false,
+  askNeck: false,
+  askHip: false,
   measureEveryWeeks: 4,
   weightEveryWeeks: 1,
   wellbeingEveryWeeks: 1,
@@ -723,6 +735,8 @@ export async function fetchCheckInConfig(
     askWaist: (data.ask_waist as boolean) ?? true,
     askArm: (data.ask_arm as boolean) ?? false,
     askThigh: (data.ask_thigh as boolean) ?? false,
+    askNeck: (data.ask_neck as boolean | undefined) ?? false,
+    askHip: (data.ask_hip as boolean | undefined) ?? false,
     measureEveryWeeks: (data.measure_every_weeks as number) ?? 4,
     weightEveryWeeks: (data.weight_every_weeks as number | undefined) ?? 1,
     wellbeingEveryWeeks: (data.wellbeing_every_weeks as number | undefined) ?? 1,

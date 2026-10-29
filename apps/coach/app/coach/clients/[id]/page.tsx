@@ -198,7 +198,7 @@ export default async function ClientDetailPage({
   // Was der Trainer selbst eingetragen hat, wartet nicht auf seine Antwort.
   const openCheckIns = checkInItems.filter((c) => !c.coachReply && !c.enteredBy);
   // Dieselben Reihen wie in der Athleten-App — eine Quelle, ein Bild.
-  const bodySeries = buildSeries(t, checkIns, client.formulaSex);
+  const bodySeries = buildSeries(t, checkIns, client.formulaSex, client.heightCm);
 
   const upcoming = allUpcoming.filter(
     (a) => a.clientId === client.id && a.status === "scheduled",

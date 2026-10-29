@@ -97,6 +97,7 @@ export async function updateClientAction(
   const birthDate = form.get("birthDate");
   const coachingType = form.get("coachingType");
   const formulaSex = form.get("formulaSex");
+  const height = form.get("heightCm");
 
   if (typeof fullName === "string" && fullName.trim()) {
     patch.full_name = fullName.trim();
@@ -107,6 +108,13 @@ export async function updateClientAction(
   if (typeof email === "string") patch.email = email.trim() || null;
   if (typeof coachingType === "string" && ["personal", "online", "hybrid"].includes(coachingType)) {
     patch.coaching_type = coachingType;
+  }
+  if (typeof height === "string") {
+    const h = height.trim() === "" ? null : Number(height.trim().replace(",", "."));
+    if (h !== null && (!Number.isFinite(h) || h < 100 || h > 250)) {
+      return { ok: false, error: t.coach.actions.heightRange };
+    }
+    patch.height_cm = h === null ? null : Math.round(h * 10) / 10;
   }
   if (typeof formulaSex === "string") {
     patch.formula_sex = formulaSex === "male" || formulaSex === "female" ? formulaSex : null;
@@ -339,6 +347,8 @@ export async function updateCheckInConfigAction(
     askWaist: boolean;
     askArm: boolean;
     askThigh: boolean;
+    askNeck: boolean;
+    askHip: boolean;
     measureEveryWeeks: number;
     weightEveryWeeks: number;
     wellbeingEveryWeeks: number;
@@ -367,6 +377,8 @@ export async function updateCheckInConfigAction(
       ask_waist: fields.askWaist,
       ask_arm: fields.askArm,
       ask_thigh: fields.askThigh,
+      ask_neck: fields.askNeck,
+      ask_hip: fields.askHip,
       measure_every_weeks: fields.measureEveryWeeks,
       // Spalten aus 0034. Immer mitschicken — „nur wenn nicht Standard"
       // hätte ein Zurückstellen auf jede Woche still verschluckt.
@@ -452,7 +464,7 @@ export interface CoachCheckInInput {
   sleep: number | null;
   stress: number | null;
   /** Spaltenname → Zentimeter. Nur ausgefüllte Maße. */
-  measures: Partial<Record<"shoulders_cm" | "chest_cm" | "waist_cm" | "arm_cm" | "thigh_cm", number>>;
+  measures: Partial<Record<"shoulders_cm" | "chest_cm" | "waist_cm" | "arm_cm" | "thigh_cm" | "neck_cm" | "hip_cm", number>>;
 }
 
 export type CoachCheckInResult =
@@ -465,6 +477,8 @@ const CM_GRENZEN: Record<keyof CoachCheckInInput["measures"], [number, number]> 
   waist_cm: [40, 250],
   arm_cm: [15, 100],
   thigh_cm: [25, 150],
+  neck_cm: [20, 70],
+  hip_cm: [50, 200],
 };
 
 /**

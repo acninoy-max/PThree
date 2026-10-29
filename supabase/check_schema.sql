@@ -1,4 +1,4 @@
--- Prueft, ob die Migrationen 0007 bis 0037 vollstaendig gelandet sind.
+-- Prueft, ob die Migrationen 0007 bis 0038 vollstaendig gelandet sind.
 -- Reine Leseabfrage, aendert nichts.
 --
 -- EINE Abfrage, ein Ergebnis: Der SQL-Editor zeigt nur das Resultat der
@@ -671,6 +671,18 @@ with pruefungen(sortierung, bereich, pruefung, ist_ok) as (
   select 1, '0037', 'clients.formula_sex vorhanden',
          exists (select 1 from information_schema.columns
                   where table_name = 'clients' and column_name = 'formula_sex')
+
+  -- 0038: Hals, Huefte, Koerpergroesse
+  union all
+  select 1, '0038', 'Hals und Huefte als Masse, Koerpergroesse in den Stammdaten',
+         (select count(*) = 5 from information_schema.columns
+          where (table_name = 'check_ins' and column_name in ('neck_cm', 'hip_cm'))
+             or (table_name = 'check_in_configs' and column_name in ('ask_neck', 'ask_hip'))
+             or (table_name = 'clients' and column_name = 'height_cm'))
+  union all
+  select 1, '0038', 'Check-in-Schutz kennt Hals und Huefte',
+         coalesce((select prosrc like '%neck_cm%' and prosrc like '%entered_by%'
+          from pg_proc where proname = 'guard_check_in_columns'), false)
 
   -- 0007: Check-in-Schutz
   union all

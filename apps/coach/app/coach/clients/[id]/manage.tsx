@@ -283,6 +283,19 @@ export function ManageClient({
         <div className="pt-cols">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+              {M.height}
+            </span>
+            {/* Für die genauere Körperfett-Schätzung (Navy, 0038). */}
+            <input
+              name="heightCm"
+              inputMode="decimal"
+              defaultValue={client.heightCm === null ? "" : t.fmt.num(client.heightCm)}
+              placeholder="178"
+            />
+          </label>
+
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
               {M.formulaSex}
             </span>
             {/* Nur für die Körperfett-Schätzung (0037), sonst nirgends. */}

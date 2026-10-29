@@ -134,6 +134,7 @@ export default async function ProgressPage() {
     t,
     checkIns,
     (me?.formula_sex as "male" | "female" | null | undefined) ?? null,
+    me?.height_cm === null || me?.height_cm === undefined ? null : Number(me.height_cm),
   );
 
   // Messwerte nach Datum, neueste zuerst — die Zahlen zum Diagramm.

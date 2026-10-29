@@ -15,6 +15,8 @@ const SPALTE: Record<MeasureKey, keyof CoachCheckInInput["measures"]> = {
   waist: "waist_cm",
   arm: "arm_cm",
   thigh: "thigh_cm",
+  neck: "neck_cm",
+  hip: "hip_cm",
 };
 
 /**

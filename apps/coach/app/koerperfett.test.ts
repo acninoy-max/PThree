@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { koerperfettYmca } from "./koerperfett";
+import { koerperfettNavy, koerperfettYmca, schaetzeKoerperfett } from "./koerperfett";
 
 describe("Körperfett nach YMCA", () => {
   it("Mann, 90 cm Taille, 85 kg: 17,7 %", () => {
@@ -23,5 +23,33 @@ describe("Körperfett nach YMCA", () => {
   it("Unplausibles (Tippfehler) wird null statt einer falschen Zahl", () => {
     assert.equal(koerperfettYmca(40, 120, "male"), null); // negativ
     assert.equal(koerperfettYmca(250, 50, "female"), null); // weit über 60 %
+  });
+});
+
+describe("Körperfett nach Navy und Auswahl der Methode", () => {
+  it("Mann: Taille 90, Hals 38, 180 cm", () => {
+    // 495 / (1,0324 − 0,19077·log10(52) + 0,15456·log10(180)) − 450 = 19,812
+    assert.equal(koerperfettNavy(90, 38, null, 180, "male"), 19.8);
+  });
+  it("Frau: Taille 75, Hüfte 98, Hals 32, 168 cm", () => {
+    // 495 / (1,29579 − 0,35004·log10(141) + 0,221·log10(168)) − 450 = 28,136
+    assert.equal(koerperfettNavy(75, 32, 98, 168, "female"), 28.1);
+  });
+  it("Frau ohne Hüfte: keine Navy-Rechnung", () => {
+    assert.equal(koerperfettNavy(75, 32, null, 168, "female"), null);
+  });
+  it("alles da: Navy", () => {
+    const s = schaetzeKoerperfett({ tailleCm: 90, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: "male" });
+    assert.deepEqual(s, { wert: 19.8, methode: "navy" });
+  });
+  it("ohne Hals oder ohne Größe: Rückfall auf YMCA", () => {
+    const ohneHals = schaetzeKoerperfett({ tailleCm: 90, halsCm: null, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: "male" });
+    assert.deepEqual(ohneHals, { wert: 17.7, methode: "ymca" });
+    const ohneGroesse = schaetzeKoerperfett({ tailleCm: 90, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: null, geschlecht: "male" });
+    assert.equal(ohneGroesse!.methode, "ymca");
+  });
+  it("ohne Taille oder Geschlecht: gar nichts", () => {
+    assert.equal(schaetzeKoerperfett({ tailleCm: null, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: "male" }), null);
+    assert.equal(schaetzeKoerperfett({ tailleCm: 90, halsCm: 38, huefteCm: null, gewichtKg: 85, groesseCm: 180, geschlecht: null }), null);
   });
 });

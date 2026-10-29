@@ -65,6 +65,8 @@ export function CheckInConfig({
         waist: fields.askWaist,
         arm: fields.askArm,
         thigh: fields.askThigh,
+        neck: fields.askNeck,
+        hip: fields.askHip,
       })[k],
   );
 
@@ -222,6 +224,8 @@ export function CheckInConfig({
                         waist: "askWaist",
                         arm: "askArm",
                         thigh: "askThigh",
+                        neck: "askNeck",
+                        hip: "askHip",
                       } as const
                     )[k];
                     return (

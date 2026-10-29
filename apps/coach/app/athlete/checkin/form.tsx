@@ -224,6 +224,8 @@ export function CheckInForm({
         waistCm: asNumber("waist"),
         armCm: asNumber("arm"),
         thighCm: asNumber("thigh"),
+        neckCm: asNumber("neck"),
+        hipCm: asNumber("hip"),
       });
       if (!result.ok) {
         setError(result.error);
