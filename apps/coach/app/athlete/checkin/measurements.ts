@@ -1,6 +1,7 @@
 import type { CheckInFields, CheckInRecord } from "@ptfive/db";
 import type { Dict } from "@/app/i18n";
 import { bereichFaellig } from "./rhythmus";
+import { koerperfettYmca, type FormelGeschlecht } from "@/app/koerperfett";
 
 export type MeasureKey = "shoulders" | "chest" | "waist" | "arm" | "thigh";
 
@@ -29,6 +30,8 @@ export const MEASURE_INFO: Record<
 
 /** Gewicht ist keine Maßband-Größe, gehört aber in dieselbe Kurve. */
 export const WEIGHT_COLOR = "#c42d1a";
+/** Körperfett (geschätzt) — eigene Farbe, nah am Gewicht. */
+export const BODYFAT_COLOR = "#b45309";
 
 /**
  * Baut die Reihen für das Verlaufsdiagramm aus den Check-ins.
@@ -37,6 +40,8 @@ export const WEIGHT_COLOR = "#c42d1a";
 export function buildSeries(
   t: Dict,
   history: readonly CheckInRecord[],
+  /** Für die Körperfett-Schätzung (0037). null = keine Kurve dafür. */
+  formulaSex: FormelGeschlecht | null = null,
 ): {
   key: string;
   label: string;
@@ -69,7 +74,19 @@ export function buildSeries(
     };
   });
 
-  return [weight, ...measures].filter((s) => s.points.length > 0);
+  // Körperfett, geschätzt aus Taille und Gewicht derselben Woche
+  // (koerperfett.ts). Nur Wochen mit beidem bekommen einen Punkt.
+  const koerperfett = {
+    key: "bodyfat",
+    label: t.labels.bodyFatEstimated,
+    unit: "%",
+    color: BODYFAT_COLOR,
+    points: sorted
+      .map((c) => ({ on: c.weekOf, value: koerperfettYmca(c.waistCm, c.weightKg, formulaSex) }))
+      .filter((p): p is { on: string; value: number } => p.value !== null),
+  };
+
+  return [weight, koerperfett, ...measures].filter((s) => s.points.length > 0);
 }
 
 /** Welche Maße der Coach für diesen Klienten eingeschaltet hat. */

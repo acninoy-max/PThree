@@ -75,6 +75,7 @@ export const labels = {
       how: "Rechtes Bein, eine Handbreit unter dem Schritt.",
     },
   },
+  bodyFatEstimated: "Körperfett (geschätzt)",
   weight: "Gewicht",
   pose: { front: "Vorne", side: "Seite", back: "Hinten" },
   location: {

@@ -72,6 +72,8 @@ export interface Client {
   coachingType: CoachingType;
   /** Trainingstage pro Woche, die der Klient sich vornimmt (0036). null = offen. */
   weeklyGoal: number | null;
+  /** Nur für die Körperfett-Formel (0037). null = nicht angegeben. */
+  formulaSex: "male" | "female" | null;
   goal: string | null;
   startedOn: ISODate;
   createdAt: ISODateTime;

@@ -48,7 +48,8 @@ export default async function ProgressPage() {
   } = await db.auth.getUser();
   const { data: me } = await db
     .from("clients")
-    .select("id")
+    // `*`: formula_sex (0037) für die Körperfett-Kurve, darf fehlen.
+    .select("*")
     .eq("profile_id", user?.id ?? "")
     .maybeSingle();
 
@@ -129,7 +130,11 @@ export default async function ProgressPage() {
     .filter((d) => d.points.length >= 2)
     .sort((a, b) => a.title.localeCompare(b.title, t.locale));
 
-  const series = buildSeries(t, checkIns);
+  const series = buildSeries(
+    t,
+    checkIns,
+    (me?.formula_sex as "male" | "female" | null | undefined) ?? null,
+  );
 
   // Messwerte nach Datum, neueste zuerst — die Zahlen zum Diagramm.
   const measurementRows = [...checkIns]

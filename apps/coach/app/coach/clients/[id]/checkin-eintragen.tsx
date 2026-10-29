@@ -7,6 +7,7 @@ import { IconX } from "@/app/icons";
 import { useT } from "@/app/i18n/client";
 import { activeMeasures, type MeasureKey } from "@/app/athlete/checkin/measurements";
 import { saveCoachCheckInAction, type CoachCheckInInput } from "@/app/actions";
+import { montagVon, plusTage, tagISO, zeitpunkt } from "@/app/zone";
 
 const SPALTE: Record<MeasureKey, keyof CoachCheckInInput["measures"]> = {
   shoulders: "shoulders_cm",
@@ -39,6 +40,9 @@ export function CheckInEintragen({
   const [error, setError] = useState<string | null>(null);
   const [hinweis, setHinweis] = useState<string | null>(null);
 
+  // Erst beim Öffnen gesetzt: „heute" nach der Uhr des Browsers würde
+  // beim Server-Rendern anders lauten (Hydration).
+  const [datum, setDatum] = useState("");
   const [gewicht, setGewicht] = useState("");
   const [skalen, setSkalen] = useState<{ energy: number | null; sleep: number | null; stress: number | null }>({
     energy: null,
@@ -63,6 +67,7 @@ export function CheckInEintragen({
     }
     start(async () => {
       const res = await saveCoachCheckInAction(clientId, {
+        datum,
         weightKg: zahl(gewicht),
         energy: skalen.energy,
         sleep: skalen.sleep,
@@ -87,7 +92,10 @@ export function CheckInEintragen({
     <>
       <button
         type="button"
-        onClick={() => setOffen(true)}
+        onClick={() => {
+          setDatum(tagISO(new Date()));
+          setOffen(true);
+        }}
         style={{
           background: "none",
           border: "none",
@@ -122,6 +130,28 @@ export function CheckInEintragen({
             </p>
 
             <div style={{ display: "grid", gap: 16 }}>
+              {/* Nachtragen (29.10.): Messtag wählen, eingetragen wird in
+                  dessen Woche. Ein Eintrag je Woche, wie beim Klienten. */}
+              <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
+                <span className="pt-label">{E.date}</span>
+                <input
+                  type="date"
+                  className="pt-datefield"
+                  value={datum}
+                  max={tagISO(new Date())}
+                  onChange={(e) => setDatum(e.target.value)}
+                  required
+                />
+                {datum && (
+                  <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+                    {E.weekOf(
+                      t.fmt.dayMonthLong(zeitpunkt(montagVon(datum), "12:00")),
+                      t.fmt.dayMonthLong(zeitpunkt(plusTage(montagVon(datum), 6), "12:00")),
+                    )}
+                  </span>
+                )}
+              </label>
+
               <label style={{ display: "grid", gap: 6, justifyItems: "start" }}>
                 <span className="pt-label">{E.weight}</span>
                 <input
@@ -182,7 +212,7 @@ export function CheckInEintragen({
                 <p style={{ margin: 0, fontSize: "var(--pt-fs-base)", color: "var(--pt-action)" }}>{error}</p>
               )}
 
-              <button type="button" className="pt-btn" onClick={speichern} disabled={pending}>
+              <button type="button" className="pt-btn" onClick={speichern} disabled={pending || !datum}>
                 {pending ? t.common.saving : t.common.save}
               </button>
             </div>

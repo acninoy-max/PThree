@@ -283,6 +283,21 @@ export function ManageClient({
         <div className="pt-cols">
           <label style={{ display: "grid", gap: 6 }}>
             <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+              {M.formulaSex}
+            </span>
+            {/* Nur für die Körperfett-Schätzung (0037), sonst nirgends. */}
+            <select name="formulaSex" defaultValue={client.formulaSex ?? ""}>
+              <option value="">{M.formulaSexNone}</option>
+              <option value="male">{M.formulaSexMale}</option>
+              <option value="female">{M.formulaSexFemale}</option>
+            </select>
+            <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
+              {M.formulaSexHint}
+            </span>
+          </label>
+
+          <label style={{ display: "grid", gap: 6 }}>
+            <span style={{ fontSize: "var(--pt-fs-sm)", color: "var(--pt-text-dim)" }}>
               {M.coachingType}
             </span>
             <select name="coachingType" defaultValue={client.coachingType}>

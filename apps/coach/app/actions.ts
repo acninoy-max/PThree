@@ -96,6 +96,7 @@ export async function updateClientAction(
   const email = form.get("email");
   const birthDate = form.get("birthDate");
   const coachingType = form.get("coachingType");
+  const formulaSex = form.get("formulaSex");
 
   if (typeof fullName === "string" && fullName.trim()) {
     patch.full_name = fullName.trim();
@@ -106,6 +107,9 @@ export async function updateClientAction(
   if (typeof email === "string") patch.email = email.trim() || null;
   if (typeof coachingType === "string" && ["personal", "online", "hybrid"].includes(coachingType)) {
     patch.coaching_type = coachingType;
+  }
+  if (typeof formulaSex === "string") {
+    patch.formula_sex = formulaSex === "male" || formulaSex === "female" ? formulaSex : null;
   }
   // Leeres Feld = kein Datum. Ohne diese Zeile schickt der Browser ""
   // und Postgres lehnt es als ungueltiges Datum ab.
@@ -438,6 +442,11 @@ export async function unlinkClientAction(
 // ---------- Check-in durch den Trainer (0034) ----------
 
 export interface CoachCheckInInput {
+  /**
+   * Tag der Messung, „JJJJ-MM-TT". Eingetragen wird in die Woche dieses
+   * Tages — so lassen sich frühere Messungen nachtragen (29.10.2026).
+   */
+  datum: string;
   weightKg: number | null;
   energy: number | null;
   sleep: number | null;
@@ -491,8 +500,13 @@ export async function saveCoachCheckInAction(
   }
   const skala = (v: number | null) => (v === null || v < 1 || v > 5 ? null : Math.round(v));
 
-  // Woche nach Amsterdam, wie überall (zone.ts).
-  const woche = montagVon(tagISO(new Date()));
+  // Woche des Messtags, in Amsterdam (zone.ts). Nicht in der Zukunft:
+  // Eine Messung von morgen gibt es noch nicht.
+  const heute = tagISO(new Date());
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.datum) || input.datum > heute) {
+    return { ok: false, error: t.coach.checkinEntry.dateInvalid };
+  }
+  const woche = montagVon(input.datum);
   const { data: vorhanden, error: leseFehler } = await db
     .from("check_ins")
     .select("*")

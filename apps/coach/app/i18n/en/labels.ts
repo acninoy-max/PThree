@@ -58,6 +58,7 @@ export const labels: Dict["labels"] = {
       how: "Right leg, one hand's width below the crotch.",
     },
   },
+  bodyFatEstimated: "Body fat (estimated)",
   weight: "Weight",
   pose: { front: "Front", side: "Side", back: "Back" },
   location: {

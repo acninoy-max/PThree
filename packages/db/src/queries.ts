@@ -34,6 +34,8 @@ interface ClientRow {
   coaching_type?: Client["coachingType"];
   /** Fehlt vor 0036. */
   weekly_goal?: number | null;
+  /** Fehlt vor 0037. */
+  formula_sex?: "male" | "female" | null;
   goal: string | null;
   started_on: string;
   created_at: string;
@@ -53,6 +55,7 @@ function toClient(row: ClientRow): Client {
     level: row.level,
     coachingType: row.coaching_type ?? "hybrid",
     weeklyGoal: row.weekly_goal ?? null,
+    formulaSex: row.formula_sex ?? null,
     goal: row.goal,
     startedOn: row.started_on,
     createdAt: row.created_at,
